@@ -141,6 +141,7 @@ export type Child = z.infer<typeof childSchema>;
 /* ── Sync-Protokoll ─────────────────────────────────────────────────────────── */
 
 export const syncRequestSchema = z.object({
+  childId: z.string().min(1).max(64),
   /** Höchste bereits bekannte `rev`. 0 = alles holen. */
   since: z.number().int().min(0),
   changes: z.array(entrySchema).max(500),

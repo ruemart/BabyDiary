@@ -9,7 +9,7 @@ import {
   localDayKey,
   minutesIntoLocalDay,
   relativeSince,
-} from "./time.js";
+} from "./time.ts";
 
 const TZ = "Europe/Berlin";
 
