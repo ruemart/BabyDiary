@@ -18,6 +18,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "allowScripts": {
-    "esbuild@0.21.5": true
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true,
+    "vue-demi@0.14.10": true,
+    "better-sqlite3@13.0.2": true
   }
 }

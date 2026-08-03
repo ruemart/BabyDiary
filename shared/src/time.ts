@@ -96,6 +96,21 @@ export function addDays(date: string, days: number): string {
   return fromAnchor(anchor(date) + days * 86_400_000);
 }
 
+/**
+ * Addiert Kalendermonate. Läuft ein Tag über das Monatsende hinaus (31.01. + 1 Monat),
+ * wird auf den letzten Tag des Zielmonats geklemmt statt in den Folgemonat zu rutschen.
+ * Wichtig für die U-Fenster, die in Lebensmonaten definiert sind.
+ */
+export function addMonths(date: string, months: number): string {
+  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
+  const target = new Date(Date.UTC(y, m - 1 + months, 1, 12, 0, 0));
+  const lastDayOfTarget = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0, 12, 0, 0),
+  ).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDayOfTarget));
+  return fromAnchor(target.getTime());
+}
+
 /* ── Lebensalter ────────────────────────────────────────────────────────────── */
 
 /** Vollendete Lebenstage am Zeitpunkt `at`. Geburtstag = Tag 0. */

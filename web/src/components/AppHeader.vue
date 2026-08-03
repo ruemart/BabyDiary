@@ -1,0 +1,66 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { useData } from "../stores/data.ts";
+
+const data = useData();
+
+/**
+ * Die Lebenswoche ist die Identität, unter der ein Säugling geführt wird — Eltern und
+ * Kinderärzte rechnen im ersten Jahr in Wochen, nicht in Monaten. Deshalb steht sie
+ * hier statt eines Datums.
+ */
+const weekLabel = computed(() => `Woche ${data.currentWeek}`);
+
+const syncLabel = computed(() => {
+  if (data.pending > 0 && data.syncState === "offline") return `${data.pending} wartet offline`;
+  if (data.syncState === "offline") return "offline";
+  if (data.syncState === "syncing") return "gleicht ab";
+  if (data.syncState === "unauthorized") return "nicht angemeldet";
+  if (data.syncState === "error") return "Abgleich gestört";
+  if (data.pending > 0) return `${data.pending} wartet`;
+  return null;
+});
+</script>
+
+<template>
+  <header class="header">
+    <div>
+      <h1 class="header__week">{{ weekLabel }}</h1>
+      <p class="header__name">{{ data.child?.name }}</p>
+    </div>
+    <!-- Nur zeigen, wenn es etwas zu sagen gibt. Ein dauerhaftes "alles in Ordnung"
+         wäre reines Rauschen an einer Stelle, die ruhig bleiben soll. -->
+    <span v-if="syncLabel" class="header__sync">{{ syncLabel }}</span>
+  </header>
+</template>
+
+<style scoped>
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 0 0.25rem;
+}
+
+.header__week {
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.header__name {
+  margin: 0.1rem 0 0;
+  color: var(--bm-ink-soft);
+  font-size: 0.95rem;
+}
+
+.header__sync {
+  flex: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 62.5rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+</style>

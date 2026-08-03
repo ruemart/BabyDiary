@@ -1,0 +1,220 @@
+/**
+ * Gestaltungsrichtung "Nachtlicht".
+ *
+ * Onyx ist ein Enterprise-System, aber konsequent über Design-Tokens gebaut. Deshalb
+ * wird hier NICHT pro Komponente überschrieben, sondern die Primitiv-Ebene ersetzt —
+ * die Rampen, aus denen Onyx seine semantischen Tokens ableitet. Dadurch folgt die
+ * gesamte Bibliothek automatisch, auch Komponenten, die wir noch gar nicht benutzen.
+ *
+ * Die Leitidee kommt nicht aus dem Moodboard, sondern aus der Nutzungssituation:
+ * Diese App wird nachts um drei im abgedunkelten Kinderzimmer bedient. Deshalb ist die
+ * Nachtdarstellung keine Zugabe, sondern der eigentliche Hauptfall — und sie ist
+ * bewusst bernsteinfarben statt blaustichig gehalten. Blaues Licht zu dieser Uhrzeit
+ * macht das Wiedereinschlafen messbar schwerer. Das ist der seltene Fall, in dem eine
+ * Farbentscheidung eine funktionale ist.
+ */
+
+/* ── Primitivrampe: Primärfarbe ─────────────────────────────────────────────────
+ * Bernstein statt Onyx-Cyan. Die Rampe hat bewusst dieselbe Helligkeitsstruktur wie
+ * das Original (mittelhelle Marke bei 500), weil Onyx auf CTA-Flächen dunklen Text
+ * setzt — eine dunkle Marke bei 500 würde das System an vielen Stellen brechen.
+ */
+:root {
+  --onyx-color-onyx-100: #fef6e9;
+  --onyx-color-onyx-200: #fce9c6;
+  --onyx-color-onyx-300: #f8d599;
+  --onyx-color-onyx-400: #f2be6a;
+  --onyx-color-onyx-500: #e8a33d; /* Nachtlicht-Bernstein — die Marke */
+  --onyx-color-onyx-600: #d08d2c;
+  --onyx-color-onyx-700: #ae7423;
+  --onyx-color-onyx-800: #8c5c1c;
+  --onyx-color-onyx-900: #6b4615;
+  --onyx-color-onyx-1000: #4d3210;
+  --onyx-color-onyx-1100: #33210a;
+  --onyx-color-onyx-1200: #1f1406;
+
+  /* ── Primitivrampe: Neutraltöne ──────────────────────────────────────────────
+   * Onyx' "steel" ist deutlich blaustichig (#fafbfc … #000e19). Ersetzt durch eine
+   * warme, leicht pflaumenstichige Grauachse: damit verlieren sämtliche Flächen,
+   * Rahmen und Texte der Bibliothek den Bürocharakter, ohne dass eine einzige
+   * Komponente angefasst werden muss.
+   */
+  --onyx-color-neutral-steel-100: #fbf9f6;
+  --onyx-color-neutral-steel-200: #efeae3;
+  --onyx-color-neutral-steel-300: #ddd5cb;
+  --onyx-color-neutral-steel-400: #bfb4a8;
+  --onyx-color-neutral-steel-500: #9c9086;
+  --onyx-color-neutral-steel-600: #7a6e66;
+  --onyx-color-neutral-steel-700: #5f5450;
+  --onyx-color-neutral-steel-800: #4a403e;
+  --onyx-color-neutral-steel-900: #362e2e;
+  --onyx-color-neutral-steel-1000: #241e1f;
+  --onyx-color-neutral-steel-1100: #191416;
+  --onyx-color-neutral-steel-1200: #0f0b0d;
+
+  --onyx-color-neutral-stone-100: #faf7f2;
+  --onyx-color-neutral-stone-200: #f0ebe1;
+  --onyx-color-neutral-stone-300: #e0d7c9;
+  --onyx-color-neutral-stone-400: #c4b8a6;
+
+  /* Weiche statt scharfe Kanten. Onyx leitet jeden Komponentenradius hieraus ab. */
+  --onyx-number-radius-100: 0.25rem;
+  --onyx-number-radius-200: 0.5rem;
+  --onyx-number-radius-250: 0.625rem;
+  --onyx-number-radius-300: 0.875rem;
+  --onyx-number-radius-325: 1rem;
+  --onyx-number-radius-350: 1.125rem;
+  --onyx-number-radius-375: 1.25rem;
+  --onyx-number-radius-400: 1.375rem;
+  --onyx-number-radius-450: 1.5rem;
+  --onyx-number-radius-475: 1.75rem;
+  --onyx-number-radius-500: 2.25rem;
+
+  /* Bricolage Grotesque für Überschriften und Zahlen: eine Grotesk mit Eigenheiten,
+   * die freundlich wirkt, ohne kindlich zu sein. Source Sans 3 bleibt für Fließtext
+   * und Bedienelemente — es ist in kleinen Graden schlicht besser lesbar. */
+  --onyx-font-family-h1: "Bricolage Grotesque Variable";
+  --onyx-font-family-h2: "Bricolage Grotesque Variable";
+  --onyx-font-family-h3: "Bricolage Grotesque Variable";
+  --onyx-font-family-h4: "Bricolage Grotesque Variable";
+}
+
+/* ── Eigene Tokens ──────────────────────────────────────────────────────────────
+ * Was Onyx nicht kennt: die Farbcodierung der Eintragstypen. Fünf gedeckte Töne,
+ * die sich klar unterscheiden und trotzdem zusammengehören.
+ */
+:root {
+  --bm-feed: #e8a33d; /* Bernstein — Flasche */
+  --bm-feed-soft: #fdf1dc;
+  --bm-diaper: #7c9a82; /* Salbei — Windel */
+  --bm-diaper-soft: #e8efe8;
+  --bm-sleep: #46506b; /* Dämmerblau — Schlaf */
+  --bm-sleep-soft: #e4e6ee;
+  --bm-growth: #6b4a5e; /* Pflaume — Wachstum */
+  --bm-growth-soft: #efe6ec;
+  --bm-photo: #b5677a; /* Altrosa — Meilenstein und Foto */
+  --bm-photo-soft: #f7e6ea;
+
+  --bm-page: #f7f4ee; /* Milchglas */
+  --bm-surface: #ffffff;
+  --bm-surface-sunk: #efe9df;
+  --bm-ink: #2a2028;
+  --bm-ink-soft: #6b615f;
+  --bm-hairline: #e2dad0;
+
+  --bm-shadow-card: 0 1px 2px rgb(42 32 40 / 6%), 0 6px 20px -8px rgb(42 32 40 / 14%);
+  --bm-shadow-lift: 0 2px 4px rgb(42 32 40 / 8%), 0 16px 40px -12px rgb(42 32 40 / 22%);
+
+  --bm-font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --bm-font-body: "Source Sans 3 Variable", system-ui, sans-serif;
+
+  /* ── Diagrammfarben ──────────────────────────────────────────────────────────
+   * Getrennt von den UI-Akzenten oben, und das aus einem geprüften Grund: Die
+   * gedeckten Oberflächentöne fallen als Datenreihen durch — Pflaume und Dämmerblau
+   * liegen bei ΔE 6,3, also selbst mit vollem Farbsehen kaum unterscheidbar. Die
+   * Werte hier sind mit dem Paletten-Validator geprüft und bestehen in beiden
+   * Darstellungen alle sechs Kriterien (Helligkeitsband, Chroma, Farbfehlsichtigkeit,
+   * Normalsicht-Abstand, Kontrast zur Fläche).
+   *
+   * Reihenfolge ist fest: Flasche, Schlaf, Windel. Nie zyklisch weiterdrehen.
+   */
+  --bm-chart-feed: #b8770f;
+  --bm-chart-sleep: #2f5fa8;
+  --bm-chart-diaper: #2e7d4f;
+  --bm-chart-grid: #e5ddd3;
+  --bm-chart-axis: #6b615f;
+  --bm-chart-reference: #2a2028;
+
+  color-scheme: light;
+}
+
+/* ── Nachtdarstellung ───────────────────────────────────────────────────────────
+ * Warmes, entsättigtes Dunkel statt des üblichen Blauschwarz. Der Kontrast ist
+ * bewusst NICHT auf Maximum gezogen: ein reinweißer Text auf tiefschwarzem Grund
+ * blendet im dunklen Zimmer und lässt die Augen minutenlang nachjustieren.
+ */
+:root[data-mode="night"] {
+  color-scheme: dark;
+
+  --bm-page: #16120f;
+  --bm-surface: #211a16;
+  --bm-surface-sunk: #191410;
+  --bm-ink: #ede0d2;
+  --bm-ink-soft: #a3948a;
+  --bm-hairline: #322820;
+
+  --bm-feed-soft: #33240f;
+  --bm-diaper-soft: #1e2a20;
+  --bm-sleep-soft: #1c2030;
+  --bm-growth-soft: #2b1e26;
+  --bm-photo-soft: #301d23;
+
+  --bm-shadow-card: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 20px -8px rgb(0 0 0 / 60%);
+  --bm-shadow-lift: 0 2px 4px rgb(0 0 0 / 50%), 0 16px 40px -12px rgb(0 0 0 / 70%);
+
+  /* Eigene Stufen für die dunkle Fläche, keine automatische Umkehrung der hellen —
+   * separat gegen #211a16 validiert. */
+  --bm-chart-feed: #bd7d26;
+  --bm-chart-sleep: #6285cf;
+  --bm-chart-diaper: #43a066;
+  --bm-chart-grid: #322820;
+  --bm-chart-axis: #a3948a;
+  --bm-chart-reference: #ede0d2;
+}
+
+/* ── Grundlagen ─────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bm-page);
+  color: var(--bm-ink);
+  font-family: var(--bm-font-body);
+  /* Verhindert, dass iOS beim Fokussieren eines Eingabefelds die Seite zoomt. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  /* Vollbild-PWA: unter der Statusleiste bzw. über der Home-Indicator-Zone nicht kleben. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--bm-font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* Zahlen in Statuszeilen und Tabellen dürfen beim Ticken nicht springen. */
+.bm-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tastaturfokus muss sichtbar bleiben — auch nachdem wir alle Radien verändert haben. */
+:focus-visible {
+  outline: 2px solid var(--bm-feed);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
