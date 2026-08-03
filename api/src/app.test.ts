@@ -216,3 +216,48 @@ describe("Health", () => {
     expect(res.json().ok).toBe(true);
   });
 });
+
+describe("Zweites Gerät", () => {
+  it("bekommt Kind und Einträge, ohne die childId zu kennen", async () => {
+    const mama = await login("Mama");
+
+    // Mama richtet ein und trägt etwas ein.
+    await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: mama },
+      payload: {
+        childId: CHILD_ID,
+        since: 0,
+        changes: [entry({ id: "a" })],
+        child: {
+          id: CHILD_ID,
+          name: "Lotte",
+          sex: "female",
+          birthDate: "2026-06-15",
+          dueDate: null,
+          birthWeightG: null,
+          birthLengthMm: null,
+          birthHeadMm: null,
+          timezone: "Europe/Berlin",
+          editedAt: "2026-08-04T10:00:00.000Z",
+        },
+      },
+    });
+
+    // Papas Gerät ist frisch: leere lokale Datenbank, kennt die childId nicht.
+    const papa = await login("Papa");
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: papa },
+      payload: { childId: "bootstrap", since: 0, changes: [], child: null },
+    });
+
+    const body = res.json<SyncResponse>();
+    // Ohne die Auflösung serverseitig bekäme Papa hier nichts und die App würde
+    // ihm den Einrichtungsdialog zeigen — mit einem zweiten Kind als Ergebnis.
+    expect(body.child?.name).toBe("Lotte");
+    expect(body.entries.map((e) => e.id)).toEqual(["a"]);
+  });
+});

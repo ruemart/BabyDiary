@@ -115,8 +115,18 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
 
   /** Kennzahlen für die Kacheln über den Diagrammen. */
   const summary = computed(() => {
-    const recent = dailyTotals.value.slice(-7).filter((d) => d.feeds > 0);
-    const previous = dailyTotals.value.slice(-14, -7).filter((d) => d.feeds > 0);
+    /**
+     * Der HEUTIGE Tag bleibt aus allen Mittelwerten draußen.
+     *
+     * Er ist per Definition unvollständig — um 8 Uhr morgens stehen erst zwei
+     * Mahlzeiten drin. Rechnet man ihn mit, zieht er den Wochenschnitt nach unten und
+     * die App meldet "11 % weniger als letzte Woche", während die Balken sichtbar
+     * steigen. Eine Kennzahl, die dem Diagramm daneben widerspricht, ist schlimmer
+     * als gar keine.
+     */
+    const complete = dailyTotals.value.slice(0, -1);
+    const recent = complete.slice(-7).filter((d) => d.feeds > 0);
+    const previous = complete.slice(-14, -7).filter((d) => d.feeds > 0);
 
     const avg = (list: DailyTotal[]) =>
       list.length ? Math.round(list.reduce((s, d) => s + d.totalMl, 0) / list.length) : null;

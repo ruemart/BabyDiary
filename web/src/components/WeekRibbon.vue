@@ -43,6 +43,14 @@ const pinsByWeek = computed(() => {
   return map;
 });
 
+function checkupsInWeek(week: number): TimelinePin[] {
+  return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "checkup");
+}
+
+function vaccinationCount(week: number): number {
+  return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "vaccination").length;
+}
+
 function bandStyle(band: TimelineBand) {
   const from = Math.max(0, band.fromWeek);
   const width = Math.max(0.5, band.toWeek - from + 1);
@@ -83,6 +91,12 @@ defineExpose({ scrollToWeek });
 
 <template>
   <div class="ribbon">
+    <div class="ribbon__bar">
+      <button class="ribbon__today" type="button" @click="scrollToWeek(currentWeek)">
+        Zu dieser Woche
+      </button>
+    </div>
+
     <div ref="scroller" class="ribbon__scroll" tabindex="0" role="group" aria-label="Wochen">
       <div class="ribbon__track" :style="{ '--week-w': '4.25rem' }">
         <!-- Sprung-Bänder liegen als durchgehende Fläche hinter den Zellen. -->
@@ -135,25 +149,28 @@ defineExpose({ scrollToWeek });
 
             <span class="cell__week bm-tabular">{{ week }}</span>
 
+            <!-- U-Termine namentlich, Impfungen zu EINEM Punkt zusammengefasst.
+                 Vier identische grüne Punkte nebeneinander tragen keine Information;
+                 welche Impfungen es sind, steht in der Detailkarte darunter. -->
             <span class="cell__pins">
               <span
-                v-for="pin in pinsByWeek.get(week) ?? []"
+                v-for="pin in checkupsInWeek(week)"
                 :key="pin.id"
-                class="pin"
-                :class="`pin--${pin.kind}`"
+                class="pin pin--checkup"
                 :title="pin.label"
               >
-                {{ pin.kind === "checkup" ? pin.label : "" }}
+                {{ pin.label }}
               </span>
+              <span
+                v-if="vaccinationCount(week) > 0"
+                class="pin pin--vaccination"
+                :title="`${vaccinationCount(week)} Impfung(en)`"
+              />
             </span>
           </button>
         </div>
       </div>
     </div>
-
-    <button class="ribbon__today" type="button" @click="scrollToWeek(currentWeek)">
-      Zu dieser Woche
-    </button>
   </div>
 </template>
 
@@ -184,11 +201,14 @@ defineExpose({ scrollToWeek });
 
 /* ── Sprung-Bänder ────────────────────────────────────────────────────────── */
 
+/* Die Sprung-Bänder laufen als durchgehender Streifen UNTER den Zellen, nicht
+   zwischen Wochenzahl und Terminmarkern. Vorher trennte das Band die Marker optisch
+   von ihrer eigenen Woche ab. */
 .bands {
   position: absolute;
-  inset-block: 5.4rem auto;
-  height: 1.4rem;
+  inset-block-end: 0;
   inset-inline-start: 0;
+  height: 1.4rem;
 }
 
 .band {
@@ -213,6 +233,8 @@ defineExpose({ scrollToWeek });
 
 .cells {
   display: flex;
+  /* Platz für den Bänder-Streifen darunter reservieren. */
+  padding-bottom: 1.75rem;
 }
 
 .cell {
@@ -291,14 +313,13 @@ defineExpose({ scrollToWeek });
   opacity: 0.55;
 }
 
-/* Platz für das Sprungband unter der Wochenzahl freihalten. */
 .cell__pins {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 0.15rem;
-  min-height: 2.75rem;
-  padding-top: 1.6rem;
+  min-height: 1rem;
 }
 
 .pin {
@@ -318,17 +339,26 @@ defineExpose({ scrollToWeek });
 
 .pin--vaccination {
   background: var(--bm-diaper);
+  width: 0.5rem;
   min-width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 50%;
 }
 
 .pin--milestone {
   background: var(--bm-photo);
 }
 
+/* Im normalen Fluss statt absolut positioniert — die frühere Variante lag über der
+   Unterzeile der Überschrift. */
+.ribbon__bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
 .ribbon__today {
-  position: absolute;
-  inset-block-start: -2.25rem;
-  inset-inline-end: 0;
   border: 1px solid var(--bm-hairline);
   border-radius: 62.5rem;
   padding: 0.25rem 0.7rem;

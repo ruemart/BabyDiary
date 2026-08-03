@@ -22,7 +22,9 @@ export function useUndo() {
       description: "Tippen zum Rückgängigmachen",
       color: "success",
       clickable: true,
-      duration: 6000,
+      // 4 s statt der üblichen 6: Wer drei Windeln hintereinander einträgt, stapelt
+      // sonst drei Toasts übereinander, die den halben Bildschirm verdecken.
+      duration: 4000,
       onClick: () => void data.remove(entryId),
     });
   };

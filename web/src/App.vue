@@ -12,13 +12,27 @@ const route = useRoute();
 const router = useRouter();
 
 const authenticated = ref<boolean | null>(null);
+/**
+ * Ob der erste Abgleich mit dem Server durch ist.
+ *
+ * Entscheidend für das ZWEITE Gerät: Dessen lokale Datenbank ist leer, die Kinddaten
+ * liegen aber längst auf dem Server. Ohne dieses Flag würde dem zweiten Elternteil
+ * der Einrichtungsdialog gezeigt und er müsste alles noch einmal eintippen — und
+ * hätte am Ende ein zweites Kind in der Datenbank.
+ */
+const initialSyncDone = ref(false);
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 
 /** Der Einladungsbildschirm bringt sein eigenes Layout mit. */
 const isJoinRoute = computed(() => route.name === "start");
 
 const needsSetup = computed(
-  () => authenticated.value === true && data.ready && !data.child && !isJoinRoute.value,
+  () =>
+    authenticated.value === true &&
+    data.ready &&
+    initialSyncDone.value &&
+    !data.child &&
+    !isJoinRoute.value,
 );
 
 const showShell = computed(
@@ -37,7 +51,9 @@ onMounted(async () => {
     return;
   }
 
-  void data.pushNow();
+  // Erst abgleichen, dann entscheiden, ob eingerichtet werden muss.
+  await data.pushNow();
+  initialSyncDone.value = true;
 
   // Beim Zurückholen der App sofort abgleichen — dann sieht man die Einträge des
   // anderen Geräts direkt beim Aufwachen und nicht erst nach dem nächsten Timer.

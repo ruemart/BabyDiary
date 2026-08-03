@@ -14,7 +14,7 @@ function required(name: string): string {
 const dataDir = process.env["DATA_DIR"] ?? join(process.cwd(), "..", "data");
 
 export const config = {
-  port: Number(process.env["PORT"] ?? 3000),
+  port: Number(process.env["PORT"] ?? 3010),
   host: process.env["HOST"] ?? "0.0.0.0",
   dataDir,
   databasePath: process.env["DATABASE_PATH"] ?? join(dataDir, "babymonitor.db"),

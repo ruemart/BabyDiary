@@ -165,8 +165,12 @@ export const useData = defineStore("data", () => {
   }
 
   async function pushNow(): Promise<void> {
-    const id = child.value?.id ?? (await getMeta(META_CHILD_ID));
-    if (!id) return;
+    /**
+     * "bootstrap" ist kein Fehler, sondern der Weg für ein frisch eingeladenes Gerät:
+     * Es kennt die childId noch nicht, der Server löst sie aus dem vorhandenen
+     * Datensatz auf und schickt Kind und Einträge zurück.
+     */
+    const id = child.value?.id ?? (await getMeta(META_CHILD_ID)) ?? "bootstrap";
 
     syncState.value = "syncing";
     const outcome = await sync(id);

@@ -27,10 +27,7 @@ async function onPick(event: Event) {
     <div class="nudge__ring" aria-hidden="true">
       <span class="bm-tabular">{{ data.currentWeek }}</span>
     </div>
-    <div class="nudge__text">
-      <p class="nudge__title">Für diese Woche fehlt noch ein Foto</p>
-      <p class="nudge__sub">Ein Bild pro Woche ergibt später einen schönen Zeitraffer.</p>
-    </div>
+    <p class="nudge__text">Foto für Woche {{ data.currentWeek }} fehlt noch</p>
     <button class="nudge__action" type="button" :disabled="busy" @click="input?.click()">
       {{ busy ? "Lädt …" : "Aufnehmen" }}
     </button>
@@ -47,57 +44,51 @@ async function onPick(event: Event) {
 </template>
 
 <style scoped>
+/* Bewusst die leiseste Zeile auf dem Bildschirm.
+   Der laute Platz gehört dem Flasche-Knopf; eine Erinnerung, die lauter ist als die
+   Hauptaktion, macht aus einem schönen Vorhaben ein Pflichtprogramm. */
 .nudge {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1rem;
-  border: 1px dashed color-mix(in srgb, var(--bm-photo) 45%, transparent);
-  border-radius: 1.25rem;
-  background: var(--bm-photo-soft);
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 1rem;
+  background: transparent;
 }
 
 .nudge__ring {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2rem;
+  height: 2rem;
   flex: none;
   display: grid;
   place-items: center;
-  border: 2px dashed color-mix(in srgb, var(--bm-photo) 55%, transparent);
+  border: 1.5px dashed color-mix(in srgb, var(--bm-photo) 45%, transparent);
   border-radius: 50%;
-  color: var(--bm-photo);
+  color: color-mix(in srgb, var(--bm-photo) 85%, transparent);
   font-family: var(--bm-font-display);
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
 .nudge__text {
   flex: 1;
   min-width: 0;
-}
-
-.nudge__title {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.nudge__sub {
-  margin: 0.1rem 0 0;
   color: var(--bm-ink-soft);
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
 }
 
 .nudge__action {
   flex: none;
-  min-height: 2.5rem;
-  padding: 0 0.9rem;
-  border: none;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--bm-photo) 40%, transparent);
   border-radius: 62.5rem;
-  background: var(--bm-photo);
-  color: #fff;
+  background: transparent;
+  color: var(--bm-photo);
   font: inherit;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 

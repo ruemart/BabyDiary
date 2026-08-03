@@ -27,9 +27,11 @@ const chartData = computed(() => ({
       label: "Tagesmenge",
       data: props.series.map((d) => d.totalMl),
       backgroundColor: colors.value.feed,
-      // Abgerundetes Datenende, am Nullpunkt verankert.
+      // Nur das Datenende rundet; der Fuß bleibt an der Nulllinie verankert.
+      // Mit `false` würden alle vier Ecken runden und die schmalen Balken sähen
+      // bei 30 Tagen auf einem Handybildschirm wie schwebende Pillen aus.
       borderRadius: 4,
-      borderSkipped: false,
+      borderSkipped: "bottom",
       // 2 px Fläche zwischen benachbarten Balken.
       categoryPercentage: 0.82,
       barPercentage: 0.94,

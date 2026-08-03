@@ -56,12 +56,21 @@ const options = computed<ChartOptions<"scatter">>(() => ({
       min: -0.5,
       max: props.days - 0.5,
       grid: { display: false },
+      // Halber Rand links und rechts, damit Punkte am Rand nicht abgeschnitten werden.
+      // Die Beschriftungen müssen deshalb von Hand gesetzt werden — Chart.js würde
+      // sonst auf den halben Positionen landen und "vor 29.5 T" schreiben.
+      afterBuildTicks: (axis) => {
+        const marks = [0, 7, 14, 21, props.days - 1].filter(
+          (v, i, all) => v >= 0 && v <= props.days - 1 && all.indexOf(v) === i,
+        );
+        axis.ticks = marks.map((value) => ({ value, label: "" }));
+      },
       ticks: {
         ...baseScaleStyle(colors.value).ticks,
-        stepSize: 7,
+        autoSkip: false,
         callback: (value) => {
           const daysAgo = props.days - 1 - Number(value);
-          if (daysAgo === 0) return "heute";
+          if (daysAgo <= 0) return "heute";
           return `vor ${daysAgo} T`;
         },
       },

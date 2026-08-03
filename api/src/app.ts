@@ -97,15 +97,26 @@ export async function buildApp(app: FastifyInstance, opts: { store: Store }) {
     }
 
     const { childId, since, changes, child } = parsed.data;
+
+    /**
+     * Ein frisch eingeladenes zweites Gerät kennt die childId noch nicht und schickt
+     * einen Platzhalter. Der Server löst sie aus dem vorhandenen Datensatz auf, damit
+     * das Gerät Kind und Einträge bekommt — statt den Einrichtungsdialog zu zeigen und
+     * am Ende ein zweites Kind anzulegen.
+     *
+     * Ein Haushalt, ein Kind: Wenn hier schon eines steht, gewinnt es.
+     */
+    const effectiveChildId = store.getChild()?.id ?? childId;
+
     // `createdBy` kommt aus dem Cookie, nicht aus dem Body — sonst könnte ein Gerät
     // Einträge unter fremdem Namen anlegen.
     const stamped = changes.map((c) => ({ ...c, createdBy: req.session!.name }));
 
-    const { rejected } = store.applyChanges(childId, stamped, child);
+    const { rejected } = store.applyChanges(effectiveChildId, stamped, child);
 
     const response: SyncResponse = {
       rev: store.currentRev(),
-      entries: store.entriesSince(childId, since),
+      entries: store.entriesSince(effectiveChildId, since),
       child: store.getChild(),
       rejected,
     };
