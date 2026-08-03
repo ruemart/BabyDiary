@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Laufzeitdaten: SQLite-Datei, Fotos, Backups — gehören nie ins Repo
+data/
+backups/
+
+.env
+.env.local
+*.local
+
+# Test-Artefakte
+coverage/
+test-results/
+playwright-report/
+.playwright/
+
+.DS_Store
+*.log
