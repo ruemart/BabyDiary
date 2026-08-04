@@ -51,6 +51,10 @@ function vaccinationCount(week: number): number {
   return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "vaccination").length;
 }
 
+function milestoneCount(week: number): number {
+  return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "milestone").length;
+}
+
 function bandStyle(band: TimelineBand) {
   const from = Math.max(0, band.fromWeek);
   const width = Math.max(0.5, band.toWeek - from + 1);
@@ -165,6 +169,11 @@ defineExpose({ scrollToWeek });
                 v-if="vaccinationCount(week) > 0"
                 class="pin pin--vaccination"
                 :title="`${vaccinationCount(week)} Impfung(en)`"
+              />
+              <span
+                v-if="milestoneCount(week) > 0"
+                class="pin pin--milestone"
+                :title="`${milestoneCount(week)} Meilenstein(e) üblich ab dieser Woche`"
               />
             </span>
           </button>
@@ -348,6 +357,11 @@ defineExpose({ scrollToWeek });
 
 .pin--milestone {
   background: var(--bm-photo);
+  width: 0.5rem;
+  min-width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 50%;
 }
 
 /* Im normalen Fluss statt absolut positioniert — die frühere Variante lag über der

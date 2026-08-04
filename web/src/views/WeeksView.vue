@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { useRoute } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
-import { useTimeline } from "../composables/useTimeline.ts";
+import { useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 import { LEAP_DISCLAIMER } from "../data/leaps.ts";
 import { CHECKUP_NOTE } from "../data/checkups.ts";
@@ -70,6 +70,20 @@ async function removePhoto() {
   if (!photo) return;
   await data.remove(photo.id);
 }
+
+/**
+ * Beschriftung je Art.
+ *
+ * Vorher stand hier ein Ternär mit zwei Zweigen — geschrieben, als es nur
+ * Untersuchungen und Impfungen gab. Meilensteine landeten dadurch stillschweigend
+ * im Impfungs-Zweig. Eine vollständige Zuordnung kann das nicht passieren: Kommt
+ * eine Art dazu, fällt die Lücke sofort auf.
+ */
+const PIN_KIND_LABEL: Record<TimelinePin["kind"], string> = {
+  checkup: "Untersuchung",
+  vaccination: "Impfung",
+  milestone: "Meilenstein",
+};
 
 function daysAwayLabel(days: number): string {
   if (days <= 0) return "jetzt";
@@ -143,12 +157,15 @@ function daysAwayLabel(days: number): string {
       <ul v-if="selectedPins.length" class="pins">
         <li v-for="pin in selectedPins" :key="pin.id" class="pins__item">
           <span class="pins__kind" :class="`pins__kind--${pin.kind}`">
-            {{ pin.kind === "checkup" ? "Untersuchung" : "Impfung" }}
+            {{ PIN_KIND_LABEL[pin.kind] }}
           </span>
-          <div>
+          <div class="pins__body">
             <p class="pins__label">{{ pin.label }}</p>
             <p class="pins__when">{{ pin.when }}</p>
             <p v-if="pin.detail" class="pins__detail">{{ pin.detail }}</p>
+            <RouterLink v-if="pin.kind === 'milestone'" to="/meilensteine" class="pins__link">
+              In der Liste abhaken
+            </RouterLink>
           </div>
         </li>
       </ul>
@@ -325,6 +342,10 @@ function daysAwayLabel(days: number): string {
   background: var(--bm-diaper);
 }
 
+.pins__kind--milestone {
+  background: var(--bm-photo);
+}
+
 .pins__label {
   margin: 0;
   font-weight: 600;
@@ -334,6 +355,18 @@ function daysAwayLabel(days: number): string {
   margin: 0.1rem 0 0;
   font-size: 0.8125rem;
   color: var(--bm-ink-soft);
+}
+
+.pins__body {
+  min-width: 0;
+}
+
+.pins__link {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--bm-photo);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .pins__detail {
