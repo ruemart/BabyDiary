@@ -24,6 +24,20 @@ export type SyncOutcome = {
 let inFlight: Promise<SyncOutcome> | null = null;
 
 /**
+ * Obergrenze für jede Netzanfrage.
+ *
+ * Ein hängender `fetch` schlägt NICHT fehl — er antwortet nur nie. Ohne Zeitlimit
+ * bleibt jeder `await` darauf für immer stehen, und was daran hängt, hängt mit.
+ * Genau so ist der Startvorgang in einer Endlosschleife gelandet: In einem schlechten
+ * Netz blieb die Sitzungsprüfung offen, und die App kam nie über den Ladepunkt hinaus.
+ */
+const NETWORK_TIMEOUT_MS = 8000;
+
+function timeoutSignal(ms = NETWORK_TIMEOUT_MS): AbortSignal {
+  return AbortSignal.timeout(ms);
+}
+
+/**
  * Push und Pull in einem Request.
  *
  * Läuft immer nur einmal gleichzeitig: ein zweiter Aufruf bekommt das laufende
@@ -49,6 +63,8 @@ async function run(childId: string): Promise<SyncOutcome> {
       method: "POST",
       headers: { "content-type": "application/json" },
       credentials: "same-origin",
+      // Der Sync darf länger dauern als eine Sitzungsprüfung — er trägt Daten.
+      signal: timeoutSignal(20_000),
       body: JSON.stringify({ childId, since, changes: entries, child }),
     });
   } catch {
@@ -96,12 +112,16 @@ async function run(childId: string): Promise<SyncOutcome> {
 
 export async function checkSession(): Promise<{ authenticated: boolean; name?: string }> {
   try {
-    const res = await fetch("/api/session/check", { credentials: "same-origin" });
+    const res = await fetch("/api/session/check", {
+      credentials: "same-origin",
+      signal: timeoutSignal(),
+    });
     if (!res.ok) return { authenticated: false };
     return await res.json();
   } catch {
-    // Offline: wir wissen es nicht. Als angemeldet behandeln, damit die App im
-    // Funkloch nicht auf den Einladungsbildschirm zurückfällt.
+    // Offline ODER Zeitüberschreitung: Wir wissen es nicht. Als angemeldet behandeln,
+    // damit die App im Funkloch weiterläuft statt auf den Einladungsbildschirm
+    // zurückzufallen — die Eingabe funktioniert lokal ohnehin.
     return { authenticated: true };
   }
 }

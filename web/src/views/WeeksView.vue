@@ -75,7 +75,6 @@ function daysAwayLabel(days: number): string {
       class="hidden-input"
       type="file"
       accept="image/*"
-      capture="user"
       @change="onPhotoPicked"
     />
 

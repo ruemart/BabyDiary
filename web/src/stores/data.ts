@@ -211,7 +211,12 @@ export const useData = defineStore("data", () => {
     syncState.value = outcome.state;
     // Abgelehnte Einträge zur Anzeige durchreichen: Sie sind aus dem Ausgangskorb
     // draußen und brauchen eine Korrektur von Hand — das darf nicht still passieren.
-    if (outcome.invalid.length > 0) invalidEntries.value = outcome.invalid;
+    if (outcome.state === "idle") {
+      // Bei einem erfolgreichen Durchgang gilt die Liste neu: Was jetzt nicht mehr
+      // gemeldet wird, ist angenommen worden. Sonst bliebe der Hinweis für immer
+      // stehen, obwohl die Korrektur längst durch ist.
+      invalidEntries.value = outcome.invalid;
+    }
     if (outcome.pulled > 0) await load();
     pending.value = await outboxCount();
   }

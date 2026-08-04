@@ -22,6 +22,8 @@ const APPEARANCES: { value: AppearanceSetting; label: string; hint: string }[] =
 
 const photoCount = computed(() => data.photosByWeek.size);
 
+const childRejected = computed(() => data.invalidEntries.find((i) => i.id === "child"));
+
 async function save() {
   if (!data.child || !form.value.name?.trim() || !form.value.birthDate) return;
   saving.value = true;
@@ -38,6 +40,8 @@ async function save() {
     editedAt: new Date().toISOString(),
   });
   saving.value = false;
+  // Der Hinweis verschwindet erst, wenn der Server die neuen Werte annimmt.
+  await data.pushNow();
   toast.show({ headline: "Gespeichert", color: "success" });
 }
 
@@ -82,6 +86,17 @@ async function signOut() {
 <template>
   <div class="settings">
     <h1 class="settings__title">Einstellungen</h1>
+
+    <!-- Die Stammdaten werden vom Server abgelehnt. Der Hinweis gehört genau hierhin,
+         wo sie sich auch korrigieren lassen — nicht in eine allgemeine Fehlerliste. -->
+    <div v-if="childRejected" class="warning" role="alert">
+      <p class="warning__title">Die Angaben zum Kind werden nicht übertragen</p>
+      <p class="warning__text">
+        Ein Wert liegt außerhalb des Erlaubten — meist die Geburtsgröße oder der
+        Kopfumfang. Bitte in Zentimetern eintragen (z. B. 52) und speichern.
+      </p>
+      <p class="warning__reason">{{ childRejected.reason }}</p>
+    </div>
 
     <section class="card">
       <h2 class="card__title">Kind</h2>
@@ -143,6 +158,32 @@ async function signOut() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.warning {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--bm-photo) 45%, transparent);
+  border-radius: 1.125rem;
+  background: var(--bm-photo-soft);
+}
+
+.warning__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.warning__text {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
+
+.warning__reason {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--bm-ink-soft);
+  word-break: break-word;
 }
 
 .settings__title {

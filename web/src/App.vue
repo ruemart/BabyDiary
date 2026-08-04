@@ -4,6 +4,7 @@ import { RouterView, useRoute, useRouter } from "vue-router";
 import { OnyxToast } from "sit-onyx";
 import { useData } from "./stores/data.ts";
 import { checkSession } from "./sync.ts";
+import { wipeLocal } from "./db/local.ts";
 import BottomNav from "./components/BottomNav.vue";
 import SetupWizard from "./components/SetupWizard.vue";
 
@@ -39,7 +40,41 @@ const showShell = computed(
   () => authenticated.value === true && data.ready && !!data.child && !isJoinRoute.value,
 );
 
+/**
+ * Der Startvorgang darf nie ohne Ausweg hängen bleiben.
+ *
+ * Nach ein paar Sekunden erscheinen Schaltflächen zum Neuladen und zum Zurücksetzen
+ * der lokalen Daten. Eine App, die sich im Ladepunkt aufhängt und den Menschen ohne
+ * jede Handhabe zurücklässt, ist kaputt — egal aus welchem Grund sie hängt.
+ */
+const bootStalled = ref(false);
+const bootError = ref<string | null>(null);
+let stallTimer: ReturnType<typeof setTimeout> | null = null;
+
+function reload() {
+  location.reload();
+}
+
+async function resetLocalData() {
+  await wipeLocal().catch(() => {});
+  location.reload();
+}
+
 onMounted(async () => {
+  stallTimer = setTimeout(() => (bootStalled.value = true), 6000);
+
+  try {
+    await boot();
+  } catch (error) {
+    // Sichtbar scheitern statt still hängen.
+    bootError.value = error instanceof Error ? error.message : String(error);
+    authenticated.value = authenticated.value ?? false;
+  } finally {
+    if (stallTimer) clearTimeout(stallTimer);
+  }
+});
+
+async function boot() {
   await data.load();
 
   const session = await checkSession();
@@ -65,7 +100,7 @@ onMounted(async () => {
   syncTimer = setInterval(() => {
     if (!document.hidden) void data.pushNow();
   }, 30_000);
-});
+}
 
 onUnmounted(() => {
   document.removeEventListener("visibilitychange", onVisibility);
@@ -82,6 +117,24 @@ function onVisibility() {
     <template v-if="authenticated === null">
       <div class="boot" role="status" aria-live="polite">
         <span class="boot__dot" />
+        <div v-if="bootStalled || bootError" class="boot__rescue">
+          <p class="boot__text">
+            {{ bootError ? "Beim Start ist etwas schiefgelaufen." : "Das dauert länger als gewohnt." }}
+          </p>
+          <p v-if="bootError" class="boot__detail">{{ bootError }}</p>
+          <div class="boot__actions">
+            <button class="boot__button" type="button" @click="reload">
+              Neu laden
+            </button>
+            <button class="boot__button boot__button--quiet" type="button" @click="resetLocalData">
+              Lokale Daten zurücksetzen
+            </button>
+          </div>
+          <p class="boot__note">
+            Zurücksetzen löscht nur die Kopie auf diesem Gerät. Alle Einträge bleiben
+            auf dem Server und den anderen Geräten erhalten.
+          </p>
+        </div>
       </div>
     </template>
 
@@ -118,9 +171,61 @@ function onVisibility() {
 }
 
 .boot {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
   min-height: 100dvh;
+  padding: 1.5rem;
+}
+
+.boot__rescue {
+  max-width: 22rem;
+  text-align: center;
+}
+
+.boot__text {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.boot__detail {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
+  word-break: break-word;
+}
+
+.boot__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.boot__button {
+  min-height: 2.875rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 1rem;
+  background: var(--bm-feed);
+  color: #2a2028;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boot__button--quiet {
+  background: transparent;
+  border: 1px solid var(--bm-hairline);
+  color: var(--bm-ink-soft);
+}
+
+.boot__note {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
 }
 
 .boot__dot {

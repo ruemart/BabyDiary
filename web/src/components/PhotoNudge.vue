@@ -29,15 +29,16 @@ async function onPick(event: Event) {
     </div>
     <p class="nudge__text">Foto für Woche {{ data.currentWeek }} fehlt noch</p>
     <button class="nudge__action" type="button" :disabled="busy" @click="input?.click()">
-      {{ busy ? "Lädt …" : "Aufnehmen" }}
+      {{ busy ? "Lädt …" : "Hinzufügen" }}
     </button>
-    <!-- capture="user" öffnet auf dem Handy direkt die Kamera statt der Galerie. -->
+    <!-- Bewusst OHNE `capture`: Mit dem Attribut springt das Handy direkt in die
+         Kamera, und ein bereits vorhandenes Foto lässt sich gar nicht auswählen.
+         Ohne zeigt das System die Auswahl "Aufnehmen oder aus der Galerie". -->
     <input
       ref="input"
       class="nudge__input"
       type="file"
       accept="image/*"
-      capture="user"
       @change="onPick"
     />
   </div>
