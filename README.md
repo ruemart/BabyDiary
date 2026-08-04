@@ -121,7 +121,11 @@ Der `backup`-Container legt jede Nacht eine Kopie unter `backups/` an und hält
 30 Tage vor. `sqlite3 .backup` statt `cp`: Eine laufende Datenbank zu kopieren erzeugt
 bei aktivem WAL eine Datei, die beim Wiederherstellen inkonsistent sein kann.
 
-Wiederherstellen:
+Die Dateien gehören dem Besitzer des Datenordners und haben Rechte `600` — es sind
+Gesundheitsdaten eines Kindes und gehen andere Nutzer auf dem Gerät nichts an.
+
+Wiederherstellen — **dieser Weg ist einmal vollständig durchgespielt worden**
+(Datenbank gelöscht, aus der Sicherung zurückgeholt, Datensatz war vollständig da):
 
 ```bash
 docker compose stop api
