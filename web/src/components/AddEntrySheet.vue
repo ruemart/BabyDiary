@@ -49,7 +49,6 @@ const TYPES: { value: EntryType; label: string }[] = [
   { value: "diaper", label: "Windel" },
   { value: "sleep", label: "Schlaf" },
   { value: "growth", label: "Wachstum" },
-  { value: "milestone", label: "Meilenstein" },
   { value: "note", label: "Notiz" },
   { value: "illness", label: "Krankheit" },
   { value: "absence", label: "Urlaub" },
@@ -159,8 +158,6 @@ const canSave = computed(() => {
       return amountMl.value >= 0;
     case "growth":
       return weightG.value !== null || lengthMm.value !== null || headMm.value !== null;
-    case "milestone":
-      return label.value.trim().length > 0;
     case "note":
       return note.value.trim().length > 0;
     case "sleep":
@@ -208,9 +205,7 @@ function fields() {
     lengthMm: type.value === "growth" ? lengthMm.value : null,
     headMm: type.value === "growth" ? headMm.value : null,
     label:
-      type.value === "milestone" || type.value === "illness" || type.value === "absence"
-        ? label.value.trim()
-        : null,
+      type.value === "illness" || type.value === "absence" ? label.value.trim() : null,
     note: note.value.trim() || null,
   };
 }
@@ -379,13 +374,6 @@ async function save() {
             </ul>
           </template>
         </div>
-      </template>
-
-      <template v-else-if="type === 'milestone'">
-        <label class="field">
-          <span class="field__label">Was war es?</span>
-          <input v-model="label" type="text" placeholder="z. B. Erstes Lächeln" />
-        </label>
       </template>
 
       <TimeField v-model="at" />

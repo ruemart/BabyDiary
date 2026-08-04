@@ -51,6 +51,21 @@ function onClose() {
 </template>
 
 <style scoped>
+/**
+ * Geschlossen heißt unsichtbar — ausdrücklich, nicht nur laut Browser-Vorgabe.
+ *
+ * Vue vererbt die Scope-Kennung der Elternkomponente auf das Wurzelelement einer
+ * Kindkomponente. Eine Regel wie `.sheet { display: flex }` im Elternteil trifft
+ * damit auch diesen <dialog> und hebt das `display: none` der Browser-Vorgabe auf —
+ * das Blatt liegt dann dauerhaft über der Seite und schluckt jeden Klick.
+ *
+ * Diese Regel hat höhere Spezifität als eine reine Klassenregel und gewinnt daher
+ * gegen einen solchen Unfall.
+ */
+dialog.sheet:not([open]) {
+  display: none;
+}
+
 .sheet {
   /* Am unteren Rand verankert, volle Breite, nach oben abgerundet. */
   margin: 0 0 0 auto;

@@ -175,17 +175,17 @@ function doneLabel(row: Row): string {
     <p class="note">{{ MILESTONE_NOTE }}</p>
 
     <SheetDialog v-model:open="sheetOpen" :title="selected?.label ?? 'Meilenstein'">
-      <div class="sheet">
-        <p v-if="selected" class="sheet__window">
+      <div class="ms-sheet">
+        <p v-if="selected" class="ms-sheet__window">
           Üblich in {{ windowLabel(selected) }}<span v-if="selected.source === 'who'"> (WHO)</span>
         </p>
-        <p v-if="selected?.hint" class="sheet__hint">{{ selected.hint }}</p>
-        <p class="sheet__label">Seit wann?</p>
+        <p v-if="selected?.hint" class="ms-sheet__hint">{{ selected.hint }}</p>
+        <p class="ms-sheet__label">Seit wann?</p>
         <TimeField v-model="at" />
       </div>
 
       <template #actions>
-        <div class="sheet__actions">
+        <div class="ms-sheet__actions">
           <button class="save" type="button" @click="save">
             {{ selected && achieved.get(selected.key) ? "Datum ändern" : "Abhaken" }}
           </button>
@@ -325,33 +325,33 @@ function doneLabel(row: Row): string {
   color: var(--bm-ink-soft);
 }
 
-.sheet {
+.ms-sheet {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.sheet__window {
+.ms-sheet__window {
   margin: 0;
   font-size: 0.875rem;
   color: var(--bm-ink-soft);
 }
 
-.sheet__hint {
+.ms-sheet__hint {
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.45;
   color: var(--bm-ink-soft);
 }
 
-.sheet__label {
+.ms-sheet__label {
   margin: 0.75rem 0 0;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--bm-ink-soft);
 }
 
-.sheet__actions {
+.ms-sheet__actions {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

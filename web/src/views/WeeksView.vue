@@ -49,8 +49,26 @@ function requestPhoto(week: number) {
 
 async function onPhotoPicked(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
-  if (file) await savePhoto(file, photoTargetWeek.value);
+  if (file) {
+    // Vorhandenes Foto derselben Woche zuerst entfernen — es gilt eines pro Woche.
+    const existing = data.photosByWeek.get(photoTargetWeek.value);
+    const saved = await savePhoto(file, photoTargetWeek.value);
+    if (saved && existing) await data.remove(existing.id);
+  }
   if (photoInput.value) photoInput.value.value = "";
+}
+
+/**
+ * Foto ersetzen heißt: neues hoch, altes weg.
+ *
+ * Der Eintrag trägt die Lebenswoche, und pro Woche gilt genau ein Foto — der alte
+ * Eintrag muss also verschwinden, sonst hängen zwei an derselben Woche und welches
+ * gewinnt, entscheidet die Reihenfolge im Speicher.
+ */
+async function removePhoto() {
+  const photo = selectedPhoto.value;
+  if (!photo) return;
+  await data.remove(photo.id);
 }
 
 function daysAwayLabel(days: number): string {
@@ -98,9 +116,20 @@ function daysAwayLabel(days: number): string {
         <span class="detail__date">ab {{ selectedDateLabel }}</span>
       </div>
 
-      <figure v-if="selectedPhoto" class="detail__photo">
-        <img :src="`/api/media/${selectedPhoto.mediaId}`" :alt="`Foto aus Woche ${selectedWeek}`" />
-      </figure>
+      <template v-if="selectedPhoto">
+        <figure class="detail__photo">
+          <img :src="`/api/media/${selectedPhoto.mediaId}`" :alt="`Foto aus Woche ${selectedWeek}`" />
+        </figure>
+        <!-- Ein Foto ist kein endgültiger Zustand: Das erste ist selten das beste. -->
+        <div class="photo-actions">
+          <button class="photo-action" type="button" :disabled="busy" @click="requestPhoto(selectedWeek)">
+            {{ busy ? "Lädt …" : "Anderes Foto" }}
+          </button>
+          <button class="photo-action photo-action--remove" type="button" @click="removePhoto">
+            Entfernen
+          </button>
+        </div>
+      </template>
       <button
         v-else-if="selectedWeek <= data.currentWeek"
         class="detail__add"
@@ -215,6 +244,35 @@ function daysAwayLabel(days: number): string {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.photo-action {
+  flex: 1;
+  min-height: 2.75rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.photo-action--remove {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--bm-photo) 45%, transparent);
+  color: var(--bm-photo);
+}
+
+.photo-action:disabled {
+  opacity: 0.5;
 }
 
 .detail__add {

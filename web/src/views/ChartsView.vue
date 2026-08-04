@@ -51,6 +51,11 @@ const currentPercentile = computed(() => {
   return z === null ? null : Math.round(zToPercentile(z));
 });
 
+/** Der Vergleichssatz muss zur Messgröße passen — bei Länge ist "schwer" schlicht falsch. */
+const percentileComparison = computed(() =>
+  growthMeasure.value === "weight" ? "leichter oder gleich schwer" : "kleiner oder gleich groß",
+);
+
 const maxAgeDays = computed(() =>
   growthPoints.value.length ? growthPoints.value[growthPoints.value.length - 1]!.ageDays : 60,
 );
@@ -158,8 +163,8 @@ const trendText = computed(() => {
       <template v-else>
         <p v-if="currentPercentile !== null" class="growth__percentile">
           Aktuell auf <strong>Perzentil {{ currentPercentile }}</strong> —
-          {{ currentPercentile }} von 100 gleichaltrigen Kindern sind leichter oder
-          gleich schwer.
+          {{ currentPercentile }} von 100 gleichaltrigen Kindern sind
+          {{ percentileComparison }}.
         </p>
         <GrowthChart
           :measure="growthMeasure"
