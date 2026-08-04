@@ -44,14 +44,40 @@ const isEditing = computed(() => !!props.entry);
 let lastBackdatedAt: Date | null = null;
 const BACKDATE_MEMORY_MS = 45 * 60 * 1000;
 
-const TYPES: { value: EntryType; label: string }[] = [
-  { value: "feed", label: "Flasche" },
-  { value: "diaper", label: "Windel" },
-  { value: "sleep", label: "Schlaf" },
-  { value: "growth", label: "Wachstum" },
-  { value: "note", label: "Notiz" },
-  { value: "illness", label: "Krankheit" },
-  { value: "absence", label: "Urlaub" },
+/**
+ * Nach Art gruppiert statt sieben gleichrangige Kacheln.
+ *
+ * Die Gruppen sind keine Kosmetik, sie benennen einen echten Unterschied: Die
+ * ersten drei sind der Alltag und der Grund, warum man überhaupt nachträgt. Die
+ * mittleren kommen selten. Die letzten beiden sind ZEITRÄUME — sie haben ein Ende
+ * und verhalten sich anders als alles darüber.
+ *
+ * Nichts ist versteckt: Alles bleibt einen Tap entfernt, nur das Gewicht folgt der
+ * Häufigkeit.
+ */
+const TYPE_GROUPS: { title: string; types: { value: EntryType; label: string }[] }[] = [
+  {
+    title: "Alltag",
+    types: [
+      { value: "feed", label: "Flasche" },
+      { value: "diaper", label: "Windel" },
+      { value: "sleep", label: "Schlaf" },
+    ],
+  },
+  {
+    title: "Ab und zu",
+    types: [
+      { value: "growth", label: "Wachstum" },
+      { value: "note", label: "Notiz" },
+    ],
+  },
+  {
+    title: "Zeitraum mit Anfang und Ende",
+    types: [
+      { value: "illness", label: "Krankheit" },
+      { value: "absence", label: "Urlaub" },
+    ],
+  },
 ];
 
 /** Häufige Krankheiten zum Antippen — Freitext bleibt trotzdem möglich. */
@@ -240,17 +266,28 @@ async function save() {
 <template>
   <SheetDialog v-model:open="open" :title="isEditing ? 'Eintrag ändern' : 'Eintrag nachtragen'">
     <div class="add">
-      <div v-if="!isEditing" class="types" role="group" aria-label="Art des Eintrags">
-        <button
-          v-for="option in TYPES"
-          :key="option.value"
-          type="button"
-          class="types__item"
-          :class="{ 'types__item--active': type === option.value }"
-          @click="type = option.value"
+      <div v-if="!isEditing" class="types">
+        <div
+          v-for="group in TYPE_GROUPS"
+          :key="group.title"
+          class="types__group"
+          role="group"
+          :aria-label="group.title"
         >
-          {{ option.label }}
-        </button>
+          <p class="types__title">{{ group.title }}</p>
+          <div class="types__row" :style="{ '--cols': group.types.length }">
+            <button
+              v-for="option in group.types"
+              :key="option.value"
+              type="button"
+              class="types__item"
+              :class="{ 'types__item--active': type === option.value }"
+              @click="type = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div v-if="type === 'feed'" class="field">
@@ -409,8 +446,22 @@ async function save() {
 }
 
 .types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.types__title {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--bm-ink-soft);
+}
+
+.types__row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--cols), 1fr);
   gap: 0.4rem;
 }
 

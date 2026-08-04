@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
 import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
-import type { TimelineBand, TimelinePin } from "../composables/useTimeline.ts";
+import type { PeriodBand, TimelineBand, TimelinePin } from "../composables/useTimeline.ts";
 import type { LocalEntry } from "../db/local.ts";
 
 /**
@@ -20,6 +20,7 @@ const props = defineProps<{
   currentWeek: number;
   birthDate: string;
   bands: TimelineBand[];
+  periods: PeriodBand[];
   pins: TimelinePin[];
   photos: Map<number, LocalEntry>;
 }>();
@@ -55,7 +56,7 @@ function milestoneCount(week: number): number {
   return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "milestone").length;
 }
 
-function bandStyle(band: TimelineBand) {
+function bandStyle(band: { fromWeek: number; toWeek: number }) {
   const from = Math.max(0, band.fromWeek);
   const width = Math.max(0.5, band.toWeek - from + 1);
   return {
@@ -64,8 +65,34 @@ function bandStyle(band: TimelineBand) {
   };
 }
 
+/**
+ * Zeiträume in Spuren stapeln, damit sich Überlappungen nicht verdecken.
+ * Krank im Urlaub ist keine exotische Kombination.
+ */
+const periodRows = computed(() => {
+  const rows: PeriodBand[][] = [];
+  for (const period of props.periods) {
+    const row = rows.find((r) => r.every((p) => p.toWeek < period.fromWeek || p.fromWeek > period.toWeek));
+    if (row) row.push(period);
+    else rows.push([period]);
+  }
+  return rows;
+});
+
 function weekDateLabel(week: number): string {
   return calendarDateLabel(lifeWeekStart(props.birthDate, week));
+}
+
+/**
+ * Kurzes Startdatum unter der Wochenzahl, etwa "31.7.".
+ *
+ * Der Beginn einer Lebenswoche ist der Wochentag der Geburt, nicht der Montag — die
+ * Wochen zählen ab dem Geburtstag. Ohne diese Zeile muss man rechnen, um zu wissen,
+ * wann Woche 14 eigentlich war.
+ */
+function weekShortDate(week: number): string {
+  const [, month, day] = lifeWeekStart(props.birthDate, week).split("-");
+  return `${Number(day)}.${Number(month)}.`;
 }
 
 function select(week: number) {
@@ -102,7 +129,7 @@ defineExpose({ scrollToWeek });
     </div>
 
     <div ref="scroller" class="ribbon__scroll" tabindex="0" role="group" aria-label="Wochen">
-      <div class="ribbon__track" :style="{ '--week-w': '4.25rem' }">
+      <div class="ribbon__track" :style="{ '--week-w': '4.25rem', '--period-rows': periodRows.length }">
         <!-- Sprung-Bänder liegen als durchgehende Fläche hinter den Zellen. -->
         <div class="bands" aria-hidden="true">
           <div
@@ -113,6 +140,22 @@ defineExpose({ scrollToWeek });
             :title="`Sprung ${band.leap.number}: ${band.leap.title}`"
           >
             <span class="band__label">{{ band.leap.title }}</span>
+          </div>
+        </div>
+
+        <!-- Tatsächlich Erlebtes auf eigener Spur, getrennt von den Sprung-Erwartungen. -->
+        <div class="periods" aria-hidden="true">
+          <div v-for="(row, i) in periodRows" :key="i" class="periods__row">
+            <div
+              v-for="period in row"
+              :key="period.id"
+              class="period"
+              :class="`period--${period.kind}`"
+              :style="bandStyle(period)"
+              :title="period.label"
+            >
+              <span class="period__label">{{ period.label }}{{ period.ongoing ? " …" : "" }}</span>
+            </div>
           </div>
         </div>
 
@@ -152,6 +195,7 @@ defineExpose({ scrollToWeek });
             </span>
 
             <span class="cell__week bm-tabular">{{ week }}</span>
+            <span class="cell__date bm-tabular">{{ weekShortDate(week) }}</span>
 
             <!-- U-Termine namentlich, Impfungen zu EINEM Punkt zusammengefasst.
                  Vier identische grüne Punkte nebeneinander tragen keine Information;
@@ -213,6 +257,43 @@ defineExpose({ scrollToWeek });
 /* Die Sprung-Bänder laufen als durchgehender Streifen UNTER den Zellen, nicht
    zwischen Wochenzahl und Terminmarkern. Vorher trennte das Band die Marker optisch
    von ihrer eigenen Woche ab. */
+.periods {
+  position: absolute;
+  inset-block-end: 1.6rem;
+  inset-inline-start: 0;
+}
+
+.periods__row {
+  position: relative;
+  height: 1.05rem;
+  margin-bottom: 0.1rem;
+}
+
+.period {
+  position: absolute;
+  height: 100%;
+  border-radius: 62.5rem;
+  display: flex;
+  align-items: center;
+  padding-inline: 0.45rem;
+  overflow: hidden;
+}
+
+.period--illness {
+  background: color-mix(in srgb, #b5677a 30%, transparent);
+}
+
+.period--absence {
+  background: color-mix(in srgb, var(--bm-sleep) 32%, transparent);
+}
+
+.period__label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--bm-ink);
+  white-space: nowrap;
+}
+
 .bands {
   position: absolute;
   inset-block-end: 0;
@@ -242,8 +323,8 @@ defineExpose({ scrollToWeek });
 
 .cells {
   display: flex;
-  /* Platz für den Bänder-Streifen darunter reservieren. */
-  padding-bottom: 1.75rem;
+  /* Platz für Zeitraum-Spuren und den Sprung-Streifen darunter reservieren. */
+  padding-bottom: calc(1.75rem + var(--period-rows, 0) * 1.15rem);
 }
 
 .cell {
@@ -253,7 +334,7 @@ defineExpose({ scrollToWeek });
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
   padding: 0.25rem 0.15rem 0;
   border: none;
   background: none;
@@ -303,6 +384,13 @@ defineExpose({ scrollToWeek });
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--bm-ink-soft);
+}
+
+.cell__date {
+  font-size: 0.625rem;
+  color: var(--bm-ink-soft);
+  opacity: 0.75;
+  line-height: 1;
 }
 
 .cell--current .cell__week {

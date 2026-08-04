@@ -16,6 +16,27 @@ import { startAppearanceWatcher } from "./composables/useAppearance.ts";
 
 startAppearanceWatcher();
 
+/**
+ * Auf eine neue Fassung reagieren, statt sie erst beim nächsten Kaltstart zu sehen.
+ *
+ * Der Service Worker übernimmt zwar sofort, aber die laufende Seite behält ihren
+ * alten Modulbaum — inklusive der Verweise auf Dateien, die es nicht mehr gibt.
+ * Deshalb hier einmal aktiv nachsehen und beim Wechsel neu laden.
+ */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    // Nur neu laden, wenn schon einmal ein Service Worker aktiv war — sonst würde
+    // die allererste Installation die Seite unnötig neu starten.
+    if (sessionStorage.getItem("bm.swReady")) location.reload();
+  });
+  void navigator.serviceWorker.ready.then(() => sessionStorage.setItem("bm.swReady", "1"));
+
+  // Beim Zurückholen der App nach einer neuen Fassung schauen.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) void navigator.serviceWorker.getRegistration().then((r) => r?.update());
+  });
+}
+
 const onyx = createOnyx({
   i18n: { locale: "de-DE", messages: { "de-DE": onyxDeDE } },
   router,

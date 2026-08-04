@@ -10,6 +10,7 @@ import PhotoNudge from "../components/PhotoNudge.vue";
 import AppHeader from "../components/AppHeader.vue";
 import { useAlerts, ALERT_DISCLAIMER } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
+import { useDailyIntake, INTAKE_NOTE } from "../composables/useDailyIntake.ts";
 import { ageInDays, localDayKey } from "@babymonitor/shared";
 import { onMounted } from "vue";
 
@@ -24,6 +25,8 @@ const { alerts } = useAlerts(
   () => data.timezone,
   () => (data.child ? ageInDays(data.child.birthDate, new Date(), data.timezone) : 0),
 );
+
+const intake = useDailyIntake(() => data.entries, () => data.timezone);
 
 const { byDay, load: loadWeather } = useWeather();
 onMounted(() => void loadWeather());
@@ -145,6 +148,17 @@ async function toggleSleep() {
         <template v-else>Noch keine Windel eingetragen</template>
       </div>
 
+      <!-- Tagesmenge als Einordnung, nicht als Sollvorgabe: Wie viel sie braucht,
+           entscheidet sie selbst. Deshalb steht hier nie ein Rückstand. -->
+      <div class="status__row status__row--intake">
+        <span class="status__dot" :style="{ background: 'var(--bm-feed)' }" />
+        <span>
+          Heute <strong class="bm-tabular">{{ intake.todayMl }} ml</strong>
+          <template v-if="intake.orientationMl"> · Richtwert etwa {{ intake.orientationMl }} ml</template>
+          <span v-if="intake.praise" class="status__praise">{{ intake.praise }}</span>
+        </span>
+      </div>
+
       <div v-if="todayWeather" class="status__row">
         <span class="status__dot" :style="{ background: 'var(--bm-growth)' }" />
         Heute bis {{ todayWeather.tmax }} °C · {{ todayWeather.label }}
@@ -201,6 +215,8 @@ async function toggleSleep() {
     </section>
 
     <PhotoNudge v-if="!data.currentWeekHasPhoto" />
+
+    <p v-if="intake.orientationMl" class="intake-note">{{ INTAKE_NOTE }}</p>
 
     <RouterLink to="/verlauf" class="history-link">
       Verlauf ansehen und nachtragen
@@ -261,6 +277,25 @@ async function toggleSleep() {
   margin: 0.3rem 0 0;
   color: var(--bm-ink-soft);
   font-size: 0.95rem;
+}
+
+.status__row--intake {
+  align-items: flex-start;
+}
+
+.status__praise {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--bm-diaper);
+  font-weight: 600;
+}
+
+.intake-note {
+  margin: 0;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
 }
 
 .status__flag {

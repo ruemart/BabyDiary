@@ -140,6 +140,10 @@ async function signOut() {
 
     <!-- Ganz oben, weil man das im Laden nachschlägt und nicht suchen will. -->
     <nav class="shortcuts">
+      <RouterLink to="/zahlen" class="shortcut">
+        <span class="shortcut__label">Zahlen</span>
+        <span class="shortcut__hint">Summen, Schnitte und Rekorde</span>
+      </RouterLink>
       <RouterLink to="/vorrat" class="shortcut">
         <span class="shortcut__label">Was wir kaufen</span>
         <span class="shortcut__hint">Milchnahrung, Windelgröße, Laden</span>

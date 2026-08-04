@@ -4,6 +4,7 @@ import {
   addMonths,
   calendarDateLabel,
   daysBetween,
+  lifeWeek,
   lifeWeekStart,
   type Child,
 } from "@babymonitor/shared";
@@ -40,6 +41,49 @@ export type TimelinePin = {
 };
 
 export type UpcomingItem = TimelinePin & { daysAway: number };
+
+/**
+ * Ein eigener Zeitraum: Krankheit oder Abwesenheit.
+ *
+ * Getrennt von den Sprung-Bändern, weil es etwas grundsätzlich anderes ist: Sprünge
+ * sind eine Erwartung aus einem Modell, das hier tatsächlich Erlebte gehört auf eine
+ * eigene Spur. Beides in einen Streifen zu werfen würde suggerieren, sie wären
+ * vergleichbar.
+ */
+export type PeriodBand = {
+  id: string;
+  fromWeek: number;
+  toWeek: number;
+  label: string;
+  kind: "illness" | "absence";
+  /** Läuft noch — kein Ende eingetragen. */
+  ongoing: boolean;
+};
+
+/** Rechnet Krankheiten und Abwesenheiten auf die Wochenachse. */
+export function periodBands(
+  entries: { id: string; type: string; startedAt: string; endedAt: string | null; label: string | null }[],
+  birthDate: string,
+  timezone: string,
+  currentWeek: number,
+): PeriodBand[] {
+  return entries
+    .filter((e) => e.type === "illness" || e.type === "absence")
+    .map((e) => {
+      const fromWeek = lifeWeek(birthDate, e.startedAt, timezone);
+      const ongoing = !e.endedAt;
+      return {
+        id: e.id,
+        fromWeek,
+        // Ohne Ende bis heute zeichnen — ein Balken ohne Ausdehnung wäre unsichtbar.
+        toWeek: ongoing ? Math.max(fromWeek, currentWeek) : lifeWeek(birthDate, e.endedAt!, timezone),
+        label: e.label ?? (e.type === "illness" ? "Krank" : "Unterwegs"),
+        kind: e.type as "illness" | "absence",
+        ongoing,
+      };
+    })
+    .sort((a, b) => a.fromWeek - b.fromWeek);
+}
 
 export function useTimeline(child: () => Child | null, weeksTotal = 80) {
   /**

@@ -3,7 +3,7 @@ import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
-import { useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
+import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 import { LEAP_DISCLAIMER } from "../data/leaps.ts";
 import { CHECKUP_NOTE } from "../data/checkups.ts";
@@ -25,6 +25,13 @@ onMounted(() => {
 const { savePhoto, busy } = usePhotoUpload();
 const { bands, pins, upcoming, activeLeap } = useTimeline(() => data.child);
 
+/** Krankheiten und Abwesenheiten als eigene Spuren im Band. */
+const periods = computed(() =>
+  data.child
+    ? periodBands(data.entries, data.child.birthDate, data.timezone, data.currentWeek)
+    : [],
+);
+
 const selectedWeek = ref(data.currentWeek);
 const photoInput = ref<HTMLInputElement>();
 const photoTargetWeek = ref(data.currentWeek);
@@ -34,6 +41,10 @@ const runningLeap = computed(() => activeLeap(data.currentWeek));
 
 const selectedPins = computed(() =>
   pins.value.filter((pin) => Math.round(pin.week) === selectedWeek.value),
+);
+
+const periodsInWeek = computed(() =>
+  periods.value.filter((p) => selectedWeek.value >= p.fromWeek && selectedWeek.value <= p.toWeek),
 );
 
 const selectedPhoto = computed(() => data.photosByWeek.get(selectedWeek.value));
@@ -109,6 +120,7 @@ function daysAwayLabel(days: number): string {
       :current-week="data.currentWeek"
       :birth-date="data.child.birthDate"
       :bands="bands"
+      :periods="periods"
       :pins="pins"
       :photos="data.photosByWeek"
       @select-week="selectedWeek = $event"
@@ -154,6 +166,21 @@ function daysAwayLabel(days: number): string {
         {{ busy ? "Lädt …" : `Foto für Woche ${selectedWeek} hinzufügen` }}
       </button>
 
+      <ul v-if="periodsInWeek.length" class="periods-list">
+        <li v-for="period in periodsInWeek" :key="period.id">
+          <span class="periods-list__kind" :class="`periods-list__kind--${period.kind}`">
+            {{ period.kind === "illness" ? "Krank" : "Unterwegs" }}
+          </span>
+          <span>
+            {{ period.label }}
+            <span class="periods-list__weeks">
+              Woche {{ period.fromWeek }}<template v-if="period.toWeek !== period.fromWeek">–{{ period.toWeek }}</template>
+              <template v-if="period.ongoing"> · läuft noch</template>
+            </span>
+          </span>
+        </li>
+      </ul>
+
       <ul v-if="selectedPins.length" class="pins">
         <li v-for="pin in selectedPins" :key="pin.id" class="pins__item">
           <span class="pins__kind" :class="`pins__kind--${pin.kind}`">
@@ -169,7 +196,7 @@ function daysAwayLabel(days: number): string {
           </div>
         </li>
       </ul>
-      <p v-else-if="!selectedPhoto" class="detail__empty">
+      <p v-else-if="!selectedPhoto && !periodsInWeek.length" class="detail__empty">
         In dieser Woche steht nichts an.
       </p>
     </section>
@@ -308,6 +335,45 @@ function daysAwayLabel(days: number): string {
   margin: 0;
   color: var(--bm-ink-soft);
   font-size: 0.95rem;
+}
+
+.periods-list {
+  list-style: none;
+  margin: 0 0 0.875rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.periods-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+}
+
+.periods-list__kind {
+  flex: none;
+  padding: 0.15rem 0.5rem;
+  border-radius: 62.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.periods-list__kind--illness {
+  background: #b5677a;
+}
+
+.periods-list__kind--absence {
+  background: var(--bm-sleep);
+}
+
+.periods-list__weeks {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
 }
 
 .pins {
