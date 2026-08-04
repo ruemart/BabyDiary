@@ -46,8 +46,12 @@ onMounted(async () => {
   authenticated.value = session.authenticated;
   if (session.name && !data.deviceName) await data.setDeviceName(session.name);
 
-  if (!session.authenticated && !isJoinRoute.value) {
-    await router.replace({ name: "start" });
+  if (!session.authenticated) {
+    // Ohne Sitzung wird NICHT abgeglichen. Vorher lief auf dem Einladungsbildschirm
+    // trotzdem ein Sync-Versuch los, der zwangsläufig 401 bekam — ein sinnloser
+    // Request, der die Konsole mit einem Fehler beschriftet und den Sync-Zustand
+    // auf "nicht angemeldet" setzt, bevor sich überhaupt jemand anmelden konnte.
+    if (!isJoinRoute.value) await router.replace({ name: "start" });
     return;
   }
 
