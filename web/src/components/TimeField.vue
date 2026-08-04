@@ -14,6 +14,20 @@ import { computed, ref } from "vue";
  */
 const model = defineModel<Date>({ required: true });
 
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Zukünftige Zeitpunkte zulassen.
+     *
+     * Standardmäßig aus: Eine Mahlzeit, die noch nicht stattgefunden hat, ergibt
+     * keinen Sinn. Beim ENDE eines Zeitraums schon — einen Urlaub trägt man
+     * durchaus vorher ein.
+     */
+    allowFuture?: boolean;
+  }>(),
+  { allowFuture: false },
+);
+
 const showExact = ref(false);
 
 const timeLabel = computed(() =>
@@ -45,19 +59,23 @@ const exactValue = computed({
 });
 
 /**
- * Vorwärts-Schritte erscheinen erst, wenn der gewählte Zeitpunkt erkennbar in der
- * Vergangenheit liegt.
+ * Schritte in beide Richtungen, symmetrisch angeordnet.
  *
- * Im Normalfall ("gerade eben, minus ein paar Minuten") wären sie sinnlos und würden
- * die Leiste doppelt so breit machen. Beim Nachtragen einer ganzen Nacht braucht man
- * sie dagegen ständig — man setzt einmal 21:30 und arbeitet sich vorwärts.
+ * Vorher gab es nur Minus-Schritte — gedacht für den Normalfall "gerade eben, minus
+ * ein paar Minuten". Beim Nachtragen einer ganzen Nacht oder beim Setzen eines
+ * Zeitraum-Endes arbeitet man sich aber genauso oft vorwärts, und dann fehlte
+ * schlicht die Hälfte.
  */
-const isBackdating = computed(() => Date.now() - model.value.getTime() > 45 * 60_000);
+const STEPS = [5, 10, 15, 30, 60] as const;
+
+function stepLabel(minutes: number): string {
+  return minutes === 60 ? "1 Std" : String(minutes);
+}
 
 function shift(minutes: number) {
-  const next = new Date(model.value.getTime() - minutes * 60_000);
-  // Nie in die Zukunft: Ein Eintrag, der noch nicht passiert ist, ergibt keinen Sinn.
-  model.value = next.getTime() > Date.now() ? new Date() : next;
+  const next = new Date(model.value.getTime() + minutes * 60_000);
+  // Ohne ausdrückliche Erlaubnis nicht in die Zukunft.
+  model.value = !props.allowFuture && next.getTime() > Date.now() ? new Date() : next;
 }
 
 function reset() {
@@ -76,18 +94,38 @@ function reset() {
       </button>
     </div>
 
-    <div class="time__chips">
-      <button class="chip" type="button" @click="shift(5)">−5 Min</button>
-      <button class="chip" type="button" @click="shift(15)">−15 Min</button>
-      <button class="chip" type="button" @click="shift(30)">−30 Min</button>
-      <template v-if="isBackdating">
-        <button class="chip" type="button" @click="shift(-15)">+15 Min</button>
-        <button class="chip" type="button" @click="shift(-60)">+1 Std</button>
-      </template>
-      <button class="chip chip--ghost" type="button" @click="showExact = !showExact">
-        {{ showExact ? "Zurück" : "Anderer Zeitpunkt" }}
-      </button>
+    <!-- Zwei Reihen, spiegelbildlich: minus oben, plus unten. Die Symmetrie macht
+         auf einen Blick klar, was die Zahlen bedeuten — Minuten, außer "1 Std". -->
+    <div class="time__steps">
+      <div class="time__row">
+        <button
+          v-for="step in [...STEPS].reverse()"
+          :key="`minus-${step}`"
+          class="chip"
+          type="button"
+          :aria-label="`${step === 60 ? 'Eine Stunde' : step + ' Minuten'} früher`"
+          @click="shift(-step)"
+        >
+          −{{ stepLabel(step) }}
+        </button>
+      </div>
+      <div class="time__row">
+        <button
+          v-for="step in STEPS"
+          :key="`plus-${step}`"
+          class="chip"
+          type="button"
+          :aria-label="`${step === 60 ? 'Eine Stunde' : step + ' Minuten'} später`"
+          @click="shift(step)"
+        >
+          +{{ stepLabel(step) }}
+        </button>
+      </div>
     </div>
+
+    <button class="chip chip--ghost" type="button" @click="showExact = !showExact">
+      {{ showExact ? "Zurück" : "Anderer Zeitpunkt" }}
+    </button>
 
     <label v-if="showExact" class="time__exact">
       <span class="time__exact-label">Datum und Uhrzeit</span>
@@ -132,15 +170,21 @@ function reset() {
   cursor: pointer;
 }
 
-.time__chips {
+.time__steps {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.time__row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
 }
 
 .chip {
   min-height: 2.5rem;
-  padding: 0 0.85rem;
+  padding: 0 0.5rem;
   border: 1px solid var(--bm-hairline);
   border-radius: 62.5rem;
   background: var(--bm-surface-sunk);
@@ -151,6 +195,8 @@ function reset() {
 }
 
 .chip--ghost {
+  align-self: flex-start;
+  padding-inline: 0.85rem;
   background: transparent;
   color: var(--bm-ink-soft);
 }

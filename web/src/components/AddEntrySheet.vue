@@ -413,13 +413,14 @@ async function save() {
         </div>
       </template>
 
-      <TimeField v-model="at" />
+      <!-- Ein Zeitraum darf in der Zukunft beginnen: Einen Urlaub trägt man vorher ein. -->
+      <TimeField v-model="at" :allow-future="type === 'absence'" />
 
       <div v-if="type === 'sleep' || type === 'absence' || type === 'illness'" class="field">
         <span class="field__label">
           {{ type === "illness" ? "Bis wann? (leer lassen wenn noch nicht vorbei)" : "Ende" }}
         </span>
-        <TimeField v-model="endAt" />
+        <TimeField v-model="endAt" allow-future />
       </div>
 
       <label class="field">
