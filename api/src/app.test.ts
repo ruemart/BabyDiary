@@ -24,6 +24,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     startedAt: "2026-08-04T10:00:00.000Z",
     endedAt: null,
     amountMl: 120,
+    spatUp: false,
     diaper: null,
     weightG: null,
     lengthMm: null,

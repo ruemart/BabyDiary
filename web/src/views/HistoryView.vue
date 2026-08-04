@@ -8,6 +8,19 @@ import AddEntrySheet from "../components/AddEntrySheet.vue";
 const data = useData();
 const addOpen = ref(false);
 
+/**
+ * Änderungsblatt. Hierüber lässt sich unter anderem die Zeit einer Windel korrigieren:
+ * Der Ein-Tap-Weg auf dem Startbildschirm setzt bewusst "jetzt", weil jede Rückfrage
+ * dort den nächtlichen Fall verlangsamen würde — die Korrektur gehört hierher.
+ */
+const editing = ref<LocalEntry | null>(null);
+const editOpen = ref(false);
+
+function edit(entry: LocalEntry) {
+  editing.value = entry;
+  editOpen.value = true;
+}
+
 const TYPE_LABEL: Record<string, string> = {
   feed: "Flasche",
   diaper: "Windel",
@@ -38,14 +51,15 @@ const days = computed(() => {
     key,
     label: localDateLabel(`${key}T12:00:00Z`, data.timezone),
     entries,
-    totalMl: entries.reduce((sum, e) => sum + (e.amountMl ?? 0), 0),
+    // Ausgespucktes zählt nicht zur Tagessumme.
+    totalMl: entries.reduce((sum, e) => sum + (e.spatUp ? 0 : (e.amountMl ?? 0)), 0),
   }));
 });
 
 function describe(entry: LocalEntry): string {
   switch (entry.type) {
     case "feed":
-      return `${entry.amountMl} ml`;
+      return entry.spatUp ? `${entry.amountMl} ml · ausgespuckt` : `${entry.amountMl} ml`;
     case "diaper":
       return DIAPER_LABEL[entry.diaper ?? "empty"] ?? "";
     case "sleep":
@@ -93,16 +107,20 @@ async function remove(entry: LocalEntry) {
 
       <ul class="entries">
         <li v-for="entry in day.entries" :key="entry.id" class="entry">
-          <span class="entry__time bm-tabular">
-            {{ localTimeLabel(entry.startedAt, data.timezone) }}
-          </span>
-          <span class="entry__dot" :class="`entry__dot--${entry.type}`" aria-hidden="true" />
-          <span class="entry__body">
-            <span class="entry__type">{{ TYPE_LABEL[entry.type] }}</span>
-            <span class="entry__detail">{{ describe(entry) }}</span>
-            <span v-if="entry.note" class="entry__note">{{ entry.note }}</span>
-          </span>
-          <span class="entry__by">{{ entry.createdBy }}</span>
+          <!-- Die ganze Zeile ist die Schaltfläche zum Ändern; nur das Löschkreuz
+               daneben liegt außerhalb. -->
+          <button class="entry__open" type="button" @click="edit(entry)">
+            <span class="entry__time bm-tabular">
+              {{ localTimeLabel(entry.startedAt, data.timezone) }}
+            </span>
+            <span class="entry__dot" :class="`entry__dot--${entry.type}`" aria-hidden="true" />
+            <span class="entry__body">
+              <span class="entry__type">{{ TYPE_LABEL[entry.type] }}</span>
+              <span class="entry__detail">{{ describe(entry) }}</span>
+              <span v-if="entry.note" class="entry__note">{{ entry.note }}</span>
+            </span>
+            <span class="entry__by">{{ entry.createdBy }}</span>
+          </button>
           <button
             class="entry__remove"
             type="button"
@@ -118,6 +136,7 @@ async function remove(entry: LocalEntry) {
     </section>
 
     <AddEntrySheet v-model:open="addOpen" />
+    <AddEntrySheet v-model:open="editOpen" :entry="editing" />
   </div>
 </template>
 
@@ -189,10 +208,29 @@ async function remove(entry: LocalEntry) {
 
 .entry {
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding-inline-end: 0.5rem;
+}
+
+/* Die Zeile selbst ist die Schaltfläche zum Ändern. */
+.entry__open {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.7rem 0.85rem;
+  width: 100%;
+  padding: 0.7rem 0.35rem 0.7rem 0.85rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.entry__open:active {
+  background: var(--bm-surface-sunk);
 }
 
 .entry + .entry {

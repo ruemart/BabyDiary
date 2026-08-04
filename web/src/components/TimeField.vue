@@ -44,8 +44,20 @@ const exactValue = computed({
   },
 });
 
+/**
+ * Vorwärts-Schritte erscheinen erst, wenn der gewählte Zeitpunkt erkennbar in der
+ * Vergangenheit liegt.
+ *
+ * Im Normalfall ("gerade eben, minus ein paar Minuten") wären sie sinnlos und würden
+ * die Leiste doppelt so breit machen. Beim Nachtragen einer ganzen Nacht braucht man
+ * sie dagegen ständig — man setzt einmal 21:30 und arbeitet sich vorwärts.
+ */
+const isBackdating = computed(() => Date.now() - model.value.getTime() > 45 * 60_000);
+
 function shift(minutes: number) {
-  model.value = new Date(model.value.getTime() - minutes * 60_000);
+  const next = new Date(model.value.getTime() - minutes * 60_000);
+  // Nie in die Zukunft: Ein Eintrag, der noch nicht passiert ist, ergibt keinen Sinn.
+  model.value = next.getTime() > Date.now() ? new Date() : next;
 }
 
 function reset() {
@@ -68,6 +80,10 @@ function reset() {
       <button class="chip" type="button" @click="shift(5)">−5 Min</button>
       <button class="chip" type="button" @click="shift(15)">−15 Min</button>
       <button class="chip" type="button" @click="shift(30)">−30 Min</button>
+      <template v-if="isBackdating">
+        <button class="chip" type="button" @click="shift(-15)">+15 Min</button>
+        <button class="chip" type="button" @click="shift(-60)">+1 Std</button>
+      </template>
       <button class="chip chip--ghost" type="button" @click="showExact = !showExact">
         {{ showExact ? "Zurück" : "Anderer Zeitpunkt" }}
       </button>

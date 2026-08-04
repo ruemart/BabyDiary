@@ -14,6 +14,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     startedAt: "2026-08-04T10:00:00.000Z",
     endedAt: null,
     amountMl: 120,
+    spatUp: false,
     diaper: null,
     weightG: null,
     lengthMm: null,
@@ -243,5 +244,73 @@ describe("Alle Eintragstypen überstehen den Roundtrip", () => {
     expect(byId.get("note")!.note).toBe("Unruhige Nacht");
     expect(byId.get("photo")!.lifeWeek).toBe(7);
     expect(byId.get("photo")!.mediaId).toBe("abc.jpg");
+  });
+});
+
+describe("Ausgespuckte Mahlzeit", () => {
+  it("überträgt das Kennzeichen verlustfrei", () => {
+    store.applyChanges(
+      CHILD_ID,
+      [entry({ id: "a", amountMl: 120, spatUp: true }), entry({ id: "b", amountMl: 120 })],
+      null,
+    );
+
+    const byId = new Map(store.entriesSince(CHILD_ID, 0).map((e) => [e.id, e]));
+    // Die Menge bleibt erhalten — sie wurde ja angeboten. Nur die Auswertung
+    // zählt sie nicht mit; das entscheidet der Client.
+    expect(byId.get("a")!.spatUp).toBe(true);
+    expect(byId.get("a")!.amountMl).toBe(120);
+    expect(byId.get("b")!.spatUp).toBe(false);
+  });
+});
+
+describe("Migrationen", () => {
+  it("laufen genau einmal und sind beim erneuten Öffnen kein Problem", () => {
+    const path = join(dir, "migrate.db");
+    const first = openDatabase(path);
+    const applied = first
+      .prepare<[], { name: string }>("SELECT name FROM schema_migrations ORDER BY name")
+      .all()
+      .map((r) => r.name);
+    first.close();
+
+    expect(applied).toContain("001_init.sql");
+    expect(applied).toContain("002_spat_up.sql");
+
+    // Zweites Öffnen darf nicht versuchen, die Spalte erneut anzulegen —
+    // ALTER TABLE ADD COLUMN ist nicht idempotent und würde werfen.
+    const second = openDatabase(path);
+    const again = second
+      .prepare<[], { name: string }>("SELECT name FROM schema_migrations")
+      .all().length;
+    second.close();
+    expect(again).toBe(applied.length);
+  });
+
+  it("rüstet eine Datenbank nach, die die Spalte noch nicht kennt", () => {
+    // Der reale Fall: Auf dem Pi liegt bereits eine Datenbank aus der Zeit vor
+    // dem Ausspuck-Kennzeichen. Ohne Migrationsschritt wäre der Server erst beim
+    // ersten Schreibzugriff gescheitert.
+    const path = join(dir, "alt.db");
+    const legacy = openDatabase(path);
+    legacy.exec("DROP TABLE entries");
+    legacy.exec(`CREATE TABLE entries (
+      id TEXT PRIMARY KEY, child_id TEXT NOT NULL, type TEXT NOT NULL,
+      started_at TEXT NOT NULL, ended_at TEXT, amount_ml INTEGER, diaper TEXT,
+      weight_g INTEGER, length_mm INTEGER, head_mm INTEGER, label TEXT,
+      life_week INTEGER, media_id TEXT, note TEXT, created_by TEXT NOT NULL,
+      edited_at TEXT NOT NULL, rev INTEGER NOT NULL, deleted INTEGER NOT NULL DEFAULT 0
+    )`);
+    legacy.exec("DELETE FROM schema_migrations WHERE name = '002_spat_up.sql'");
+    legacy.close();
+
+    const upgraded = openDatabase(path);
+    const columns = upgraded
+      .prepare<[], { name: string }>("SELECT name FROM pragma_table_info('entries')")
+      .all()
+      .map((c) => c.name);
+    upgraded.close();
+
+    expect(columns).toContain("spat_up");
   });
 });

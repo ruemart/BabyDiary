@@ -16,7 +16,7 @@ import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
  * und die Nachtmahlzeiten als zusammenhängendes Band lesbar sind.
  */
 const props = defineProps<{
-  points: { x: number; y: number; ml: number; day: string }[];
+  points: { x: number; y: number; ml: number; spatUp: boolean; day: string }[];
   days: number;
 }>();
 
@@ -26,9 +26,17 @@ const chartData = computed<ChartData<"scatter">>(() => ({
   datasets: [
     {
       label: "Mahlzeiten",
-      data: props.points.map((p) => ({ x: p.x, y: p.y, ml: p.ml, day: p.day })),
-      backgroundColor: `color-mix(in srgb, ${colors.value.feed} 70%, transparent)`,
-      borderColor: colors.value.surface,
+      data: props.points.map((p) => ({ x: p.x, y: p.y, ml: p.ml, spatUp: p.spatUp, day: p.day })),
+      // Ausgespuckte Mahlzeiten hohl: Der Zeitpunkt gehört in den Rhythmus, die
+      // Menge kam aber nicht an — eine gefüllte Fläche würde das Gegenteil behaupten.
+      backgroundColor: (ctx) =>
+        (ctx.raw as { spatUp?: boolean } | undefined)?.spatUp
+          ? "transparent"
+          : `color-mix(in srgb, ${colors.value.feed} 70%, transparent)`,
+      borderColor: (ctx) =>
+        (ctx.raw as { spatUp?: boolean } | undefined)?.spatUp
+          ? colors.value.feed
+          : colors.value.surface,
       // 2 px Ring in Flächenfarbe: überlappende Punkte bleiben einzeln erkennbar.
       borderWidth: 2,
       pointRadius: (ctx) => {
@@ -100,10 +108,13 @@ const options = computed<ChartOptions<"scatter">>(() => ({
       displayColors: false,
       callbacks: {
         label: (item) => {
-          const raw = item.raw as { y: number; ml: number };
+          const raw = item.raw as { y: number; ml: number; spatUp: boolean };
           const hour = Math.floor(raw.y / 60);
           const minute = Math.round(raw.y % 60);
-          return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")} · ${raw.ml} ml`;
+          const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+          return raw.spatUp
+            ? `${time} · ${raw.ml} ml, ausgespuckt`
+            : `${time} · ${raw.ml} ml`;
         },
       },
     },

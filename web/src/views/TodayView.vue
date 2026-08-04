@@ -2,6 +2,7 @@
 import { computed, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { localTimeLabel, relativeSince } from "@babymonitor/shared";
+import { useToast } from "sit-onyx";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
@@ -10,6 +11,7 @@ import AppHeader from "../components/AppHeader.vue";
 
 const data = useData();
 const confirmWithUndo = useUndo();
+const toast = useToast();
 
 const feedSheetOpen = ref(false);
 
@@ -27,6 +29,8 @@ const lastFeedText = computed(() => {
   return {
     since: relativeSince(feed.startedAt, now.value),
     detail: `${feed.amountMl} ml um ${localTimeLabel(feed.startedAt, data.timezone)}`,
+    // Ohne diesen Hinweis liest die Statuszeile wie eine erfolgte Aufnahme.
+    spatUp: feed.spatUp === true,
   };
 });
 
@@ -57,9 +61,31 @@ const DIAPER_BUTTONS = [
 ];
 
 async function logDiaper(kind: "empty" | "wet" | "soiled") {
-  const entry = data.draft("diaper", new Date(), { diaper: kind });
-  await data.add(entry);
-  confirmWithUndo(`Windel ${DIAPER_LABEL[kind]} eingetragen`, entry.id);
+  const result = await data.logDiaper(kind);
+
+  // Der Schutz gegen Doppeltaps darf nicht still zuschlagen: Wer nicht erfährt, dass
+  // sein zweiter Tap verworfen wurde, tippt ein drittes Mal.
+  if (result.action === "duplicate") {
+    toast.show({
+      headline: `Windel ${DIAPER_LABEL[kind]} war schon eingetragen`,
+      description: "Gerade eben erfasst — kein zweiter Eintrag angelegt.",
+      color: "neutral",
+      duration: 4000,
+    });
+    return;
+  }
+
+  if (result.action === "corrected") {
+    toast.show({
+      headline: `Auf ${DIAPER_LABEL[kind]} geändert`,
+      description: "Der Eintrag von gerade eben wurde angepasst.",
+      color: "success",
+      duration: 4000,
+    });
+    return;
+  }
+
+  confirmWithUndo(`Windel ${DIAPER_LABEL[kind]} eingetragen`, result.id);
 }
 
 async function toggleSleep() {
@@ -84,7 +110,10 @@ async function toggleSleep() {
         <p class="status__label">Letzte Flasche</p>
         <p v-if="lastFeedText" class="status__value bm-tabular">{{ lastFeedText.since }}</p>
         <p v-else class="status__value status__value--empty">noch keine</p>
-        <p v-if="lastFeedText" class="status__detail bm-tabular">{{ lastFeedText.detail }}</p>
+        <p v-if="lastFeedText" class="status__detail bm-tabular">
+          {{ lastFeedText.detail }}
+          <span v-if="lastFeedText.spatUp" class="status__flag">ausgespuckt</span>
+        </p>
       </div>
 
       <div class="status__row">
@@ -197,6 +226,18 @@ async function toggleSleep() {
   margin: 0.3rem 0 0;
   color: var(--bm-ink-soft);
   font-size: 0.95rem;
+}
+
+.status__flag {
+  display: inline-block;
+  margin-inline-start: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 62.5rem;
+  background: var(--bm-photo-soft);
+  color: var(--bm-photo);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: normal;
 }
 
 .status__row {

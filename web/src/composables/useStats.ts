@@ -31,7 +31,10 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     for (const feed of feeds.value) {
       const key = localDayKey(feed.startedAt, tz);
       const current = totals.get(key) ?? { ml: 0, count: 0 };
-      current.ml += feed.amountMl ?? 0;
+      // Vollständig ausgespuckte Mahlzeiten zählen als Mahlzeit, aber nicht als
+      // Menge — sonst weist die Tagessumme eine Aufnahme aus, die nie im Kind
+      // angekommen ist, und die ml/kg-Kennzahl wird systematisch zu hoch.
+      if (!feed.spatUp) current.ml += feed.amountMl ?? 0;
       current.count += 1;
       totals.set(key, current);
     }
@@ -73,6 +76,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
           x: daysApart(first, day),
           y: minutesIntoLocalDay(feed.startedAt, tz),
           ml: feed.amountMl ?? 0,
+          spatUp: feed.spatUp === true,
           day,
         };
       });

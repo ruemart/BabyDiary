@@ -49,6 +49,15 @@ export const entrySchema = z
 
     /** feed */
     amountMl: z.number().int().min(0).max(2000).nullable().default(null),
+    /**
+     * Vollständig wieder ausgespuckt.
+     *
+     * Die Mahlzeit bleibt als Ereignis bestehen — sie hat getrunken, und der Zeitpunkt
+     * zählt für den Rhythmus und für "wann war die letzte Flasche". Nur die Milliliter
+     * gehen nicht in die Tagesmenge ein, sonst weist die Auswertung eine Aufnahme aus,
+     * die nie im Kind angekommen ist.
+     */
+    spatUp: z.boolean().default(false),
     /** diaper */
     diaper: z.enum(DIAPER_KINDS).nullable().default(null),
 

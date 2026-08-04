@@ -21,6 +21,9 @@ import {
   type LocalEntry,
 } from "../db/local.ts";
 import { sync, type SyncState } from "../sync.ts";
+import { DIAPER_GUARD_MS, classifyDiaperTap } from "./diaperGuard.ts";
+
+export type DiaperResult = { action: "created" | "corrected" | "duplicate"; id: string };
 
 export const useData = defineStore("data", () => {
   const entries = shallowRef<LocalEntry[]>([]);
@@ -107,6 +110,7 @@ export const useData = defineStore("data", () => {
       startedAt: at.toISOString(),
       endedAt: null,
       amountMl: null,
+      spatUp: false,
       diaper: null,
       weightG: null,
       lengthMm: null,
@@ -129,6 +133,7 @@ export const useData = defineStore("data", () => {
   }
 
   async function update(entry: Entry): Promise<void> {
+    // `editedAt` neu setzen: Es entscheidet beim Abgleich, welche Fassung gewinnt.
     await saveEntry({ ...entry, editedAt: new Date().toISOString() });
     await load();
     void pushSoon();
@@ -138,6 +143,32 @@ export const useData = defineStore("data", () => {
     await softDeleteEntry(id);
     await load();
     void pushSoon();
+  }
+
+  /**
+   * Windel eintragen, mit Schutz gegen Doppeltaps.
+   *
+   * Die Unterscheidung zwischen Versehen und Korrektur steckt in `classifyDiaperTap`
+   * und ist dort getestet. Beides wird sichtbar zurückgemeldet und bleibt über den
+   * Verlauf umkehrbar — ein stiller Schutz, der Eingaben verschluckt, wäre schlimmer
+   * als das Problem, das er löst.
+   */
+  async function logDiaper(kind: "empty" | "wet" | "soiled"): Promise<DiaperResult> {
+    const recent = byTimeDesc.value.find(
+      (e) => e.type === "diaper" && Date.now() - Date.parse(e.startedAt) < DIAPER_GUARD_MS,
+    );
+    const decision = classifyDiaperTap(recent, kind);
+
+    if (decision.action === "duplicate") return { action: "duplicate", id: decision.id };
+
+    if (decision.action === "correct") {
+      await update({ ...recent!, diaper: kind });
+      return { action: "corrected", id: decision.id };
+    }
+
+    const entry = draft("diaper", new Date(), { diaper: kind });
+    await add(entry);
+    return { action: "created", id: entry.id };
   }
 
   async function saveChild(next: Child): Promise<void> {
@@ -198,6 +229,7 @@ export const useData = defineStore("data", () => {
     load,
     draft,
     add,
+    logDiaper,
     update,
     remove,
     saveChild,

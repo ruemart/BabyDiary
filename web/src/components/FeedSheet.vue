@@ -4,6 +4,8 @@ import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
+import AmountStepper from "./AmountStepper.vue";
+import SpatUpToggle from "./SpatUpToggle.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -13,6 +15,7 @@ const confirmWithUndo = useUndo();
 const amount = ref(0);
 const at = ref(new Date());
 const note = ref("");
+const spatUp = ref(false);
 
 /**
  * Beim Öffnen frisch vorbelegen: Menge auf den Median der letzten sieben Mahlzeiten,
@@ -23,49 +26,32 @@ watch(open, (isOpen) => {
   amount.value = data.suggestedAmountMl;
   at.value = new Date();
   note.value = "";
+  spatUp.value = false;
 });
-
-function adjust(delta: number) {
-  amount.value = Math.max(0, Math.min(2000, amount.value + delta));
-}
 
 async function save() {
   const entry = data.draft("feed", at.value, {
     amountMl: amount.value,
+    spatUp: spatUp.value,
     note: note.value.trim() || null,
   });
   await data.add(entry);
   open.value = false;
-  confirmWithUndo(`Flasche ${amount.value} ml gespeichert`, entry.id);
+  confirmWithUndo(
+    spatUp.value ? `Flasche ${amount.value} ml — ausgespuckt` : `Flasche ${amount.value} ml gespeichert`,
+    entry.id,
+  );
 }
 </script>
 
 <template>
   <SheetDialog v-model:open="open" title="Flasche">
     <div class="feed-sheet">
-      <div class="amount">
-        <button class="amount__step" type="button" aria-label="10 Milliliter weniger" @click="adjust(-10)">
-          −
-        </button>
-        <div class="amount__value">
-          <span class="bm-tabular">{{ amount }}</span>
-          <span class="amount__unit">ml</span>
-        </div>
-        <button class="amount__step" type="button" aria-label="10 Milliliter mehr" @click="adjust(10)">
-          +
-        </button>
-      </div>
-
-      <div class="presets">
-        <button v-for="step in [20, 50]" :key="`minus${step}`" class="chip" type="button" @click="adjust(-step)">
-          −{{ step }}
-        </button>
-        <button v-for="step in [20, 50]" :key="`plus${step}`" class="chip" type="button" @click="adjust(step)">
-          +{{ step }}
-        </button>
-      </div>
+      <AmountStepper v-model="amount" />
 
       <TimeField v-model="at" />
+
+      <SpatUpToggle v-model="spatUp" />
 
       <label class="note">
         <span class="note__label">Notiz (optional)</span>
@@ -86,61 +72,6 @@ async function save() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.amount {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.amount__step {
-  width: 3.5rem;
-  height: 3.5rem;
-  flex: none;
-  border: 1px solid var(--bm-hairline);
-  border-radius: 50%;
-  background: var(--bm-surface-sunk);
-  color: var(--bm-ink);
-  font-size: 1.75rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.amount__step:active {
-  transform: scale(0.94);
-}
-
-.amount__value {
-  display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  font-family: var(--bm-font-display);
-  font-size: 3rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.amount__unit {
-  font-size: 1.25rem;
-  color: var(--bm-ink-soft);
-}
-
-.presets {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.4rem;
-}
-
-.chip {
-  min-height: 2.5rem;
-  border: 1px solid var(--bm-hairline);
-  border-radius: 62.5rem;
-  background: var(--bm-surface-sunk);
-  color: var(--bm-ink);
-  font: inherit;
-  cursor: pointer;
 }
 
 .note {

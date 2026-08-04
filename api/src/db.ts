@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { readFileSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Child, Entry, StoredEntry } from "@babymonitor/shared";
@@ -22,8 +22,46 @@ export function openDatabase(path: string): Db {
   // Falls doch mal parallel geschrieben wird: 5 s warten statt sofort zu scheitern.
   db.pragma("busy_timeout = 5000");
 
-  db.exec(readFileSync(join(here, "migrations/001_init.sql"), "utf8"));
+  migrate(db);
   return db;
+}
+
+/**
+ * Migrationen.
+ *
+ * Alle .sql-Dateien unter migrations/ in Namensreihenfolge, jede genau einmal, jede in
+ * einer eigenen Transaktion. Angewandte Dateien stehen in `schema_migrations`.
+ *
+ * Notwendig geworden, sobald die erste Spalte zu einer Tabelle kam, die auf dem Pi
+ * schon Daten hielt: `CREATE TABLE IF NOT EXISTS` allein hätte die neue Spalte
+ * stillschweigend übersprungen, und der Server wäre erst beim ersten Schreibzugriff
+ * gescheitert.
+ */
+function migrate(db: Db): void {
+  db.exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
+    name       TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL
+  )`);
+
+  const applied = new Set(
+    db.prepare<[], { name: string }>("SELECT name FROM schema_migrations").all().map((r) => r.name),
+  );
+
+  const dir = join(here, "migrations");
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+
+  const record = db.prepare("INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)");
+
+  for (const file of files) {
+    if (applied.has(file)) continue;
+    const sql = readFileSync(join(dir, file), "utf8");
+    db.transaction(() => {
+      db.exec(sql);
+      record.run(file, new Date().toISOString());
+    })();
+  }
 }
 
 /* ── Zeilen-Abbildung ───────────────────────────────────────────────────────── */
@@ -35,6 +73,7 @@ type EntryRow = {
   started_at: string;
   ended_at: string | null;
   amount_ml: number | null;
+  spat_up: number;
   diaper: string | null;
   weight_g: number | null;
   length_mm: number | null;
@@ -57,6 +96,7 @@ function toEntry(row: EntryRow): StoredEntry {
     startedAt: row.started_at,
     endedAt: row.ended_at,
     amountMl: row.amount_ml,
+    spatUp: row.spat_up === 1,
     diaper: row.diaper as Entry["diaper"],
     weightG: row.weight_g,
     lengthMm: row.length_mm,
@@ -103,11 +143,11 @@ export function createStore(db: Db) {
 
   const upsert = db.prepare(`
     INSERT INTO entries (
-      id, child_id, type, started_at, ended_at, amount_ml, diaper,
+      id, child_id, type, started_at, ended_at, amount_ml, spat_up, diaper,
       weight_g, length_mm, head_mm, label, life_week, media_id, note,
       created_by, edited_at, rev, deleted
     ) VALUES (
-      @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @diaper,
+      @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @diaper,
       @weight_g, @length_mm, @head_mm, @label, @life_week, @media_id, @note,
       @created_by, @edited_at, @rev, @deleted
     )
@@ -116,6 +156,7 @@ export function createStore(db: Db) {
       started_at = excluded.started_at,
       ended_at = excluded.ended_at,
       amount_ml = excluded.amount_ml,
+      spat_up = excluded.spat_up,
       diaper = excluded.diaper,
       weight_g = excluded.weight_g,
       length_mm = excluded.length_mm,
@@ -213,6 +254,7 @@ export function createStore(db: Db) {
           started_at: normalizeInstant(entry.startedAt),
           ended_at: entry.endedAt ? normalizeInstant(entry.endedAt) : null,
           amount_ml: entry.amountMl,
+          spat_up: entry.spatUp ? 1 : 0,
           diaper: entry.diaper,
           weight_g: entry.weightG,
           length_mm: entry.lengthMm,

@@ -2,21 +2,46 @@
 import { computed, ref, watch } from "vue";
 import type { EntryType } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
+import type { LocalEntry } from "../db/local.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
+import AmountStepper from "./AmountStepper.vue";
+import SpatUpToggle from "./SpatUpToggle.vue";
 
 /**
- * Nachtragen für alle Eintragsarten.
+ * Ein Blatt für Nachtragen UND Ändern.
  *
- * Der Schnellzugriff auf dem Startbildschirm deckt den Normalfall ab. Dieses Blatt ist
- * für alles andere: vergessene Mahlzeiten, das Gewicht von der U-Untersuchung, den
- * ersten Zahn — jeweils mit frei wählbarem Zeitpunkt.
+ * Der Schnellzugriff auf dem Startbildschirm deckt den Normalfall ab; hier landet alles
+ * andere: vergessene Mahlzeiten, das Gewicht von der U-Untersuchung, der erste Zahn —
+ * jeweils mit frei wählbarem Zeitpunkt.
+ *
+ * Dasselbe Blatt dient zum Bearbeiten bestehender Einträge. Das ist der allgemeine Weg,
+ * um die Zeit einer Windel zu korrigieren: Die Ein-Tap-Erfassung setzt bewusst "jetzt",
+ * weil jede Rückfrage den nächtlichen Fall verlangsamen würde — die Korrektur gehört
+ * danach in den Verlauf, nicht in den Erfassungsweg.
  */
 const open = defineModel<boolean>("open", { required: true });
+const props = defineProps<{ entry?: LocalEntry | null }>();
 
 const data = useData();
 const confirmWithUndo = useUndo();
+
+const isEditing = computed(() => !!props.entry);
+
+/**
+ * Zuletzt nachgetragener Zeitpunkt, über das Schließen des Blattes hinaus gemerkt.
+ *
+ * Wer eine ganze Nacht nachträgt, wählt sonst sechsmal hintereinander dasselbe Datum.
+ * Gemerkt wird nur ein Zeitpunkt, der spürbar in der Vergangenheit lag — nach einem
+ * Eintrag "gerade eben" steht beim nächsten Öffnen wieder "jetzt", denn dann war es
+ * kein Nachtragen.
+ *
+ * Modulweit statt im Speicher der Anwendung: Das ist eine Bedienhilfe für die nächsten
+ * Minuten, kein Zustand, der einen Neustart überleben sollte.
+ */
+let lastBackdatedAt: Date | null = null;
+const BACKDATE_MEMORY_MS = 45 * 60 * 1000;
 
 const TYPES: { value: EntryType; label: string }[] = [
   { value: "feed", label: "Flasche" },
@@ -37,12 +62,30 @@ const lengthMm = ref<number | null>(null);
 const headMm = ref<number | null>(null);
 const label = ref("");
 const note = ref("");
+const spatUp = ref(false);
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
+
+  const existing = props.entry;
+  if (existing) {
+    type.value = existing.type;
+    at.value = new Date(existing.startedAt);
+    endAt.value = existing.endedAt ? new Date(existing.endedAt) : new Date();
+    amountMl.value = existing.amountMl ?? data.suggestedAmountMl;
+    diaper.value = (existing.diaper === "both" ? "soiled" : existing.diaper) ?? "wet";
+    weightG.value = existing.weightG;
+    lengthMm.value = existing.lengthMm;
+    headMm.value = existing.headMm;
+    label.value = existing.label ?? "";
+    note.value = existing.note ?? "";
+    spatUp.value = existing.spatUp === true;
+    return;
+  }
+
   type.value = "feed";
-  at.value = new Date();
-  endAt.value = new Date();
+  at.value = lastBackdatedAt ?? new Date();
+  endAt.value = new Date(at.value.getTime() + 30 * 60_000);
   amountMl.value = data.suggestedAmountMl;
   diaper.value = "wet";
   weightG.value = null;
@@ -50,6 +93,7 @@ watch(open, (isOpen) => {
   headMm.value = null;
   label.value = "";
   note.value = "";
+  spatUp.value = false;
 });
 
 const canSave = computed(() => {
@@ -76,11 +120,11 @@ function num(value: string): number | null {
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
-async function save() {
-  if (!canSave.value) return;
-
-  const entry = data.draft(type.value, at.value, {
+/** Die typabhängigen Felder — beim Anlegen wie beim Ändern identisch. */
+function fields() {
+  return {
     amountMl: type.value === "feed" ? amountMl.value : null,
+    spatUp: type.value === "feed" ? spatUp.value : false,
     diaper: type.value === "diaper" ? diaper.value : null,
     endedAt: type.value === "sleep" ? endAt.value.toISOString() : null,
     weightG: type.value === "growth" ? weightG.value : null,
@@ -88,8 +132,30 @@ async function save() {
     headMm: type.value === "growth" ? headMm.value : null,
     label: type.value === "milestone" ? label.value.trim() : null,
     note: note.value.trim() || null,
-  });
+  };
+}
 
+async function save() {
+  if (!canSave.value) return;
+
+  const existing = props.entry;
+  if (existing) {
+    // Id, Anleger und Lebenswoche bleiben — geändert wird nur, was im Blatt steht.
+    await data.update({
+      ...existing,
+      type: type.value,
+      startedAt: at.value.toISOString(),
+      ...fields(),
+    });
+    open.value = false;
+    return;
+  }
+
+  // Nur merken, wenn wirklich nachgetragen wurde.
+  lastBackdatedAt =
+    Date.now() - at.value.getTime() > BACKDATE_MEMORY_MS ? new Date(at.value) : null;
+
+  const entry = data.draft(type.value, at.value, fields());
   await data.add(entry);
   open.value = false;
   confirmWithUndo("Eintrag nachgetragen", entry.id);
@@ -97,9 +163,9 @@ async function save() {
 </script>
 
 <template>
-  <SheetDialog v-model:open="open" title="Eintrag nachtragen">
+  <SheetDialog v-model:open="open" :title="isEditing ? 'Eintrag ändern' : 'Eintrag nachtragen'">
     <div class="add">
-      <div class="types" role="group" aria-label="Art des Eintrags">
+      <div v-if="!isEditing" class="types" role="group" aria-label="Art des Eintrags">
         <button
           v-for="option in TYPES"
           :key="option.value"
@@ -112,15 +178,11 @@ async function save() {
         </button>
       </div>
 
-      <template v-if="type === 'feed'">
-        <label class="field">
-          <span class="field__label">Menge</span>
-          <span class="field__group">
-            <input v-model.number="amountMl" type="number" inputmode="numeric" min="0" max="2000" />
-            <span class="field__unit">ml</span>
-          </span>
-        </label>
-      </template>
+      <div v-if="type === 'feed'" class="field">
+        <span class="field__label">Menge</span>
+        <AmountStepper v-model="amountMl" />
+        <SpatUpToggle v-model="spatUp" />
+      </div>
 
       <template v-else-if="type === 'diaper'">
         <div class="field">
@@ -193,7 +255,9 @@ async function save() {
     </div>
 
     <template #actions>
-      <button class="save" type="button" :disabled="!canSave" @click="save">Speichern</button>
+      <button class="save" type="button" :disabled="!canSave" @click="save">
+        {{ isEditing ? "Änderung speichern" : "Speichern" }}
+      </button>
     </template>
   </SheetDialog>
 </template>
