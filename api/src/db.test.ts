@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Child, Entry } from "@babymonitor/shared";
+import { ENTRY_TYPES, type Child, type Entry } from "@babymonitor/shared";
 import { createStore, openDatabase, type Store } from "./db.ts";
 
 const CHILD_ID = "child-1";
@@ -20,6 +20,9 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     latitude: null,
     longitude: null,
     placeName: null,
+    supplyCategory: null,
+    supplySize: null,
+    supplyShop: null,
     diaper: null,
     weightG: null,
     lengthMm: null,
@@ -320,5 +323,50 @@ describe("Migrationen", () => {
     upgraded.close();
 
     expect(columns).toContain("spat_up");
+  });
+});
+
+describe("Alle bekannten Eintragsarten", () => {
+  it("werden von der Datenbank angenommen", () => {
+    // Wächter gegen ein Auseinanderdriften: Die CHECK-Bedingung auf `type` stand
+    // einmal noch auf dem Stand der ersten Migration, während das Schema längst
+    // neue Arten kannte. Ergebnis war ein 500er, den das Gerät endlos wiederholte.
+    // Dieser Test schlägt fehl, sobald eine Art im Schema steht, die die Datenbank
+    // nicht kennt.
+    const changes = ENTRY_TYPES.map((type) =>
+      entry({
+        id: `t-${type}`,
+        type,
+        amountMl: type === "feed" ? 120 : null,
+        diaper: type === "diaper" ? "wet" : null,
+        endedAt: type === "absence" ? "2026-08-05T10:00:00.000Z" : null,
+        label: "Testeintrag",
+        milestoneKey: type === "milestone" ? "smile" : null,
+        supplyCategory: type === "supply" ? "formula" : null,
+        lifeWeek: type === "photo" ? 3 : null,
+        mediaId: type === "photo" ? "x.jpg" : null,
+        note: "Notiz",
+      }),
+    );
+
+    const result = store.applyChanges(CHILD_ID, changes, null);
+
+    expect(result.failed).toEqual([]);
+    expect(store.entriesSince(CHILD_ID, 0)).toHaveLength(ENTRY_TYPES.length);
+  });
+
+  it("lässt einen einzelnen unbrauchbaren Eintrag den Rest nicht mitreißen", () => {
+    const result = store.applyChanges(
+      CHILD_ID,
+      [
+        entry({ id: "gut1" }),
+        entry({ id: "kaputt", type: "voellig-unbekannt" as never }),
+        entry({ id: "gut2" }),
+      ],
+      null,
+    );
+
+    expect(result.failed.map((f) => f.id)).toEqual(["kaputt"]);
+    expect(store.entriesSince(CHILD_ID, 0).map((e) => e.id).sort()).toEqual(["gut1", "gut2"]);
   });
 });

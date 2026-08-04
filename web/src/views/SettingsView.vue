@@ -6,6 +6,7 @@ import { useData } from "../stores/data.ts";
 import { appearance, setAppearance, type AppearanceSetting } from "../composables/useAppearance.ts";
 import { wipeLocal } from "../db/local.ts";
 import ChildForm from "../components/ChildForm.vue";
+import { RouterLink } from "vue-router";
 
 const data = useData();
 const toast = useToast();
@@ -137,6 +138,22 @@ async function signOut() {
       <p class="warning__reason">{{ childRejected.reason }}</p>
     </div>
 
+    <!-- Ganz oben, weil man das im Laden nachschlägt und nicht suchen will. -->
+    <nav class="shortcuts">
+      <RouterLink to="/vorrat" class="shortcut">
+        <span class="shortcut__label">Was wir kaufen</span>
+        <span class="shortcut__hint">Milchnahrung, Windelgröße, Laden</span>
+      </RouterLink>
+      <RouterLink to="/reisen" class="shortcut">
+        <span class="shortcut__label">Reisekarte</span>
+        <span class="shortcut__hint">Wo sie schon überall war</span>
+      </RouterLink>
+      <RouterLink to="/verlauf" class="shortcut">
+        <span class="shortcut__label">Verlauf</span>
+        <span class="shortcut__hint">Alles ansehen, ändern und nachtragen</span>
+      </RouterLink>
+    </nav>
+
     <section class="card">
       <h2 class="card__title">Kind</h2>
       <ChildForm v-model="form" />
@@ -227,6 +244,33 @@ async function signOut() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.shortcut {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1.25rem;
+  background: var(--bm-surface);
+  box-shadow: var(--bm-shadow-card);
+  color: inherit;
+  text-decoration: none;
+}
+
+.shortcut__label {
+  font-weight: 600;
+}
+
+.shortcut__hint {
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
 }
 
 .warning {

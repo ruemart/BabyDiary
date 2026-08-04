@@ -84,6 +84,9 @@ type EntryRow = {
   latitude: number | null;
   longitude: number | null;
   place_name: string | null;
+  supply_category: string | null;
+  supply_size: string | null;
+  supply_shop: string | null;
   life_week: number | null;
   media_id: string | null;
   note: string | null;
@@ -112,6 +115,9 @@ function toEntry(row: EntryRow): StoredEntry {
     latitude: row.latitude,
     longitude: row.longitude,
     placeName: row.place_name,
+    supplyCategory: row.supply_category as Entry["supplyCategory"],
+    supplySize: row.supply_size,
+    supplyShop: row.supply_shop,
     lifeWeek: row.life_week,
     mediaId: row.media_id,
     note: row.note,
@@ -135,7 +141,17 @@ function normalizeInstant(iso: string): string {
 
 /* ── Sync ───────────────────────────────────────────────────────────────────── */
 
-export type ApplyResult = { rev: number; rejected: string[] };
+export type ApplyResult = {
+  rev: number;
+  /** Vom Server überstimmt (LWW) — der andere Stand war neuer. */
+  rejected: string[];
+  /**
+   * An der Datenbank gescheitert. Anders als `rejected` hilft hier kein erneuter
+   * Versuch: Ein Wiederholen würde nur wieder scheitern und die Warteschlange
+   * blockieren.
+   */
+  failed: { id: string; reason: string }[];
+};
 
 export function createStore(db: Db) {
   const bumpRev = db.prepare<[], { value: number }>(
@@ -154,11 +170,11 @@ export function createStore(db: Db) {
   const upsert = db.prepare(`
     INSERT INTO entries (
       id, child_id, type, started_at, ended_at, amount_ml, spat_up, diaper,
-      weight_g, length_mm, head_mm, label, milestone_key, temperature_dc, latitude, longitude, place_name, life_week, media_id, note,
+      weight_g, length_mm, head_mm, label, milestone_key, temperature_dc, latitude, longitude, place_name, supply_category, supply_size, supply_shop, life_week, media_id, note,
       created_by, edited_at, rev, deleted
     ) VALUES (
       @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @diaper,
-      @weight_g, @length_mm, @head_mm, @label, @milestone_key, @temperature_dc, @latitude, @longitude, @place_name, @life_week, @media_id, @note,
+      @weight_g, @length_mm, @head_mm, @label, @milestone_key, @temperature_dc, @latitude, @longitude, @place_name, @supply_category, @supply_size, @supply_shop, @life_week, @media_id, @note,
       @created_by, @edited_at, @rev, @deleted
     )
     ON CONFLICT(id) DO UPDATE SET
@@ -177,6 +193,9 @@ export function createStore(db: Db) {
       latitude = excluded.latitude,
       longitude = excluded.longitude,
       place_name = excluded.place_name,
+      supply_category = excluded.supply_category,
+      supply_size = excluded.supply_size,
+      supply_shop = excluded.supply_shop,
       life_week = excluded.life_week,
       media_id = excluded.media_id,
       note = excluded.note,
@@ -186,7 +205,11 @@ export function createStore(db: Db) {
       deleted = excluded.deleted
   `);
 
-  const selectChild = db.prepare<[], Record<string, unknown>>("SELECT * FROM child LIMIT 1");
+  // ORDER BY, nicht bloß LIMIT 1: Ohne Sortierung greift SQLite eine beliebige Zeile.
+// Sollten je zwei Datensätze existieren, gewinnt der zuletzt geänderte.
+const selectChild = db.prepare<[], Record<string, unknown>>(
+  "SELECT * FROM child ORDER BY edited_at DESC LIMIT 1",
+);
   const upsertChild = db.prepare(`
     INSERT INTO child (
       id, name, sex, birth_date, due_date, birth_weight_g, birth_length_mm,
@@ -240,13 +263,22 @@ export function createStore(db: Db) {
   const applyChanges = db.transaction(
     (childId: string, changes: Entry[], child: Child | null): ApplyResult => {
       const rejected: string[] = [];
+      const failed: { id: string; reason: string }[] = [];
 
       if (child) {
         const existing = getChild();
         const incomingEditedAt = normalizeInstant(child.editedAt);
         if (!existing || incomingEditedAt > normalizeInstant(existing.editedAt)) {
           upsertChild.run({
-            id: child.id,
+            /**
+             * Ein Haushalt, ein Kind.
+             *
+             * Wenn schon ein Datensatz existiert, wird DESSEN Id beibehalten, auch
+             * wenn das Gerät eine andere schickt. Sonst legt ein Gerät, das die Id
+             * noch nicht kennt, eine zweite Zeile an — und `getChild` greift danach
+             * mal die eine, mal die andere.
+             */
+            id: existing?.id ?? child.id,
             name: child.name,
             sex: child.sex,
             birth_date: child.birthDate,
@@ -271,7 +303,8 @@ export function createStore(db: Db) {
           rejected.push(entry.id);
           continue;
         }
-        upsert.run({
+        try {
+          upsert.run({
           id: entry.id,
           child_id: childId,
           type: entry.type,
@@ -289,6 +322,9 @@ export function createStore(db: Db) {
           latitude: entry.latitude,
           longitude: entry.longitude,
           place_name: entry.placeName,
+          supply_category: entry.supplyCategory,
+          supply_size: entry.supplySize,
+          supply_shop: entry.supplyShop,
           life_week: entry.lifeWeek,
           media_id: entry.mediaId,
           note: entry.note,
@@ -296,10 +332,25 @@ export function createStore(db: Db) {
           edited_at: editedAt,
           rev: bumpRev.get()!.value,
           deleted: entry.deleted ? 1 : 0,
-        });
+          });
+        } catch (error) {
+          /**
+           * Ein einzelner Eintrag, den die Datenbank nicht annimmt, darf niemals die
+           * ganze Transaktion und damit die Warteschlange des Geräts zu Fall bringen.
+           *
+           * Genau das ist einmal passiert: Die CHECK-Bedingung auf `type` kannte neue
+           * Eintragsarten nicht, der Fehler wurde zum 500er, und das Gerät versuchte
+           * es endlos erneut. Ein Fehler in EINEM Datensatz ist ein Problem mit diesem
+           * Datensatz, nicht mit allen anderen.
+           */
+          failed.push({
+            id: entry.id,
+            reason: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
 
-      return { rev: currentRev.get()!.value, rejected };
+      return { rev: currentRev.get()!.value, rejected, failed };
     },
   );
 

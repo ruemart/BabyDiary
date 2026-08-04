@@ -175,7 +175,14 @@ export async function buildApp(
     // Einträge unter fremdem Namen anlegen.
     const stamped = changes.map((c) => ({ ...c, createdBy: req.session!.name }));
 
-    const { rejected } = store.applyChanges(effectiveChildId, stamped, child);
+    const { rejected, failed } = store.applyChanges(effectiveChildId, stamped, child);
+
+    // Was die Datenbank abgelehnt hat, zählt wie ein Schemafehler: dauerhaft
+    // untauglich, also melden statt endlos wiederholen lassen.
+    if (failed.length > 0) {
+      req.log.error({ failed }, "Einträge von der Datenbank abgelehnt");
+      invalid.push(...failed);
+    }
 
     const response: SyncResponse = {
       rev: store.currentRev(),

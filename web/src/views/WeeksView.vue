@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { useRoute } from "vue-router";
 import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import { useTimeline } from "../composables/useTimeline.ts";
@@ -10,6 +11,17 @@ import { VACCINATION_DISCLAIMER } from "../data/vaccinations.ts";
 import WeekRibbon from "../components/WeekRibbon.vue";
 
 const data = useData();
+const route = useRoute();
+const ribbon = useTemplateRef<{ scrollToWeek: (w: number) => void }>("ribbon");
+
+// Aus der Reisekarte kommt "?woche=12" — dann dorthin springen statt auf heute.
+onMounted(() => {
+  const target = Number(route.query["woche"]);
+  if (Number.isFinite(target) && target >= 0) {
+    selectedWeek.value = target;
+    setTimeout(() => ribbon.value?.scrollToWeek(target), 100);
+  }
+});
 const { savePhoto, busy } = usePhotoUpload();
 const { bands, pins, upcoming, activeLeap } = useTimeline(() => data.child);
 
@@ -60,6 +72,7 @@ function daysAwayLabel(days: number): string {
 
     <WeekRibbon
       v-if="data.child"
+      ref="ribbon"
       :weeks-total="80"
       :current-week="data.currentWeek"
       :birth-date="data.child.birthDate"

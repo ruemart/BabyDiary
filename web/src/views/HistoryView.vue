@@ -31,6 +31,7 @@ const TYPE_LABEL: Record<string, string> = {
   photo: "Foto",
   illness: "Krankheit",
   absence: "Abwesenheit",
+  supply: "Gekauft",
 };
 
 const DIAPER_LABEL: Record<string, string> = {
@@ -90,6 +91,10 @@ function describe(entry: LocalEntry): string {
         .join(" · ");
     case "absence":
       return entry.label ?? "";
+    case "supply":
+      return [entry.label, entry.supplySize, entry.supplyShop && `bei ${entry.supplyShop}`]
+        .filter(Boolean)
+        .join(" · ");
     default:
       return "";
   }
@@ -327,6 +332,9 @@ async function remove(entry: LocalEntry) {
 }
 .entry__dot--absence {
   background: var(--bm-sleep);
+}
+.entry__dot--supply {
+  background: var(--bm-growth);
 }
 
 .entry__body {

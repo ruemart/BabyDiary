@@ -18,11 +18,15 @@ export const ENTRY_TYPES = [
   "photo",
   "illness",
   "absence",
+  "supply",
 ] as const;
 export type EntryType = (typeof ENTRY_TYPES)[number];
 
 export const DIAPER_KINDS = ["empty", "wet", "soiled", "both"] as const;
 export type DiaperKind = (typeof DIAPER_KINDS)[number];
+
+export const SUPPLY_CATEGORIES = ["formula", "diaper", "other"] as const;
+export type SupplyCategory = (typeof SUPPLY_CATEGORIES)[number];
 
 export const SEXES = ["female", "male"] as const;
 export type Sex = (typeof SEXES)[number];
@@ -90,6 +94,20 @@ export const entrySchema = z
     latitude: z.number().min(-90).max(90).nullable().default(null),
     longitude: z.number().min(-180).max(180).nullable().default(null),
     placeName: z.string().max(120).nullable().default(null),
+
+    /**
+     * supply: Was wir kaufen.
+     *
+     * Der jeweils NEUESTE Eintrag je Kategorie ist der aktuelle Stand, alle älteren
+     * sind automatisch die Wechsel-Historie — "seit wann Größe 3?" beantwortet sich
+     * dadurch von selbst. Bei Milchnahrung ist genau dieser Verlauf der Punkt: Ein
+     * Markenwechsel soll nicht beiläufig passieren, und wenn etwas nicht bekommt,
+     * will man wissen, was und ab wann.
+     */
+    supplyCategory: z.enum(SUPPLY_CATEGORIES).nullable().default(null),
+    supplySize: z.string().max(60).nullable().default(null),
+    supplyShop: z.string().max(80).nullable().default(null),
+
     /** photo: die Lebenswoche, für die das Foto zählt (0 = erste Lebenswoche) */
     lifeWeek: z.number().int().min(0).max(1000).nullable().default(null),
     mediaId: z.string().max(64).nullable().default(null),
@@ -146,6 +164,14 @@ export const entrySchema = z
       case "absence":
         require(!!e.label?.trim(), "label", "Art fehlt");
         require(!!e.endedAt, "endedAt", "Ende fehlt");
+        break;
+      case "supply":
+        require(e.supplyCategory !== null, "supplyCategory", "Kategorie fehlt");
+        require(
+          !!e.label?.trim() || !!e.supplySize?.trim(),
+          "label",
+          "Produkt oder Größe angeben",
+        );
         break;
       case "photo":
         require(!!e.mediaId, "mediaId", "Bild fehlt");

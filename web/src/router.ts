@@ -9,6 +9,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./views/MilestonesView.vue"),
   },
   { path: "/kurven", name: "kurven", component: () => import("./views/ChartsView.vue") },
+  { path: "/vorrat", name: "vorrat", component: () => import("./views/SupplyView.vue") },
+  { path: "/reisen", name: "reisen", component: () => import("./views/TravelView.vue") },
   { path: "/verlauf", name: "verlauf", component: () => import("./views/HistoryView.vue") },
   {
     path: "/einstellungen",
