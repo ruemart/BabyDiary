@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useData } from "../stores/data.ts";
 import { useStats } from "../composables/useStats.ts";
 import DailyVolumeChart from "../components/charts/DailyVolumeChart.vue";
 import RhythmChart from "../components/charts/RhythmChart.vue";
 import DiaperHeatmap from "../components/charts/DiaperHeatmap.vue";
+import GrowthChart from "../components/charts/GrowthChart.vue";
+import { ageInDays } from "@babymonitor/shared";
+import { zScore, zToPercentile, type GrowthMeasure } from "../data/who/index.ts";
 
 const DAYS = 30;
 
@@ -16,6 +19,41 @@ const { dailyTotals, rhythm, diaperGrid, summary } = useStats(
 );
 
 const hasFeeds = computed(() => rhythm.value.length > 0);
+
+/* ── Wachstum ─────────────────────────────────────────────────────────────── */
+
+const growthMeasure = ref<GrowthMeasure>("weight");
+
+/** Messwerte in die Einheiten der WHO-Tabellen umrechnen: Gramm → kg, mm → cm. */
+const growthPoints = computed(() => {
+  const child = data.child;
+  if (!child) return [];
+  return data.entries
+    .filter((e) => e.type === "growth")
+    .map((e) => {
+      const raw = growthMeasure.value === "weight" ? e.weightG : e.lengthMm;
+      if (raw === null) return null;
+      return {
+        ageDays: ageInDays(child.birthDate, e.startedAt, data.timezone),
+        value: growthMeasure.value === "weight" ? raw / 1000 : raw / 10,
+      };
+    })
+    .filter((p): p is { ageDays: number; value: number } => p !== null)
+    .sort((a, b) => a.ageDays - b.ageDays);
+});
+
+/** Der aktuelle Perzentilrang — die Zahl, nach der beim Kinderarzt gefragt wird. */
+const currentPercentile = computed(() => {
+  const child = data.child;
+  const last = growthPoints.value[growthPoints.value.length - 1];
+  if (!child || !last) return null;
+  const z = zScore(growthMeasure.value, child.sex, last.ageDays, last.value);
+  return z === null ? null : Math.round(zToPercentile(z));
+});
+
+const maxAgeDays = computed(() =>
+  growthPoints.value.length ? growthPoints.value[growthPoints.value.length - 1]!.ageDays : 60,
+);
 
 const trendText = computed(() => {
   const trend = summary.value.trendPercent;
@@ -88,6 +126,53 @@ const trendText = computed(() => {
         <DiaperHeatmap :rows="diaperGrid" />
       </section>
     </template>
+
+    <section v-if="data.child" class="card">
+      <div class="growth__head">
+        <h2 class="card__title">Wachstum</h2>
+        <div class="toggle" role="group" aria-label="Messgröße">
+          <button
+            type="button"
+            :class="{ 'toggle__item--active': growthMeasure === 'weight' }"
+            class="toggle__item"
+            @click="growthMeasure = 'weight'"
+          >
+            Gewicht
+          </button>
+          <button
+            type="button"
+            :class="{ 'toggle__item--active': growthMeasure === 'length' }"
+            class="toggle__item"
+            @click="growthMeasure = 'length'"
+          >
+            Länge
+          </button>
+        </div>
+      </div>
+
+      <p v-if="growthPoints.length === 0" class="card__lead">
+        Noch keine Messwerte. Über „Verlauf → Nachtragen“ lassen sich Gewicht und Länge
+        eintragen — etwa die Werte von der letzten U-Untersuchung.
+      </p>
+
+      <template v-else>
+        <p v-if="currentPercentile !== null" class="growth__percentile">
+          Aktuell auf <strong>Perzentil {{ currentPercentile }}</strong> —
+          {{ currentPercentile }} von 100 gleichaltrigen Kindern sind leichter oder
+          gleich schwer.
+        </p>
+        <GrowthChart
+          :measure="growthMeasure"
+          :sex="data.child.sex"
+          :points="growthPoints"
+          :max-age-days="maxAgeDays"
+        />
+        <p class="card__note">
+          Entscheidend ist nicht der einzelne Wert, sondern ob die Kurve ihrem Band folgt.
+          Ein Kind auf Perzentil 20 ist gesund, solange es auf Perzentil 20 bleibt.
+        </p>
+      </template>
+    </section>
   </div>
 </template>
 
@@ -180,5 +265,53 @@ const trendText = computed(() => {
   color: var(--bm-ink-soft);
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.card__note {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
+
+.growth__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.growth__percentile {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.toggle {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 62.5rem;
+  background: var(--bm-surface-sunk);
+}
+
+.toggle__item {
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border: none;
+  border-radius: 62.5rem;
+  background: transparent;
+  color: var(--bm-ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle__item--active {
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  box-shadow: var(--bm-shadow-card);
 }
 </style>

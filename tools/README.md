@@ -26,3 +26,27 @@ node tools/screenshots.mjs /pfad/zum/ausgabeordner
 ```
 
 Meldet am Ende alle Konsolenfehler — nützlicher Nebeneffekt beim Prüfen von Umbauten.
+
+## `verify-offline-sync.mjs`
+
+Prüft den wichtigsten Weg der App gegen den fertigen Docker-Stapel: offline eintragen,
+zweites Gerät anmelden, Abgleich, Löschung propagieren.
+
+```bash
+INVITE=$(grep '^HOUSEHOLD_SECRET=' .env | cut -d= -f2) \
+BASE=http://127.0.0.1:8090 \
+node tools/verify-offline-sync.mjs
+```
+
+Läuft bewusst gegen den Docker-Stapel und nicht gegen den Entwicklungsserver — nur so
+werden nginx, der Service Worker und der echte API-Container mitgeprüft.
+
+## `build-who-tables.py`
+
+Wandelt die WHO-Wachstumstabellen (xlsx) in kompaktes JSON um. Nur nötig, wenn die WHO
+neue Tabellen veröffentlicht.
+
+```bash
+# Vier Dateien von who.int herunterladen (URLs im Skriptkopf), dann:
+python3 tools/build-who-tables.py <ordner-mit-xlsx> web/src/data/who
+```

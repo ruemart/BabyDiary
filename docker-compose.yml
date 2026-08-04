@@ -1,0 +1,80 @@
+# BabyMonitor auf dem Raspberry Pi, angeschlossen an den bereits laufenden
+# Cloudflare-Tunnel.
+#
+# Es wird KEIN neuer Tunnel gebraucht: Der vorhandene `cloudflared-tunnel`-Container
+# hängt bereits im externen Netz `cloudflare_proxy` und erreicht `babymonitor-web`
+# über den Containernamen — dasselbe Vorgehen wie bei Baserow. Im Cloudflare-
+# Dashboard genügt ein neuer Public Hostname:
+#
+#     baby.<deine-domain>  ->  http://babymonitor-web:80
+#
+# Start:  docker compose up -d --build
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    # Fester Name, weil nginx im Nachbarcontainer genau diesen auflöst.
+    container_name: babymonitor-api
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      PORT: "3010"
+      HOUSEHOLD_SECRET: ${HOUSEHOLD_SECRET:?HOUSEHOLD_SECRET fehlt - siehe .env.example}
+      COOKIE_SECRET: ${COOKIE_SECRET:?COOKIE_SECRET fehlt - siehe .env.example}
+      # Hinter dem Tunnel sieht der Browser HTTPS -> Cookie muss `secure` sein.
+      COOKIE_SECURE: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      # Bind-Mount statt benanntem Volume: Die SQLite-Datei soll im Dateisystem
+      # liegen, wo `sqlite3 .backup` und ein Blick per `ls` ohne Umwege möglich sind.
+      - ./data:/data
+    networks:
+      - internal
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    # Eindeutiger Name statt des Compose-Alias `web`: Im gemeinsamen Netz
+    # cloudflare_proxy liegen mehrere Projekte, und `web` würde dort kollidieren.
+    container_name: babymonitor-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    # Nur auf localhost: für Fehlersuche und Tests auf dem Pi selbst erreichbar,
+    # von außen nicht. Der öffentliche Weg läuft ausschließlich über den Tunnel.
+    ports:
+      - "127.0.0.1:8090:80"
+    networks:
+      - internal
+      - cloudflare_proxy
+
+  backup:
+    image: alpine:3.20
+    container_name: babymonitor-backup
+    restart: unless-stopped
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+    # `sqlite3 .backup` statt `cp`: Eine laufende Datenbank zu kopieren erzeugt bei
+    # aktivem WAL eine Datei, die beim Wiederherstellen inkonsistent sein kann.
+    command: >
+      sh -c "apk add --no-cache sqlite >/dev/null &&
+      while true; do
+        stamp=$$(date +%Y%m%d);
+        sqlite3 /data/babymonitor.db \".backup '/backups/babymonitor-$$stamp.db'\" &&
+        gzip -f /backups/babymonitor-$$stamp.db &&
+        find /backups -name 'babymonitor-*.db.gz' -mtime +30 -delete;
+        echo \"[backup] $$stamp fertig\";
+        sleep 86400;
+      done"
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+  cloudflare_proxy:
+    external: true
