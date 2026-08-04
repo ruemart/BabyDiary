@@ -8,6 +8,7 @@ import {
   type Child,
 } from "@babymonitor/shared";
 import { CHECKUPS, type Checkup } from "../data/checkups.ts";
+import { MILESTONES } from "../data/milestones.ts";
 import { LEAPS, type Leap } from "../data/leaps.ts";
 import { VACCINATIONS } from "../data/vaccinations.ts";
 
@@ -120,6 +121,20 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
           when: `${dose.dose}${dose.optional ? " (je nach Impfstoff)" : ""} · ab ${calendarDateLabel(date)}`,
         });
       }
+    }
+
+    // Meilensteine erscheinen in ihrem Erwartungsfenster — dieselbe Liste, die
+    // unter "Meilensteine" zum Abhaken steht. Es gibt bewusst nur eine.
+    for (const milestone of MILESTONES) {
+      if (milestone.fromWeek > weeksTotal) continue;
+      result.push({
+        id: `milestone-${milestone.key}`,
+        week: milestone.fromWeek,
+        kind: "milestone",
+        label: milestone.label,
+        detail: milestone.hint ?? "",
+        when: `üblich in Woche ${milestone.fromWeek}–${milestone.toWeek}${milestone.source === "who" ? " (WHO)" : ""}`,
+      });
     }
 
     return result.sort((a, b) => a.week - b.week);

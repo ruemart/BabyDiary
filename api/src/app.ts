@@ -23,6 +23,12 @@ import {
 } from "./auth.ts";
 import type { Store } from "./db.ts";
 import { renderTimelapse } from "./timelapse.ts";
+import {
+  createWeatherStore,
+  fetchDailyTemperatures,
+  searchPlaces,
+  type WeatherStore,
+} from "./weather.ts";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -44,8 +50,12 @@ const ALLOWED_IMAGE_TYPES = new Map([
   ["image/webp", ".webp"],
 ]);
 
-export async function buildApp(app: FastifyInstance, opts: { store: Store }) {
+export async function buildApp(
+  app: FastifyInstance,
+  opts: { store: Store; weather?: WeatherStore },
+) {
   const { store } = opts;
+  const weather = opts.weather;
 
   /** Alles unter /api/ braucht ein gültiges Cookie — außer den drei Ausnahmen. */
   const OPEN_ROUTES = new Set(["/api/health", "/api/session", "/api/session/check"]);
@@ -219,6 +229,89 @@ export async function buildApp(app: FastifyInstance, opts: { store: Store }) {
       return reply.send(createReadStream(path));
     } catch {
       return reply.code(404).send({ error: "not_found" });
+    }
+  });
+
+  /* ── Wetter ───────────────────────────────────────────────────────────────── */
+
+  /**
+   * Höchstens einmal pro Stunde beim Dienst nachfragen.
+   *
+   * Die Tageswerte ändern sich nicht im Minutentakt, und vier Geräte, die alle
+   * 30 Sekunden abgleichen, würden Open-Meteo sonst grundlos zumüllen.
+   */
+  const REFRESH_AFTER_MS = 60 * 60 * 1000;
+  let refreshing: Promise<void> | null = null;
+
+  async function refreshWeatherIfStale(): Promise<void> {
+    if (!weather) return;
+    const child = store.getChild();
+    if (!child?.latitude || !child?.longitude) return;
+
+    const last = weather.lastFetchedAt();
+    if (last && Date.now() - Date.parse(last) < REFRESH_AFTER_MS) return;
+
+    // Nur ein Abruf gleichzeitig, auch wenn mehrere Geräte parallel anfragen.
+    refreshing ??= (async () => {
+      try {
+        // Zuerst der Heimatort für das rollende Fenster …
+        const days = await fetchDailyTemperatures(
+          child.latitude!,
+          child.longitude!,
+          child.timezone,
+        );
+        weather.save(days);
+
+        // … danach die Urlaube, die den Heimatort für ihre Tage überschreiben.
+        // Reihenfolge ist wichtig: der spätere Aufruf gewinnt pro Tag.
+        for (const away of store.locatedAbsences()) {
+          try {
+            const awayDays = await fetchDailyTemperatures(
+              away.latitude,
+              away.longitude,
+              child.timezone,
+              { from: away.from, to: away.to },
+            );
+            weather.save(awayDays);
+          } catch (err) {
+            app.log.warn({ err, away }, "Wetter für Abwesenheit nicht abrufbar");
+          }
+        }
+
+        app.log.info({ days: days.length, ort: child.placeName }, "Wetter aktualisiert");
+      } catch (err) {
+        app.log.warn({ err }, "Wetterabruf fehlgeschlagen");
+      } finally {
+        refreshing = null;
+      }
+    })();
+
+    await refreshing;
+  }
+
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    "/api/weather",
+    async (req, reply) => {
+      if (!weather) return reply.send([]);
+
+      const isDay = (v: string | undefined): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+      const to = isDay(req.query.to) ? req.query.to : new Date().toISOString().slice(0, 10);
+      const from = isDay(req.query.from) ? req.query.from : "1970-01-01";
+
+      // Nicht blockieren, wenn der Dienst hakt: erst ausliefern, was da ist.
+      void refreshWeatherIfStale();
+      return weather.range(from, to);
+    },
+  );
+
+  app.get<{ Querystring: { q?: string } }>("/api/places", async (req, reply) => {
+    const query = (req.query.q ?? "").trim();
+    if (query.length < 2) return reply.send([]);
+    try {
+      return await searchPlaces(query);
+    } catch (err) {
+      req.log.warn({ err }, "Ortssuche fehlgeschlagen");
+      return reply.code(503).send({ error: "geocoding_unavailable" });
     }
   });
 

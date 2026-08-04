@@ -29,6 +29,8 @@ const TYPE_LABEL: Record<string, string> = {
   milestone: "Meilenstein",
   note: "Notiz",
   photo: "Foto",
+  illness: "Krankheit",
+  absence: "Abwesenheit",
 };
 
 const DIAPER_LABEL: Record<string, string> = {
@@ -78,6 +80,16 @@ function describe(entry: LocalEntry): string {
       return entry.label ?? "";
     case "photo":
       return `Woche ${entry.lifeWeek}`;
+    case "illness":
+      return [
+        entry.label,
+        entry.temperatureDc ? `${(entry.temperatureDc / 10).toFixed(1).replace(".", ",")} °C` : null,
+        entry.endedAt ? null : "läuft noch",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    case "absence":
+      return entry.label ?? "";
     default:
       return "";
   }
@@ -309,6 +321,12 @@ async function remove(entry: LocalEntry) {
 }
 .entry__dot--note {
   background: var(--bm-ink-soft);
+}
+.entry__dot--illness {
+  background: #b5677a;
+}
+.entry__dot--absence {
+  background: var(--bm-sleep);
 }
 
 .entry__body {

@@ -24,6 +24,45 @@ const photoCount = computed(() => data.photosByWeek.size);
 
 const childRejected = computed(() => data.invalidEntries.find((i) => i.id === "child"));
 
+/* ── Ort für das Wetter ───────────────────────────────────────────────────── */
+
+type Place = { name: string; latitude: number; longitude: number; admin?: string };
+
+const placeQuery = ref("");
+const placeResults = ref<Place[]>([]);
+const searching = ref(false);
+
+async function searchPlace() {
+  const q = placeQuery.value.trim();
+  if (q.length < 2) return;
+  searching.value = true;
+  try {
+    const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`, {
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(10_000),
+    });
+    placeResults.value = res.ok ? await res.json() : [];
+  } catch {
+    placeResults.value = [];
+  } finally {
+    searching.value = false;
+  }
+}
+
+async function choosePlace(place: Place) {
+  if (!data.child) return;
+  await data.saveChild({
+    ...data.child,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    placeName: place.admin ? `${place.name} (${place.admin})` : place.name,
+    editedAt: new Date().toISOString(),
+  });
+  placeResults.value = [];
+  placeQuery.value = "";
+  toast.show({ headline: `Ort auf ${place.name} gesetzt`, color: "success" });
+}
+
 async function save() {
   if (!data.child || !form.value.name?.trim() || !form.value.birthDate) return;
   saving.value = true;
@@ -128,6 +167,36 @@ async function signOut() {
     </section>
 
     <section class="card">
+      <h2 class="card__title">Wetter</h2>
+      <p class="card__lead">
+        Mit einem Ort holt der Pi einmal täglich die Tagestemperatur und legt sie neben
+        die Trinkmenge. Bei Hitze trinkt sie oft mehr — dann sieht man auch, warum.
+        Es gehen nur Koordinaten hinaus, keine Daten über das Kind.
+      </p>
+      <p v-if="data.child?.placeName" class="card__lead">
+        Aktuell: <strong>{{ data.child.placeName }}</strong>
+      </p>
+      <div class="place">
+        <input
+          v-model="placeQuery"
+          type="text"
+          placeholder="Ort oder Postleitzahl"
+          @keyup.enter="searchPlace"
+        />
+        <button class="secondary" type="button" :disabled="searching" @click="searchPlace">
+          {{ searching ? "Sucht …" : "Suchen" }}
+        </button>
+      </div>
+      <ul v-if="placeResults.length" class="place__results">
+        <li v-for="place in placeResults" :key="`${place.latitude},${place.longitude}`">
+          <button type="button" @click="choosePlace(place)">
+            {{ place.name }}<span v-if="place.admin">, {{ place.admin }}</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
       <h2 class="card__title">Wochenfotos</h2>
       <p class="card__lead">
         {{ photoCount }} {{ photoCount === 1 ? "Foto" : "Fotos" }} gesammelt. Aus den
@@ -216,6 +285,53 @@ async function signOut() {
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--bm-ink-soft);
+}
+
+.place {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.place input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.875rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.place .secondary {
+  flex: none;
+  padding-inline: 1rem;
+}
+
+.place__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  overflow: hidden;
+}
+
+.place__results li + li {
+  border-top: 1px solid var(--bm-hairline);
+}
+
+.place__results button {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .options {

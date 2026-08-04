@@ -79,6 +79,11 @@ type EntryRow = {
   length_mm: number | null;
   head_mm: number | null;
   label: string | null;
+  milestone_key: string | null;
+  temperature_dc: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  place_name: string | null;
   life_week: number | null;
   media_id: string | null;
   note: string | null;
@@ -102,6 +107,11 @@ function toEntry(row: EntryRow): StoredEntry {
     lengthMm: row.length_mm,
     headMm: row.head_mm,
     label: row.label,
+    milestoneKey: row.milestone_key,
+    temperatureDc: row.temperature_dc,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    placeName: row.place_name,
     lifeWeek: row.life_week,
     mediaId: row.media_id,
     note: row.note,
@@ -144,11 +154,11 @@ export function createStore(db: Db) {
   const upsert = db.prepare(`
     INSERT INTO entries (
       id, child_id, type, started_at, ended_at, amount_ml, spat_up, diaper,
-      weight_g, length_mm, head_mm, label, life_week, media_id, note,
+      weight_g, length_mm, head_mm, label, milestone_key, temperature_dc, latitude, longitude, place_name, life_week, media_id, note,
       created_by, edited_at, rev, deleted
     ) VALUES (
       @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @diaper,
-      @weight_g, @length_mm, @head_mm, @label, @life_week, @media_id, @note,
+      @weight_g, @length_mm, @head_mm, @label, @milestone_key, @temperature_dc, @latitude, @longitude, @place_name, @life_week, @media_id, @note,
       @created_by, @edited_at, @rev, @deleted
     )
     ON CONFLICT(id) DO UPDATE SET
@@ -162,6 +172,11 @@ export function createStore(db: Db) {
       length_mm = excluded.length_mm,
       head_mm = excluded.head_mm,
       label = excluded.label,
+      milestone_key = excluded.milestone_key,
+      temperature_dc = excluded.temperature_dc,
+      latitude = excluded.latitude,
+      longitude = excluded.longitude,
+      place_name = excluded.place_name,
       life_week = excluded.life_week,
       media_id = excluded.media_id,
       note = excluded.note,
@@ -175,10 +190,10 @@ export function createStore(db: Db) {
   const upsertChild = db.prepare(`
     INSERT INTO child (
       id, name, sex, birth_date, due_date, birth_weight_g, birth_length_mm,
-      birth_head_mm, timezone, edited_at, rev
+      birth_head_mm, timezone, latitude, longitude, place_name, edited_at, rev
     ) VALUES (
       @id, @name, @sex, @birth_date, @due_date, @birth_weight_g, @birth_length_mm,
-      @birth_head_mm, @timezone, @edited_at, @rev
+      @birth_head_mm, @timezone, @latitude, @longitude, @place_name, @edited_at, @rev
     )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
@@ -189,6 +204,9 @@ export function createStore(db: Db) {
       birth_length_mm = excluded.birth_length_mm,
       birth_head_mm = excluded.birth_head_mm,
       timezone = excluded.timezone,
+      latitude = excluded.latitude,
+      longitude = excluded.longitude,
+      place_name = excluded.place_name,
       edited_at = excluded.edited_at,
       rev = excluded.rev
   `);
@@ -206,6 +224,9 @@ export function createStore(db: Db) {
       birthLengthMm: (row["birth_length_mm"] as number | null) ?? null,
       birthHeadMm: (row["birth_head_mm"] as number | null) ?? null,
       timezone: row["timezone"] as string,
+      latitude: (row["latitude"] as number | null) ?? null,
+      longitude: (row["longitude"] as number | null) ?? null,
+      placeName: (row["place_name"] as string | null) ?? null,
       editedAt: row["edited_at"] as string,
     };
   }
@@ -234,6 +255,9 @@ export function createStore(db: Db) {
             birth_length_mm: child.birthLengthMm,
             birth_head_mm: child.birthHeadMm,
             timezone: child.timezone,
+            latitude: child.latitude,
+            longitude: child.longitude,
+            place_name: child.placeName,
             edited_at: incomingEditedAt,
             rev: bumpRev.get()!.value,
           });
@@ -260,6 +284,11 @@ export function createStore(db: Db) {
           length_mm: entry.lengthMm,
           head_mm: entry.headMm,
           label: entry.label,
+          milestone_key: entry.milestoneKey,
+          temperature_dc: entry.temperatureDc,
+          latitude: entry.latitude,
+          longitude: entry.longitude,
+          place_name: entry.placeName,
           life_week: entry.lifeWeek,
           media_id: entry.mediaId,
           note: entry.note,
@@ -282,6 +311,23 @@ export function createStore(db: Db) {
     },
     currentRev(): number {
       return currentRev.get()!.value;
+    },
+    /** Abwesenheiten mit Ort — bestimmen, welches Wetter für welche Tage gilt. */
+    locatedAbsences(): { from: string; to: string; latitude: number; longitude: number }[] {
+      return db
+        .prepare<[], EntryRow>(
+          `SELECT * FROM entries
+           WHERE type = 'absence' AND deleted = 0
+             AND latitude IS NOT NULL AND longitude IS NOT NULL AND ended_at IS NOT NULL
+           ORDER BY started_at`,
+        )
+        .all()
+        .map((r) => ({
+          from: r.started_at.slice(0, 10),
+          to: r.ended_at!.slice(0, 10),
+          latitude: r.latitude!,
+          longitude: r.longitude!,
+        }));
     },
   };
 }

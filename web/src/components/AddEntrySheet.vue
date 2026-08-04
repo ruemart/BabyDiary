@@ -51,7 +51,13 @@ const TYPES: { value: EntryType; label: string }[] = [
   { value: "growth", label: "Wachstum" },
   { value: "milestone", label: "Meilenstein" },
   { value: "note", label: "Notiz" },
+  { value: "illness", label: "Krankheit" },
+  { value: "absence", label: "Urlaub" },
 ];
+
+/** Häufige Krankheiten zum Antippen — Freitext bleibt trotzdem möglich. */
+const ILLNESS_PRESETS = ["Erkältung", "Fieber", "Magen-Darm", "Zahnen", "Impfreaktion"];
+const ABSENCE_KINDS = ["Urlaub", "Elternzeit", "Kur", "Krankenhaus"];
 
 const type = ref<EntryType>("feed");
 const at = ref(new Date());
@@ -64,6 +70,43 @@ const headMm = ref<number | null>(null);
 const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
+const temperatureDc = ref<number | null>(null);
+
+/* ── Ort bei Abwesenheiten ────────────────────────────────────────────────── */
+
+type Place = { name: string; latitude: number; longitude: number; admin?: string };
+
+const place = ref<{ latitude: number; longitude: number; placeName: string } | null>(null);
+const placeQuery = ref("");
+const placeResults = ref<Place[]>([]);
+const placeSearching = ref(false);
+
+async function searchPlace() {
+  const q = placeQuery.value.trim();
+  if (q.length < 2) return;
+  placeSearching.value = true;
+  try {
+    const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`, {
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(10_000),
+    });
+    placeResults.value = res.ok ? await res.json() : [];
+  } catch {
+    placeResults.value = [];
+  } finally {
+    placeSearching.value = false;
+  }
+}
+
+function choosePlace(p: Place) {
+  place.value = {
+    latitude: p.latitude,
+    longitude: p.longitude,
+    placeName: p.admin ? `${p.name} (${p.admin})` : p.name,
+  };
+  placeResults.value = [];
+  placeQuery.value = "";
+}
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
@@ -81,6 +124,15 @@ watch(open, (isOpen) => {
     label.value = existing.label ?? "";
     note.value = existing.note ?? "";
     spatUp.value = existing.spatUp === true;
+    temperatureDc.value = existing.temperatureDc;
+    place.value =
+      existing.latitude !== null && existing.longitude !== null
+        ? {
+            latitude: existing.latitude,
+            longitude: existing.longitude,
+            placeName: existing.placeName ?? "",
+          }
+        : null;
     return;
   }
 
@@ -95,6 +147,10 @@ watch(open, (isOpen) => {
   label.value = "";
   note.value = "";
   spatUp.value = false;
+  temperatureDc.value = null;
+  place.value = null;
+  placeQuery.value = "";
+  placeResults.value = [];
 });
 
 const canSave = computed(() => {
@@ -109,10 +165,23 @@ const canSave = computed(() => {
       return note.value.trim().length > 0;
     case "sleep":
       return endAt.value.getTime() > at.value.getTime();
+    case "illness":
+      return label.value.trim().length > 0;
+    case "absence":
+      return label.value.trim().length > 0 && endAt.value.getTime() > at.value.getTime();
     default:
       return true;
   }
 });
+
+/** "38,5" -> 385 Zehntelgrad. Komma, weil deutsche Tastatur. */
+function tempFrom(value: string): number | null {
+  const trimmed = value.trim().replace(",", ".");
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.round(parsed * 10);
+}
 
 function num(value: string): number | null {
   const trimmed = value.trim();
@@ -127,11 +196,21 @@ function fields() {
     amountMl: type.value === "feed" ? amountMl.value : null,
     spatUp: type.value === "feed" ? spatUp.value : false,
     diaper: type.value === "diaper" ? diaper.value : null,
-    endedAt: type.value === "sleep" ? endAt.value.toISOString() : null,
+    endedAt:
+      type.value === "sleep" || type.value === "absence" || type.value === "illness"
+        ? endAt.value.toISOString()
+        : null,
+    temperatureDc: type.value === "illness" ? temperatureDc.value : null,
+    latitude: type.value === "absence" ? (place.value?.latitude ?? null) : null,
+    longitude: type.value === "absence" ? (place.value?.longitude ?? null) : null,
+    placeName: type.value === "absence" ? (place.value?.placeName ?? null) : null,
     weightG: type.value === "growth" ? weightG.value : null,
     lengthMm: type.value === "growth" ? lengthMm.value : null,
     headMm: type.value === "growth" ? headMm.value : null,
-    label: type.value === "milestone" ? label.value.trim() : null,
+    label:
+      type.value === "milestone" || type.value === "illness" || type.value === "absence"
+        ? label.value.trim()
+        : null,
     note: note.value.trim() || null,
   };
 }
@@ -221,6 +300,87 @@ async function save() {
         <CmField v-model="headMm" label="Kopfumfang" />
       </template>
 
+      <template v-else-if="type === 'illness'">
+        <div class="field">
+          <span class="field__label">Was ist los?</span>
+          <div class="chips">
+            <button
+              v-for="preset in ILLNESS_PRESETS"
+              :key="preset"
+              type="button"
+              class="chip"
+              :class="{ 'chip--active': label === preset }"
+              @click="label = preset"
+            >
+              {{ preset }}
+            </button>
+          </div>
+          <input v-model="label" type="text" placeholder="oder eigene Angabe" />
+        </div>
+        <label class="field">
+          <span class="field__label">Höchste gemessene Temperatur (optional)</span>
+          <span class="field__group">
+            <input
+              :value="temperatureDc === null ? '' : String(temperatureDc / 10).replace('.', ',')"
+              type="text"
+              inputmode="decimal"
+              placeholder="z. B. 38,5"
+              @input="temperatureDc = tempFrom(($event.target as HTMLInputElement).value)"
+            />
+            <span class="field__unit">°C</span>
+          </span>
+        </label>
+      </template>
+
+      <template v-else-if="type === 'absence'">
+        <div class="field">
+          <span class="field__label">Art</span>
+          <div class="chips">
+            <button
+              v-for="kind in ABSENCE_KINDS"
+              :key="kind"
+              type="button"
+              class="chip"
+              :class="{ 'chip--active': label === kind }"
+              @click="label = kind"
+            >
+              {{ kind }}
+            </button>
+          </div>
+          <input v-model="label" type="text" placeholder="oder eigene Angabe" />
+        </div>
+
+        <div class="field">
+          <span class="field__label">Wo? (optional)</span>
+          <!-- Damit für diese Tage das Wetter am Urlaubsort gilt statt zu Hause.
+               Ein Eintrag statt einer täglichen Ortsangabe. -->
+          <p v-if="place" class="place__chosen">
+            {{ place.placeName }}
+            <button type="button" class="place__clear" @click="place = null">ändern</button>
+          </p>
+          <template v-else>
+            <div class="place">
+              <input
+                v-model="placeQuery"
+                type="text"
+                placeholder="Ort, PLZ oder Land"
+                @keyup.enter="searchPlace"
+              />
+              <button type="button" class="place__go" :disabled="placeSearching" @click="searchPlace">
+                {{ placeSearching ? "…" : "Suchen" }}
+              </button>
+            </div>
+            <ul v-if="placeResults.length" class="place__results">
+              <li v-for="result in placeResults" :key="`${result.latitude},${result.longitude}`">
+                <button type="button" @click="choosePlace(result)">
+                  {{ result.name }}<span v-if="result.admin">, {{ result.admin }}</span>
+                </button>
+              </li>
+            </ul>
+          </template>
+        </div>
+      </template>
+
       <template v-else-if="type === 'milestone'">
         <label class="field">
           <span class="field__label">Was war es?</span>
@@ -230,8 +390,10 @@ async function save() {
 
       <TimeField v-model="at" />
 
-      <div v-if="type === 'sleep'" class="field">
-        <span class="field__label">Ende</span>
+      <div v-if="type === 'sleep' || type === 'absence' || type === 'illness'" class="field">
+        <span class="field__label">
+          {{ type === "illness" ? "Bis wann? (leer lassen wenn noch nicht vorbei)" : "Ende" }}
+        </span>
         <TimeField v-model="endAt" />
       </div>
 
@@ -316,6 +478,100 @@ async function save() {
   color: var(--bm-ink);
   font: inherit;
   font-size: 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.chip {
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.chip--active {
+  background: var(--bm-growth);
+  border-color: transparent;
+  color: #fff;
+}
+
+.place {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.place input {
+  flex: 1;
+  min-width: 0;
+}
+
+.place__go {
+  flex: none;
+  min-height: 2.875rem;
+  padding-inline: 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.place__chosen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  font-weight: 600;
+}
+
+.place__clear {
+  border: none;
+  background: none;
+  color: var(--bm-ink-soft);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.place__results {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  overflow: hidden;
+}
+
+.place__results li + li {
+  border-top: 1px solid var(--bm-hairline);
+}
+
+.place__results button {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .grid {

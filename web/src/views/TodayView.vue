@@ -8,12 +8,33 @@ import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
 import PhotoNudge from "../components/PhotoNudge.vue";
 import AppHeader from "../components/AppHeader.vue";
+import { useAlerts, ALERT_DISCLAIMER } from "../composables/useAlerts.ts";
+import { useWeather, describeTemperature } from "../composables/useWeather.ts";
+import { ageInDays, localDayKey } from "@babymonitor/shared";
+import { onMounted } from "vue";
 
 const data = useData();
 const confirmWithUndo = useUndo();
 const toast = useToast();
 
 const feedSheetOpen = ref(false);
+
+const { alerts } = useAlerts(
+  () => data.entries,
+  () => data.timezone,
+  () => (data.child ? ageInDays(data.child.birthDate, new Date(), data.timezone) : 0),
+);
+
+const { byDay, load: loadWeather } = useWeather();
+onMounted(() => void loadWeather());
+
+/** Wetter von heute — erklärt oft, warum sie mehr oder weniger trinkt. */
+const todayWeather = computed(() => {
+  const today = localDayKey(new Date(), data.timezone);
+  const entry = byDay.value.get(today);
+  if (!entry?.tmax) return null;
+  return { tmax: Math.round(entry.tmax), label: describeTemperature(entry.tmax) };
+});
 
 /**
  * Tickt jede Sekunde. Die Zahl "vor 2 Std 15 Min" ist die eine Information, die
@@ -124,6 +145,11 @@ async function toggleSleep() {
         <template v-else>Noch keine Windel eingetragen</template>
       </div>
 
+      <div v-if="todayWeather" class="status__row">
+        <span class="status__dot" :style="{ background: 'var(--bm-growth)' }" />
+        Heute bis {{ todayWeather.tmax }} °C · {{ todayWeather.label }}
+      </div>
+
       <div v-if="sleepSince" class="status__row status__row--sleep">
         <span class="status__dot status__dot--pulse" :style="{ background: 'var(--bm-sleep)' }" />
         Schläft seit {{ sleepSince }}
@@ -163,6 +189,15 @@ async function toggleSleep() {
         </svg>
         {{ data.activeSleep ? "Schlaf beenden" : "Schlaf starten" }}
       </button>
+    </section>
+
+    <!-- Hinweise: beobachtend formuliert, nie beurteilend. -->
+    <section v-if="alerts.length" class="alerts" aria-label="Hinweise">
+      <div v-for="alert in alerts" :key="alert.id" class="alert" :class="`alert--${alert.level}`">
+        <p class="alert__title">{{ alert.title }}</p>
+        <p class="alert__detail">{{ alert.detail }}</p>
+      </div>
+      <p class="alerts__note">{{ ALERT_DISCLAIMER }}</p>
     </section>
 
     <PhotoNudge v-if="!data.currentWeekHasPhoto" />
@@ -272,6 +307,44 @@ async function toggleSleep() {
 }
 
 /* ── Eingabe ──────────────────────────────────────────────────────────────── */
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.alert {
+  padding: 0.85rem 1rem;
+  border-radius: 1.125rem;
+  border: 1px solid var(--bm-hairline);
+  background: var(--bm-surface);
+}
+
+/* Kein Rot, kein Ausrufezeichen: Der Hinweis soll gelesen, nicht gefürchtet werden. */
+.alert--watch {
+  border-color: color-mix(in srgb, var(--bm-feed) 55%, transparent);
+  background: var(--bm-feed-soft);
+}
+
+.alert__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.alert__detail {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
+
+.alerts__note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
 
 .actions {
   display: flex;

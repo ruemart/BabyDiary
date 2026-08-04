@@ -4,9 +4,11 @@ import multipart from "@fastify/multipart";
 import { config } from "./config.ts";
 import { buildApp } from "./app.ts";
 import { openDatabase, createStore } from "./db.ts";
+import { createWeatherStore } from "./weather.ts";
 
 const db = openDatabase(config.databasePath);
 const store = createStore(db);
+const weather = createWeatherStore(db);
 
 const app = Fastify({
   logger: { level: process.env["LOG_LEVEL"] ?? "info" },
@@ -19,7 +21,7 @@ await app.register(cookie);
 await app.register(multipart, {
   limits: { fileSize: 12 * 1024 * 1024, files: 1 },
 });
-await app.register(buildApp, { store });
+await app.register(buildApp, { store, weather });
 
 const shutdown = async (signal: string) => {
   app.log.info({ signal }, "fahre herunter");

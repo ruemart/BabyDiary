@@ -3,6 +3,11 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 const routes: RouteRecordRaw[] = [
   { path: "/", name: "heute", component: () => import("./views/TodayView.vue") },
   { path: "/wochen", name: "wochen", component: () => import("./views/WeeksView.vue") },
+  {
+    path: "/meilensteine",
+    name: "meilensteine",
+    component: () => import("./views/MilestonesView.vue"),
+  },
   { path: "/kurven", name: "kurven", component: () => import("./views/ChartsView.vue") },
   { path: "/verlauf", name: "verlauf", component: () => import("./views/HistoryView.vue") },
   {

@@ -37,6 +37,11 @@ async function save() {
     birthLengthMm: form.value.birthLengthMm ?? null,
     birthHeadMm: form.value.birthHeadMm ?? null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
+    // Ort wird später in den Einstellungen gesetzt — das Wetter ist Beiwerk und
+    // hat beim Einrichten nichts verloren.
+    latitude: null,
+    longitude: null,
+    placeName: null,
     editedAt: new Date().toISOString(),
   });
 

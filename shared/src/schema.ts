@@ -16,6 +16,8 @@ export const ENTRY_TYPES = [
   "milestone",
   "note",
   "photo",
+  "illness",
+  "absence",
 ] as const;
 export type EntryType = (typeof ENTRY_TYPES)[number];
 
@@ -66,8 +68,28 @@ export const entrySchema = z
     lengthMm: z.number().int().min(0).max(2000).nullable().default(null),
     headMm: z.number().int().min(0).max(1000).nullable().default(null),
 
-    /** milestone / photo */
+    /** milestone / photo / illness / absence */
     label: z.string().max(200).nullable().default(null),
+    /**
+     * Verweis auf einen Eintrag der festen Meilenstein-Liste.
+     *
+     * Freitext war der falsche Ansatz: Man kann nur abhaken, was man kennt — und die
+     * Meilensteine erst nachschlagen zu müssen, um sie eintragen zu können, stellt
+     * die Sache auf den Kopf.
+     */
+    milestoneKey: z.string().max(64).nullable().default(null),
+    /** illness: Fieber in Zehntelgrad (385 = 38,5 °C). */
+    temperatureDc: z.number().int().min(300).max(430).nullable().default(null),
+    /**
+     * absence: Wo ihr in dieser Zeit wart.
+     *
+     * Für die abgedeckten Tage holt der Server das Wetter von HIER statt vom
+     * Heimatort. Damit braucht es keine tägliche Ortsangabe — der Urlaubs-Eintrag
+     * hat Anfang und Ende ohnehin schon.
+     */
+    latitude: z.number().min(-90).max(90).nullable().default(null),
+    longitude: z.number().min(-180).max(180).nullable().default(null),
+    placeName: z.string().max(120).nullable().default(null),
     /** photo: die Lebenswoche, für die das Foto zählt (0 = erste Lebenswoche) */
     lifeWeek: z.number().int().min(0).max(1000).nullable().default(null),
     mediaId: z.string().max(64).nullable().default(null),
@@ -112,7 +134,18 @@ export const entrySchema = z
         );
         break;
       case "milestone":
+        require(
+          !!e.milestoneKey || !!e.label?.trim(),
+          "milestoneKey",
+          "Meilenstein fehlt",
+        );
+        break;
+      case "illness":
         require(!!e.label?.trim(), "label", "Bezeichnung fehlt");
+        break;
+      case "absence":
+        require(!!e.label?.trim(), "label", "Art fehlt");
+        require(!!e.endedAt, "endedAt", "Ende fehlt");
         break;
       case "photo":
         require(!!e.mediaId, "mediaId", "Bild fehlt");
@@ -143,6 +176,10 @@ export const childSchema = z.object({
   birthHeadMm: z.number().int().min(0).max(1000).nullable().default(null),
   /** IANA-Zone; steuert Tagesgrenzen und Uhrzeit-Achsen in den Auswertungen. */
   timezone: z.string().min(1).max(64).default("Europe/Berlin"),
+  /** Ort für die Wetterabfrage. Ohne Angabe bleibt die Wetterspur leer. */
+  latitude: z.number().min(-90).max(90).nullable().default(null),
+  longitude: z.number().min(-180).max(180).nullable().default(null),
+  placeName: z.string().max(120).nullable().default(null),
   editedAt: isoDateTime,
 });
 export type Child = z.infer<typeof childSchema>;
@@ -181,4 +218,14 @@ export type SyncResponse = {
    * erneuter Versuch — das Gerät muss sie aus dem Ausgangskorb nehmen und melden.
    */
   invalid: InvalidEntry[];
+};
+
+/* ── Wetter ─────────────────────────────────────────────────────────────────── */
+
+export type WeatherDay = {
+  /** YYYY-MM-DD, lokaler Kalendertag. */
+  day: string;
+  /** Höchst- und Tiefsttemperatur in Grad Celsius. */
+  tmax: number | null;
+  tmin: number | null;
 };
