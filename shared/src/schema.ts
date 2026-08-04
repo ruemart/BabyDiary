@@ -149,14 +149,25 @@ export type Child = z.infer<typeof childSchema>;
 
 /* ── Sync-Protokoll ─────────────────────────────────────────────────────────── */
 
-export const syncRequestSchema = z.object({
+/**
+ * Der Umschlag wird zuerst geprüft, die einzelnen Einträge danach getrennt.
+ *
+ * Absichtlich `unknown` für `changes`: Ein einziger fehlerhafter Eintrag darf nicht das
+ * gesamte Paket zu Fall bringen — sonst blockiert er den Abgleich dauerhaft, weil der
+ * Ausgangskorb des Geräts sich nie leert und jeder danach angelegte Eintrag mit
+ * liegenbleibt. Der Server prüft jeden Eintrag einzeln und meldet die schlechten zurück.
+ */
+export const syncEnvelopeSchema = z.object({
   childId: z.string().min(1).max(64),
   /** Höchste bereits bekannte `rev`. 0 = alles holen. */
   since: z.number().int().min(0),
-  changes: z.array(entrySchema).max(500),
-  child: childSchema.nullable().default(null),
+  changes: z.array(z.record(z.unknown())).max(500),
+  child: z.record(z.unknown()).nullable().default(null),
 });
-export type SyncRequest = z.infer<typeof syncRequestSchema>;
+export type SyncEnvelope = z.infer<typeof syncEnvelopeSchema>;
+
+/** Ein Eintrag, den der Server dauerhaft nicht annehmen kann. */
+export type InvalidEntry = { id: string; reason: string };
 
 export type SyncResponse = {
   /** Neue Höchstmarke — beim nächsten Mal als `since` schicken. */
@@ -165,4 +176,9 @@ export type SyncResponse = {
   child: Child | null;
   /** Ids, die der Server verworfen hat, weil seine Version neuer war (LWW). */
   rejected: string[];
+  /**
+   * Einträge, die dem Schema widersprechen. Anders als `rejected` hilft hier kein
+   * erneuter Versuch — das Gerät muss sie aus dem Ausgangskorb nehmen und melden.
+   */
+  invalid: InvalidEntry[];
 };

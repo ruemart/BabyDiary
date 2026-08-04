@@ -95,6 +95,21 @@ async function remove(entry: LocalEntry) {
       <button class="history__add" type="button" @click="addOpen = true">Nachtragen</button>
     </header>
 
+    <!-- Einträge, die der Server dauerhaft ablehnt. Sie blockieren den Abgleich
+         nicht mehr, brauchen aber eine Korrektur — sonst gehen sie stillschweigend
+         nie auf das andere Gerät über. -->
+    <div v-if="data.invalidEntries.length > 0" class="warning" role="alert">
+      <p class="warning__title">
+        {{ data.invalidEntries.length === 1 ? "Ein Eintrag konnte" : `${data.invalidEntries.length} Einträge konnten` }}
+        nicht übertragen werden
+      </p>
+      <p class="warning__text">
+        Die Werte liegen außerhalb des Erlaubten. Bitte den Eintrag antippen und
+        korrigieren — danach wird er automatisch übertragen.
+      </p>
+      <p class="warning__reason">{{ data.invalidEntries[0]!.reason }}</p>
+    </div>
+
     <p v-if="days.length === 0" class="empty">
       Noch nichts eingetragen. Über „Nachtragen“ lassen sich auch vergangene Tage ergänzen.
     </p>
@@ -169,6 +184,33 @@ async function remove(entry: LocalEntry) {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+}
+
+.warning {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--bm-photo) 45%, transparent);
+  border-radius: 1.125rem;
+  background: var(--bm-photo-soft);
+}
+
+.warning__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.warning__text {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
+
+.warning__reason {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  font-family: var(--onyx-font-family-mono, monospace);
+  color: var(--bm-ink-soft);
+  word-break: break-word;
 }
 
 .empty {

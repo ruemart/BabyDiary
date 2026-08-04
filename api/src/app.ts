@@ -3,7 +3,14 @@ import { createReadStream } from "node:fs";
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { join, extname } from "node:path";
 import { z } from "zod";
-import { syncRequestSchema, uuidv7, type SyncResponse } from "@babymonitor/shared";
+import {
+  childSchema,
+  entrySchema,
+  syncEnvelopeSchema,
+  uuidv7,
+  type Entry,
+  type SyncResponse,
+} from "@babymonitor/shared";
 import { config } from "./config.ts";
 import {
   SESSION_COOKIE,
@@ -21,6 +28,14 @@ declare module "fastify" {
   interface FastifyRequest {
     session?: Session;
   }
+}
+
+/** Kurze, lesbare Begründung für die Rückmeldung ans Gerät. */
+function describeIssues(issues: { path: (string | number)[]; message: string }[]): string {
+  return issues
+    .slice(0, 3)
+    .map((i) => `${i.path.join(".") || "Eintrag"}: ${i.message}`)
+    .join("; ");
 }
 
 const ALLOWED_IMAGE_TYPES = new Map([
@@ -90,13 +105,51 @@ export async function buildApp(app: FastifyInstance, opts: { store: Store }) {
   /* ── Sync ─────────────────────────────────────────────────────────────────── */
 
   app.post("/api/sync", async (req, reply) => {
-    const parsed = syncRequestSchema.safeParse(req.body);
-    if (!parsed.success) {
-      req.log.warn({ issues: parsed.error.issues }, "Sync-Payload abgelehnt");
-      return reply.code(400).send({ error: "bad_request", issues: parsed.error.issues });
+    const envelope = syncEnvelopeSchema.safeParse(req.body);
+    if (!envelope.success) {
+      req.log.warn({ issues: envelope.error.issues }, "Sync-Umschlag unbrauchbar");
+      return reply.code(400).send({ error: "bad_request", issues: envelope.error.issues });
     }
 
-    const { childId, since, changes, child } = parsed.data;
+    /**
+     * Jede Änderung EINZELN prüfen, nicht das Paket als Ganzes.
+     *
+     * Vorher blockierte ein einziger ungültiger Eintrag den kompletten Abgleich —
+     * dauerhaft. Der Server wies das ganze Paket ab, der Ausgangskorb des Geräts
+     * leerte sich nie, und jeder danach angelegte Eintrag blieb ebenfalls liegen.
+     * Sichtbar war davon nur "Abgleich gestört".
+     *
+     * Ein fehlerhafter Datensatz darf niemals die Warteschlange als Geisel nehmen.
+     */
+    const changes: Entry[] = [];
+    const invalid: { id: string; reason: string }[] = [];
+
+    for (const raw of envelope.data.changes) {
+      const result = entrySchema.safeParse(raw);
+      if (result.success) {
+        changes.push(result.data);
+      } else {
+        const id = typeof raw?.["id"] === "string" ? raw["id"] : "unbekannt";
+        invalid.push({ id, reason: describeIssues(result.error.issues) });
+      }
+    }
+
+    if (invalid.length > 0) {
+      req.log.warn({ invalid }, "Einzelne Einträge abgelehnt, Rest wird übernommen");
+    }
+
+    const childResult = envelope.data.child
+      ? childSchema.safeParse(envelope.data.child)
+      : null;
+    if (childResult && !childResult.success) {
+      invalid.push({
+        id: "child",
+        reason: describeIssues(childResult.error.issues),
+      });
+    }
+    const child = childResult?.success ? childResult.data : null;
+
+    const { childId, since } = envelope.data;
 
     /**
      * Ein frisch eingeladenes zweites Gerät kennt die childId noch nicht und schickt
@@ -119,6 +172,7 @@ export async function buildApp(app: FastifyInstance, opts: { store: Store }) {
       entries: store.entriesSince(effectiveChildId, since),
       child: store.getChild(),
       rejected,
+      invalid,
     };
     return response;
   });

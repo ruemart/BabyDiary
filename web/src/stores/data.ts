@@ -6,6 +6,7 @@ import {
   type Child,
   type Entry,
   type EntryType,
+  type InvalidEntry,
 } from "@babymonitor/shared";
 import {
   META_CHILD_ID,
@@ -32,6 +33,8 @@ export const useData = defineStore("data", () => {
   const syncState = ref<SyncState>("idle");
   const pending = ref(0);
   const ready = ref(false);
+  /** Vom Server dauerhaft abgelehnte Einträge — brauchen eine Korrektur von Hand. */
+  const invalidEntries = ref<InvalidEntry[]>([]);
 
   const timezone = computed(() => child.value?.timezone ?? "Europe/Berlin");
 
@@ -206,6 +209,9 @@ export const useData = defineStore("data", () => {
     syncState.value = "syncing";
     const outcome = await sync(id);
     syncState.value = outcome.state;
+    // Abgelehnte Einträge zur Anzeige durchreichen: Sie sind aus dem Ausgangskorb
+    // draußen und brauchen eine Korrektur von Hand — das darf nicht still passieren.
+    if (outcome.invalid.length > 0) invalidEntries.value = outcome.invalid;
     if (outcome.pulled > 0) await load();
     pending.value = await outboxCount();
   }
@@ -219,6 +225,7 @@ export const useData = defineStore("data", () => {
     syncState,
     pending,
     ready,
+    invalidEntries,
     lastFeed,
     lastDiaper,
     activeSleep,

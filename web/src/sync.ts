@@ -1,8 +1,9 @@
-import type { Child, SyncResponse } from "@babymonitor/shared";
+import type { Child, InvalidEntry, SyncResponse } from "@babymonitor/shared";
 import {
   META_CURSOR,
   applyServerEntries,
   clearSentOutbox,
+  dropFromOutbox,
   getLocalChild,
   getMeta,
   saveLocalChild,
@@ -16,6 +17,8 @@ export type SyncOutcome = {
   state: SyncState;
   pulled: number;
   pushed: number;
+  /** Einträge, die der Server dauerhaft nicht annimmt — brauchen eine Korrektur. */
+  invalid: InvalidEntry[];
 };
 
 let inFlight: Promise<SyncOutcome> | null = null;
@@ -50,13 +53,13 @@ async function run(childId: string): Promise<SyncOutcome> {
     });
   } catch {
     // Kein Netz. Der Ausgangskorb bleibt unangetastet und geht beim nächsten Mal mit.
-    return { state: "offline", pulled: 0, pushed: 0 };
+    return { state: "offline", pulled: 0, pushed: 0, invalid: [] };
   }
 
-  if (response.status === 401) return { state: "unauthorized", pulled: 0, pushed: 0 };
+  if (response.status === 401) return { state: "unauthorized", pulled: 0, pushed: 0, invalid: [] };
   if (!response.ok) {
     console.warn("Sync abgelehnt", response.status, await response.text().catch(() => ""));
-    return { state: "error", pulled: 0, pushed: 0 };
+    return { state: "error", pulled: 0, pushed: 0, invalid: [] };
   }
 
   const body = (await response.json()) as SyncResponse;
@@ -72,7 +75,21 @@ async function run(childId: string): Promise<SyncOutcome> {
     console.info(`${body.rejected.length} Änderung(en) vom Server überstimmt`);
   }
 
-  return { state: "idle", pulled: body.entries.length, pushed: entries.length };
+  const invalid = body.invalid ?? [];
+  if (invalid.length > 0) {
+    // Aus dem Ausgangskorb nehmen, aber NICHT lokal löschen: Ein erneuter Versuch
+    // hilft nie, aber die Eingabe gehört dem Menschen, nicht dem Schema. Sie bleibt
+    // sichtbar und korrigierbar — nur blockiert sie nicht länger alles dahinter.
+    await dropFromOutbox(invalid.map((i) => i.id));
+    console.warn("Vom Server abgelehnt:", invalid);
+  }
+
+  return {
+    state: "idle",
+    pulled: body.entries.length,
+    pushed: entries.length,
+    invalid,
+  };
 }
 
 /* ── Sitzung ────────────────────────────────────────────────────────────────── */

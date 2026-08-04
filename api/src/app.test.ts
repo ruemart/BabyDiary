@@ -167,24 +167,68 @@ describe("Sync über HTTP", () => {
     expect(pull.json<SyncResponse>().entries.map((e) => e.id)).toEqual(["a"]);
   });
 
-  it("weist ein Payload zurück, das dem Schema widerspricht", async () => {
+  it("nimmt die gültigen Einträge an und meldet nur den fehlerhaften zurück", async () => {
     const jar = await login();
 
     const res = await app.inject({
       method: "POST",
       url: "/api/sync",
       headers: { cookie: jar },
-      // feed ohne amountMl — superRefine muss zuschlagen
       payload: {
         childId: CHILD_ID,
         since: 0,
-        changes: [entry({ id: "a", amountMl: null })],
+        changes: [
+          entry({ id: "gut1" }),
+          // Kopfumfang weit außerhalb des Erlaubten — kann nie angenommen werden.
+          entry({ id: "kaputt", type: "growth", amountMl: null, headMm: 99999 }),
+          entry({ id: "gut2" }),
+        ],
         child: null,
       },
     });
 
+    // DER entscheidende Punkt: Ein einziger fehlerhafter Eintrag darf nicht das
+    // ganze Paket zu Fall bringen. Sonst leert sich der Ausgangskorb des Geräts nie,
+    // und JEDER danach angelegte Eintrag bleibt ebenfalls für immer liegen.
+    expect(res.statusCode).toBe(200);
+
+    const body = res.json<SyncResponse>();
+    expect(body.entries.map((e) => e.id).sort()).toEqual(["gut1", "gut2"]);
+    expect(body.invalid).toHaveLength(1);
+    expect(body.invalid[0]!.id).toBe("kaputt");
+    expect(body.invalid[0]!.reason).toMatch(/headMm/);
+  });
+
+  it("übernimmt Einträge auch dann, wenn die Kind-Stammdaten fehlerhaft sind", async () => {
+    const jar = await login();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: jar },
+      payload: {
+        childId: CHILD_ID,
+        since: 0,
+        changes: [entry({ id: "a" })],
+        child: { id: CHILD_ID, name: "X", sex: "female", birthDate: "kein-datum" },
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json<SyncResponse>();
+    expect(body.entries.map((e) => e.id)).toEqual(["a"]);
+    expect(body.invalid.some((i) => i.id === "child")).toBe(true);
+  });
+
+  it("weist einen unbrauchbaren Umschlag weiterhin ab", async () => {
+    const jar = await login();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: jar },
+      payload: { since: "nicht-numerisch", changes: [] },
+    });
     expect(res.statusCode).toBe(400);
-    expect(res.json().error).toBe("bad_request");
   });
 });
 

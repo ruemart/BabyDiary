@@ -123,6 +123,17 @@ export async function clearSentOutbox(sent: OutboxItem[]): Promise<void> {
   });
 }
 
+/**
+ * Nimmt Einträge aus dem Ausgangskorb, ohne sie lokal zu löschen.
+ *
+ * Für Einträge, die der Server dauerhaft ablehnt: Ein erneuter Versuch hilft nie, aber
+ * die Eingabe gehört dem Menschen — sie bleibt im Bestand sichtbar und korrigierbar.
+ * Sobald sie geändert wird, landet sie über `saveEntry` wieder im Korb.
+ */
+export async function dropFromOutbox(ids: string[]): Promise<void> {
+  await db.outbox.bulkDelete(ids);
+}
+
 export async function takeOutbox(limit = 400): Promise<{ items: OutboxItem[]; entries: Entry[] }> {
   const items = await db.outbox.limit(limit).toArray();
   if (items.length === 0) return { items: [], entries: [] };

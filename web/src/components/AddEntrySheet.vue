@@ -8,6 +8,7 @@ import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import SpatUpToggle from "./SpatUpToggle.vue";
+import CmField from "./CmField.vue";
 
 /**
  * Ein Blatt für Nachtragen UND Ändern.
@@ -215,21 +216,9 @@ async function save() {
               <span class="field__unit">g</span>
             </span>
           </label>
-          <label class="field">
-            <span class="field__label">Länge</span>
-            <span class="field__group">
-              <input :value="lengthMm ?? ''" type="number" inputmode="numeric" @input="lengthMm = num(($event.target as HTMLInputElement).value)" />
-              <span class="field__unit">mm</span>
-            </span>
-          </label>
+          <CmField v-model="lengthMm" label="Länge" />
         </div>
-        <label class="field">
-          <span class="field__label">Kopfumfang</span>
-          <span class="field__group">
-            <input :value="headMm ?? ''" type="number" inputmode="numeric" @input="headMm = num(($event.target as HTMLInputElement).value)" />
-            <span class="field__unit">mm</span>
-          </span>
-        </label>
+        <CmField v-model="headMm" label="Kopfumfang" />
       </template>
 
       <template v-else-if="type === 'milestone'">

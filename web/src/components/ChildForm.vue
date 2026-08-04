@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, watch } from "vue";
 import type { Child, Sex } from "@babymonitor/shared";
+import CmField from "./CmField.vue";
 
 /**
  * Stammdaten des Kindes. Wird sowohl beim ersten Start als auch in den Einstellungen
@@ -87,34 +88,10 @@ function toNumber(value: string): number | null {
         </span>
       </label>
 
-      <label class="field">
-        <span class="field__label">Geburtsgröße</span>
-        <span class="field__input-group">
-          <input
-            :value="form.birthLengthMm ?? ''"
-            type="number"
-            inputmode="numeric"
-            min="0"
-            @input="form.birthLengthMm = toNumber(($event.target as HTMLInputElement).value)"
-          />
-          <span class="field__unit">mm</span>
-        </span>
-      </label>
+      <CmField v-model="form.birthLengthMm" label="Geburtsgröße" />
     </div>
 
-    <label class="field">
-      <span class="field__label">Kopfumfang bei Geburt</span>
-      <span class="field__input-group">
-        <input
-          :value="form.birthHeadMm ?? ''"
-          type="number"
-          inputmode="numeric"
-          min="0"
-          @input="form.birthHeadMm = toNumber(($event.target as HTMLInputElement).value)"
-        />
-        <span class="field__unit">mm</span>
-      </span>
-    </label>
+    <CmField v-model="form.birthHeadMm" label="Kopfumfang bei Geburt" />
   </div>
 </template>
 
