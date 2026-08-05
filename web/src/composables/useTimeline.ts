@@ -14,13 +14,13 @@ import { regionByCode, type RegionCheckup } from "../data/regions/index.ts";
 import { useI18n } from "vue-i18n";
 
 /**
- * Rechnet alle Zeitstrahl-Elemente auf eine gemeinsame Achse: die Lebenswoche ab Geburt.
+ * Maps every timeline element onto one shared axis: the week of life since birth.
  *
- * Der Knackpunkt sind die Entwicklungssprünge. Die zählen ab dem ERRECHNETEN TERMIN,
- * alles andere (U-Untersuchungen, Impfungen, Fotos) ab der GEBURT. Bei einem Frühchen
- * liegen dazwischen mehrere Wochen. Beides ungeprüft auf dieselbe Achse zu legen ist
- * der Fehler, den man dieser Art App am häufigsten ansieht — hier passiert die
- * Umrechnung an genau einer Stelle: `leapOffsetWeeks`.
+ * The catch is the developmental leaps. Those count from the DUE DATE, everything else
+ * (check-ups, vaccinations, photos) from BIRTH. For a premature baby there are several
+ * weeks between the two. Putting both on the same axis unchecked is the mistake you see
+ * most often in apps like this — here the conversion happens in exactly one place:
+ * `leapOffsetWeeks`.
  */
 
 export type TimelineBand = {
@@ -36,19 +36,18 @@ export type TimelinePin = {
   kind: "checkup" | "vaccination" | "milestone";
   label: string;
   detail: string;
-  /** Datum bzw. Zeitraum als Klartext für die Detailkarte. */
+  /** Date or period in plain words for the detail card. */
   when: string;
 };
 
 export type UpcomingItem = TimelinePin & { daysAway: number };
 
 /**
- * Ein eigener Zeitraum: Krankheit oder Abwesenheit.
+ * A period of your own: illness or being away.
  *
- * Getrennt von den Sprung-Bändern, weil es etwas grundsätzlich anderes ist: Sprünge
- * sind eine Erwartung aus einem Modell, das hier tatsächlich Erlebte gehört auf eine
- * eigene Spur. Beides in einen Streifen zu werfen würde suggerieren, sie wären
- * vergleichbar.
+ * Kept apart from the leap bands because it is something fundamentally different: leaps
+ * are an expectation from a model, what actually happened belongs on its own track.
+ * Throwing both into one strip would suggest they are comparable.
  */
 export type PeriodBand = {
   id: string;
@@ -56,11 +55,11 @@ export type PeriodBand = {
   toWeek: number;
   label: string;
   kind: "illness" | "absence";
-  /** Läuft noch — kein Ende eingetragen. */
+  /** Still running — no end recorded. */
   ongoing: boolean;
 };
 
-/** Rechnet Krankheiten und Abwesenheiten auf die Wochenachse. */
+/** Maps illnesses and away periods onto the week axis. */
 export function periodBands(
   entries: { id: string; type: string; startedAt: string; endedAt: string | null; label: string | null }[],
   birthDate: string,
@@ -68,8 +67,8 @@ export function periodBands(
   currentWeek: number,
   labels: { ill: string; away: string },
 ): PeriodBand[] {
-  // Die beiden Ersatzbeschriftungen kommen von außen: Diese Funktion läuft außerhalb
-  // einer Setup-Umgebung und darf useI18n() deshalb nicht selbst aufrufen.
+  // The two fallback labels come from outside: this function runs outside a setup
+  // context and must therefore not call useI18n() itself.
   return entries
     .filter((e) => e.type === "illness" || e.type === "absence")
     .map((e) => {
@@ -78,7 +77,7 @@ export function periodBands(
       return {
         id: e.id,
         fromWeek,
-        // Ohne Ende bis heute zeichnen — ein Balken ohne Ausdehnung wäre unsichtbar.
+        // Without an end, draw up to today — a bar with no extent would be invisible.
         toWeek: ongoing ? Math.max(fromWeek, currentWeek) : lifeWeek(birthDate, e.endedAt!, timezone),
         label: e.label ?? (e.type === "illness" ? labels.ill : labels.away),
         kind: e.type as "illness" | "absence",
@@ -92,17 +91,17 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
   const { t } = useI18n();
 
   /**
-   * Termine kommen aus der Länderkonfiguration des Haushalts.
+   * Appointments come from the household's country configuration.
    *
-   * Ein unbekannter Wert — etwa weil ein anderes Gerät eine neuere Fassung mit einem
-   * Land hat, das dieses Gerät noch nicht kennt — fällt auf "keine Termine" zurück.
-   * Lieber nichts anzeigen als die Termine des falschen Landes.
+   * An unknown value — for instance because another device runs a newer version with a
+   * country this one does not know yet — falls back to "no appointments". Better to show
+   * nothing than the appointments of the wrong country.
    */
   const region = () => regionByCode(child()?.region);
 
   /**
-   * Verschiebung zwischen Sprungzählung (ab ET) und Wochenachse (ab Geburt).
-   * Positiv, wenn das Kind vor dem Termin geboren wurde.
+   * The shift between leap counting (from the due date) and the week axis (from birth).
+   * Positive when the child was born before the due date.
    */
   const leapOffsetWeeks = computed(() => {
     const c = child();
@@ -183,8 +182,8 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
       }
     }
 
-    // Meilensteine erscheinen in ihrem Erwartungsfenster — dieselbe Liste, die
-    // unter "Meilensteine" zum Abhaken steht. Es gibt bewusst nur eine.
+    // Milestones appear in their expected window — the same list that sits under
+    // "Milestones" for ticking off. There is deliberately only one.
     for (const milestone of MILESTONES) {
       if (milestone.fromWeek > weeksTotal) continue;
       result.push({
@@ -202,7 +201,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
     return result.sort((a, b) => a.week - b.week);
   });
 
-  /** Die nächsten anstehenden Termine — der "Ausblick" auf einen Blick. */
+  /** The next appointments due — the "what is coming" at a glance. */
   function upcoming(currentWeek: number, count = 3): UpcomingItem[] {
     const c = child();
     if (!c) return [];
@@ -221,7 +220,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
       }));
   }
 
-  /** Der Sprung, in dessen Fenster die aktuelle Woche liegt (falls einer läuft). */
+  /** The leap whose window contains the current week (if one is running). */
   function activeLeap(currentWeek: number): Leap | null {
     const band = bands.value.find((b) => currentWeek >= b.fromWeek && currentWeek <= b.toWeek);
     return band?.leap ?? null;

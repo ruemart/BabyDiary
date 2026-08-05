@@ -38,9 +38,8 @@ const intake = useDailyIntake(() => data.entries, () => data.timezone);
 const vitaminD = useVitaminD(() => data.entries, () => data.timezone, () => now.value);
 
 /**
- * Vitamin D nachträglich an der letzten heutigen Mahlzeit setzen — oder wieder
- * aufheben. Damit muss niemand in den Verlauf, nur weil das Häkchen beim Eintragen
- * vergessen wurde.
+ * Set vitamin D retrospectively on today's last feed — or take it back off. That way
+ * nobody has to go into the history just because the tick was forgotten while recording.
  */
 async function toggleVitaminD() {
   const targetId = vitaminD.value.entryId ?? vitaminD.value.latestFeedId;
@@ -73,15 +72,15 @@ const todayWeather = computed(() => {
   const today = localDayKey(new Date(), data.timezone);
   const entry = byDay.value.get(today);
   if (!entry?.tmax) return null;
-  // describeTemperature liefert einen Schlüssel, keinen Text — die Einordnung ist
-  // eine Formulierung und gehört in die Sprachdateien.
+  // describeTemperature returns a key, not a text — the wording is a phrasing and
+  // belongs in the language files.
   const key = describeTemperature(entry.tmax);
   return { tmax: Math.round(entry.tmax), label: key ? t(key) : "" };
 });
 
 /**
- * Tickt jede Sekunde. Die Zahl "vor 2 Std 15 Min" ist die eine Information, die
- * nachts wirklich gebraucht wird — sie darf nicht veraltet dastehen.
+ * Ticks every second. The number "2 h 15 min ago" is the one piece of information that
+ * is really needed at night — it must not sit there stale.
  */
 const now = ref(new Date());
 const tick = setInterval(() => (now.value = new Date()), 1000);
@@ -93,7 +92,7 @@ const lastFeedText = computed(() => {
   return {
     since: elapsedSinceLabel(feed.startedAt, now.value),
     detail: `${feed.amountMl} ml um ${localTimeLabel(feed.startedAt, data.timezone)}`,
-    // Ohne diesen Hinweis liest die Statuszeile wie eine erfolgte Aufnahme.
+    // Without this note the status line reads like an intake that happened.
     spatUp: feed.spatUp === true,
   };
 });
@@ -128,8 +127,8 @@ const DIAPER_BUTTONS = [
 async function logDiaper(kind: "empty" | "wet" | "soiled") {
   const result = await data.logDiaper(kind);
 
-  // Der Schutz gegen Doppeltaps darf nicht still zuschlagen: Wer nicht erfährt, dass
-  // sein zweiter Tap verworfen wurde, tippt ein drittes Mal.
+  // The double-tap guard must not act silently: someone who is not told their second
+  // tap was discarded will tap a third time.
   if (result.action === "duplicate") {
     toast.show({
       headline: t("today.diaperAlready", { kind: t(DIAPER_KEY[kind]!) }),
@@ -164,7 +163,7 @@ async function startSleep() {
   <div class="today">
     <AppHeader />
 
-    <!-- Statuszeile: das, wofür man das Telefon nachts überhaupt anschaltet. -->
+    <!-- Status line: the reason you switch the phone on at night at all. -->
     <section class="status" :aria-label="$t('today.statusRegion')">
       <div class="status__primary">
         <p class="status__label">{{ $t("today.lastFeed") }}</p>
@@ -184,8 +183,8 @@ async function startSleep() {
         <template v-else>{{ $t("today.noDiaperYet") }}</template>
       </div>
 
-      <!-- Tagesmenge als Einordnung, nicht als Sollvorgabe: Wie viel sie braucht,
-           entscheidet sie selbst. Deshalb steht hier nie ein Rückstand. -->
+      <!-- The daily amount as context, not as a target: how much she needs is her call.
+           So there is never a shortfall shown here. -->
       <div class="status__row status__row--intake">
         <span class="status__dot" :style="{ background: 'var(--bm-feed)' }" />
         <span>
@@ -202,9 +201,9 @@ async function startSleep() {
 
     </section>
 
-    <!-- Vitamin D: eigene Karte, nicht eine Zeile unter vielen. Die tägliche Gabe
-         wird genau deshalb vergessen, weil sie so klein ist — und am Abend weiß
-         niemand mehr sicher, ob sie nun passiert ist. -->
+    <!-- Vitamin D: its own card, not one line among many. The daily dose gets forgotten
+         precisely because it is so small — and by the evening nobody is sure any more
+         whether it happened. -->
     <section
       class="vitamin"
       :class="{ 'vitamin--done': vitaminD.given, 'vitamin--urgent': vitaminD.urgent }"
@@ -241,8 +240,8 @@ async function startSleep() {
       </button>
     </section>
 
-    <!-- Was gerade läuft. Ein Tap beendet es zum jetzigen Zeitpunkt — ohne dass
-         beim Starten schon nach dem Ende gefragt werden musste. -->
+    <!-- What is currently running. One tap ends it at the present moment — without
+         having had to ask for the end when it started. -->
     <section v-if="openPeriods.length" class="running" :aria-label="$t('today.running')">
       <p class="running__title">{{ $t("today.running") }}</p>
       <div v-for="period in openPeriods" :key="period.id" class="running__item">
@@ -257,7 +256,7 @@ async function startSleep() {
       </div>
     </section>
 
-    <!-- Eingabe. Reihenfolge nach Häufigkeit, Größe nach Wichtigkeit. -->
+    <!-- Entry. Order by frequency, size by importance. -->
     <section class="actions" :aria-label="$t('today.entryRegion')">
       <button class="feed" type="button" @click="feedSheetOpen = true">
         <span class="feed__icon" aria-hidden="true">
@@ -452,7 +451,7 @@ async function startSleep() {
   background: var(--bm-surface);
 }
 
-/* Kein Rot, kein Ausrufezeichen: Der Hinweis soll gelesen, nicht gefürchtet werden. */
+/* No red, no exclamation mark: the note should be read, not feared. */
 .alert--watch {
   border-color: color-mix(in srgb, var(--bm-feed) 55%, transparent);
   background: var(--bm-feed-soft);
@@ -488,7 +487,7 @@ async function startSleep() {
   align-items: center;
   gap: 1rem;
   width: 100%;
-  /* Bewusst hoch: das ist das Ziel, das nachts einhändig getroffen werden muss. */
+  /* Deliberately tall: this is the target that has to be hit one-handed at night. */
   min-height: 5.5rem;
   padding: 1rem 1.25rem;
   border: none;
@@ -569,8 +568,8 @@ async function startSleep() {
   background: var(--bm-diaper-soft);
 }
 
-/* Erst am Abend deutlicher. Ein vergessener Tag ist kein Notfall — die App
-   erinnert, sie mahnt nicht. */
+/* Only clearer in the evening. A forgotten day is not an emergency — the app
+   reminds, it does not nag. */
 .vitamin--urgent {
   border-color: color-mix(in srgb, var(--bm-feed) 65%, transparent);
   background: var(--bm-feed-soft);
@@ -713,8 +712,8 @@ async function startSleep() {
   gap: 0.625rem;
 }
 
-/* Wenn der Schlaf läuft, steht sein Knopf oben in "Läuft gerade" — dann bekommt
-   Baden die volle Breite statt einer Lücke daneben. */
+/* When a sleep is running its button sits above in "Currently running" — then the
+   bath button gets the full width instead of a gap next to it. */
 .secondary-row:has(.bath:only-child) {
   grid-template-columns: 1fr;
 }

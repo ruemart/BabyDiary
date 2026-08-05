@@ -5,15 +5,15 @@ import type { PeriodBand, TimelineBand, TimelinePin } from "../composables/useTi
 import type { LocalEntry } from "../db/local.ts";
 
 /**
- * Das Wochenband — die Signatur dieser App.
+ * The week ribbon — this app's signature.
  *
- * Der Zeitstrahl ist zugleich das Fotoalbum: Die Wochenfotos sitzen auf der Achse,
- * nicht in einer eigenen Galerie. Dadurch wird das Zurückscrollen durch die Wochen
- * buchstäblich zum Durchblättern des Jahres — und die Lücken ohne Foto sind sichtbar,
- * ohne dass irgendwo eine Mahnung stehen muss.
+ * The timeline is also the photo album: the weekly photos sit on the axis, not in a
+ * gallery of their own. That turns scrolling back through the weeks literally into
+ * leafing through the year — and the gaps without a photo are visible without any
+ * reminder having to sit anywhere.
  *
- * Bewusst als scrollende Zellen statt als SVG: Damit funktionieren native
- * Scroll-Snap-Punkte, Tastaturbedienung und Bildlazyloading ohne Nachbau.
+ * Deliberately scrolling cells rather than an SVG: that way native scroll snapping,
+ * keyboard control and lazy image loading work without being rebuilt.
  */
 const props = defineProps<{
   weeksTotal: number;
@@ -32,7 +32,7 @@ const selected = ref(props.currentWeek);
 
 const weeks = computed(() => Array.from({ length: props.weeksTotal + 1 }, (_, i) => i));
 
-/** Pins je Woche gruppieren, damit sie sich in der Spalte nicht überlagern. */
+/** Group pins by week so they do not overlap inside the column. */
 const pinsByWeek = computed(() => {
   const map = new Map<number, TimelinePin[]>();
   for (const pin of props.pins) {
@@ -66,8 +66,8 @@ function bandStyle(band: { fromWeek: number; toWeek: number }) {
 }
 
 /**
- * Zeiträume in Spuren stapeln, damit sich Überlappungen nicht verdecken.
- * Krank im Urlaub ist keine exotische Kombination.
+ * Stack periods into tracks so overlaps do not hide each other.
+ * Being ill on holiday is not an exotic combination.
  */
 const periodRows = computed(() => {
   const rows: PeriodBand[][] = [];
@@ -84,11 +84,11 @@ function weekDateLabel(week: number): string {
 }
 
 /**
- * Kurzes Startdatum unter der Wochenzahl, etwa "31.7.".
+ * Short start date under the week number, e.g. "31.7.".
  *
- * Der Beginn einer Lebenswoche ist der Wochentag der Geburt, nicht der Montag — die
- * Wochen zählen ab dem Geburtstag. Ohne diese Zeile muss man rechnen, um zu wissen,
- * wann Woche 14 eigentlich war.
+ * A week of life starts on the weekday of birth, not on Monday — the weeks count from
+ * the birthday. Without this line you have to do arithmetic to know when week 14
+ * actually was.
  */
 function weekShortDate(week: number): string {
   const [, month, day] = lifeWeekStart(props.birthDate, week).split("-");
@@ -106,8 +106,8 @@ onMounted(async () => {
 });
 
 /**
- * Beim Öffnen auf die aktuelle Woche springen — ohne Animation, damit die Ansicht
- * nicht erst durch das ganze Jahr fährt, bevor sie brauchbar ist.
+ * Jump to the current week on open — without animation, so the view does not travel
+ * through the whole year before it becomes usable.
  */
 function scrollToWeek(week: number) {
   const element = scroller.value;
@@ -143,7 +143,7 @@ defineExpose({ scrollToWeek });
           </div>
         </div>
 
-        <!-- Tatsächlich Erlebtes auf eigener Spur, getrennt von den Sprung-Erwartungen. -->
+        <!-- What actually happened on its own track, separate from the leap expectations. -->
         <div class="periods" aria-hidden="true">
           <div v-for="(row, i) in periodRows" :key="i" class="periods__row">
             <div
@@ -254,9 +254,9 @@ defineExpose({ scrollToWeek });
 
 /* ── Sprung-Bänder ────────────────────────────────────────────────────────── */
 
-/* Die Sprung-Bänder laufen als durchgehender Streifen UNTER den Zellen, nicht
-   zwischen Wochenzahl und Terminmarkern. Vorher trennte das Band die Marker optisch
-   von ihrer eigenen Woche ab. */
+/* The leap bands run as a continuous strip BELOW the cells, not between the week
+   number and the appointment pins. Before, the band visually separated the pins from
+   their own week. */
 .periods {
   position: absolute;
   inset-block-end: 1.6rem;
@@ -323,7 +323,7 @@ defineExpose({ scrollToWeek });
 
 .cells {
   display: flex;
-  /* Platz für Zeitraum-Spuren und den Sprung-Streifen darunter reservieren. */
+  /* Reserve room for the period tracks and the leap strip below them. */
   padding-bottom: calc(1.75rem + var(--period-rows, 0) * 1.15rem);
 }
 
@@ -356,17 +356,16 @@ defineExpose({ scrollToWeek });
 }
 
 /**
- * Das Bild wird über den Kreis GELEGT, nicht in ihn hineingerechnet.
+ * The image is LAID OVER the circle, not computed into it.
  *
- * Mit `height: 100%` allein füllte es ihn nicht: Für ein Rasterkind ist eine
- * Prozenthöhe gegen eine automatisch bemessene Zeile unbestimmt, der Browser fällt auf
- * `auto` zurück — nachgemessen kam bei einem 52-px-Kreis ein 69 px hohes Bild heraus,
- * in BEIDEN Maschinen. Sichtbar wurde es nur auf dem iPhone, weil WebKit den Überhang
- * anders ausrichtet: Dort rutschte das Bild nach unten und man sah seine Oberkante im
- * Kreis liegen.
+ * With `height: 100%` alone it did not fill it: for a grid item a percentage height
+ * against an automatically sized row is indefinite, so the browser falls back to
+ * `auto` — measured, a 52 px circle got a 69 px tall image, in BOTH engines. It only
+ * showed on the iPhone because WebKit aligns the overflow differently: there the image
+ * slipped downwards and you could see its top edge inside the circle.
  *
- * Absolut über die vier Kanten gespannt gibt es keine Prozentrechnung mehr, und
- * `object-fit: cover` bekommt endlich eine Box, auf die es sich beziehen kann.
+ * Stretched absolutely across the four edges there is no percentage arithmetic left,
+ * and `object-fit: cover` finally gets a box to relate to.
  */
 .cell__photo img {
   position: absolute;
@@ -389,7 +388,7 @@ defineExpose({ scrollToWeek });
   line-height: 1;
 }
 
-/* Zukünftige Wochen bekommen keinen Aufforderungscharakter — nur eine leise Andeutung. */
+/* Future weeks get no call to action — only a quiet hint. */
 .cell__photo-future {
   width: 0.5rem;
   height: 0.5rem;
@@ -469,8 +468,8 @@ defineExpose({ scrollToWeek });
   border-radius: 50%;
 }
 
-/* Im normalen Fluss statt absolut positioniert — die frühere Variante lag über der
-   Unterzeile der Überschrift. */
+/* In normal flow instead of absolutely positioned — the earlier variant sat on top of
+   the subheading line. */
 .ribbon__bar {
   display: flex;
   justify-content: flex-end;

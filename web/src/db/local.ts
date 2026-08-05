@@ -2,21 +2,20 @@ import Dexie, { type EntityTable } from "dexie";
 import type { Child, Entry, StoredEntry } from "@babymonitor/shared";
 
 /**
- * Lokale Datenbank. Jede Eingabe landet ZUERST hier und wird sofort gerendert;
- * der Sync läuft danach im Hintergrund.
+ * The local database. Every input lands HERE first and is rendered immediately; syncing
+ * happens afterwards in the background.
  *
- * Das ist der Grund, warum sich der "Flasche"-Knopf auch dann augenblicklich anfühlt,
- * wenn der Pi neu startet oder das WLAN im Kinderzimmer wegbricht — und der Grund,
- * warum die App überhaupt brauchbar ist.
+ * That is why the "bottle" button feels instant even when the Pi is rebooting or the
+ * Wi-Fi drops out in the nursery — and why the app is usable at all.
  */
 
-/** Eintrag im lokalen Bestand. `rev` ist null, solange der Server ihn nicht kennt. */
+/** An entry in the local store. `rev` is null while the server does not know it. */
 export type LocalEntry = Entry & { rev: number | null };
 
-/** Ausgangskorb: was noch zum Server muss. */
+/** Outbox: what still has to go to the server. */
 export type OutboxItem = {
   id: string;
-  /** Stand, mit dem der Eintrag in den Korb gelegt wurde — Grundlage der Wettlauf-Prüfung. */
+  /** The state the entry was put in the outbox with — the basis of the race check. */
   editedAt: string;
 };
 
@@ -55,9 +54,9 @@ export const META_DEVICE_NAME = "deviceName";
 /* ── Einträge ───────────────────────────────────────────────────────────────── */
 
 /**
- * Schreibt einen Eintrag lokal und legt ihn in den Ausgangskorb.
- * Beides in einer Transaktion — sonst könnte ein Absturz zwischen den Schritten einen
- * Eintrag erzeugen, der lokal existiert, aber nie zum anderen Handy wandert.
+ * Writes an entry locally and puts it in the outbox.
+ * Both in one transaction — otherwise a crash between the steps could create an entry
+ * that exists locally but never travels to the other phone.
  */
 export async function saveEntry(entry: Entry): Promise<void> {
   await db.transaction("rw", db.entries, db.outbox, async () => {
@@ -67,7 +66,7 @@ export async function saveEntry(entry: Entry): Promise<void> {
   });
 }
 
-/** Löschen heißt markieren, nicht entfernen — sonst erfährt das zweite Gerät nichts davon. */
+/** Deleting means marking, not removing — otherwise the second device never learns of it. */
 export async function softDeleteEntry(id: string): Promise<void> {
   const existing = await db.entries.get(id);
   if (!existing) return;
@@ -81,12 +80,12 @@ export async function listEntries(): Promise<LocalEntry[]> {
 /* ── Anwenden dessen, was vom Server kam ────────────────────────────────────── */
 
 /**
- * Übernimmt Server-Einträge in den lokalen Bestand.
+ * Takes server entries into the local store.
  *
- * Ein Server-Eintrag wird NICHT übernommen, wenn lokal noch eine neuere, ungesendete
- * Änderung im Ausgangskorb liegt. Ohne diese Prüfung würde eine Korrektur, die während
- * eines laufenden Sync-Durchgangs entsteht, von der Antwort desselben Durchgangs wieder
- * überschrieben — der klassische Fall, in dem eine Eingabe "einfach verschwindet".
+ * A server entry is NOT taken when a newer, unsent change is still sitting in the local
+ * outbox. Without that check, a correction made while a sync round was in flight would
+ * be overwritten by the response of that same round — the classic case where an input
+ * "just disappears".
  */
 export async function applyServerEntries(entries: StoredEntry[]): Promise<void> {
   if (entries.length === 0) return;
@@ -108,9 +107,9 @@ export async function applyServerEntries(entries: StoredEntry[]): Promise<void> 
 }
 
 /**
- * Räumt den Ausgangskorb nach erfolgreichem Senden auf — aber nur die Einträge, die
- * sich seit dem Absenden nicht wieder geändert haben. Wer in der Zwischenzeit editiert
- * hat, bleibt im Korb und geht beim nächsten Durchgang mit.
+ * Clears the outbox after a successful send — but only the entries that have not changed
+ * again since they were sent. Anything edited in the meantime stays in the outbox and
+ * goes along on the next round.
  */
 export async function clearSentOutbox(sent: OutboxItem[]): Promise<void> {
   await db.transaction("rw", db.outbox, async () => {
@@ -124,11 +123,11 @@ export async function clearSentOutbox(sent: OutboxItem[]): Promise<void> {
 }
 
 /**
- * Nimmt Einträge aus dem Ausgangskorb, ohne sie lokal zu löschen.
+ * Takes entries out of the outbox without deleting them locally.
  *
- * Für Einträge, die der Server dauerhaft ablehnt: Ein erneuter Versuch hilft nie, aber
- * die Eingabe gehört dem Menschen — sie bleibt im Bestand sichtbar und korrigierbar.
- * Sobald sie geändert wird, landet sie über `saveEntry` wieder im Korb.
+ * For entries the server permanently rejects: retrying never helps, but the input
+ * belongs to the person — it stays visible and correctable in the store. As soon as it
+ * is changed, `saveEntry` puts it back in the outbox.
  */
 export async function dropFromOutbox(ids: string[]): Promise<void> {
   await db.outbox.bulkDelete(ids);

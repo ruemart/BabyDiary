@@ -16,26 +16,26 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 /**
- * Ein Blatt für Nachtragen UND Ändern.
+ * One sheet for adding past entries AND editing.
  *
- * Der Schnellzugriff auf dem Startbildschirm deckt den Normalfall ab; hier landet alles
- * andere: vergessene Mahlzeiten, das Gewicht von der U-Untersuchung, der erste Zahn —
- * jeweils mit frei wählbarem Zeitpunkt.
+ * The quick actions on the home screen cover the normal case; everything else lands
+ * here: forgotten feeds, the weight from the check-up, the first tooth — each with a
+ * freely chosen moment.
  *
- * Dasselbe Blatt dient zum Bearbeiten bestehender Einträge. Das ist der allgemeine Weg,
- * um die Zeit einer Windel zu korrigieren: Die Ein-Tap-Erfassung setzt bewusst "jetzt",
- * weil jede Rückfrage den nächtlichen Fall verlangsamen würde — die Korrektur gehört
- * danach in den Verlauf, nicht in den Erfassungsweg.
+ * The same sheet edits existing entries. That is the general way to correct the time of
+ * a nappy: the one-tap capture deliberately sets "now", because any prompt would slow
+ * down the night-time case — the correction belongs afterwards in the history, not in
+ * the capture path.
  */
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   entry?: LocalEntry | null;
   /**
-   * Vorbelegter Zeitpunkt beim Neuanlegen, als lokale ISO-Zeichenkette ohne Zone.
+   * Prefilled moment when creating, as a local ISO string without a zone.
    *
-   * Der Verlauf zeigt einen bestimmten Tag. Wer dort "Nachtragen" tippt, meint fast
-   * immer genau diesen Tag — ihn erneut auswählen zu müssen wäre eine Rückfrage nach
-   * etwas, das schon auf dem Bildschirm steht.
+   * The history shows one particular day. Someone tapping "add entry" there almost
+   * always means that day — having to choose it again would be a prompt for something
+   * already on the screen.
    */
   defaultAt?: string | null;
 }>();
@@ -46,29 +46,26 @@ const confirmWithUndo = useUndo();
 const isEditing = computed(() => !!props.entry);
 
 /**
- * Zuletzt nachgetragener Zeitpunkt, über das Schließen des Blattes hinaus gemerkt.
+ * The last backdated moment, remembered across closing the sheet.
  *
- * Wer eine ganze Nacht nachträgt, wählt sonst sechsmal hintereinander dasselbe Datum.
- * Gemerkt wird nur ein Zeitpunkt, der spürbar in der Vergangenheit lag — nach einem
- * Eintrag "gerade eben" steht beim nächsten Öffnen wieder "jetzt", denn dann war es
- * kein Nachtragen.
+ * Someone catching up on a whole night otherwise picks the same date six times in a
+ * row. Only a moment noticeably in the past is remembered — after an entry made "just
+ * now", the next open shows "now" again, because that was not catching up.
  *
- * Modulweit statt im Speicher der Anwendung: Das ist eine Bedienhilfe für die nächsten
- * Minuten, kein Zustand, der einen Neustart überleben sollte.
+ * Module-wide rather than in the app store: this is an aid for the next few minutes,
+ * not state that should survive a restart.
  */
 let lastBackdatedAt: Date | null = null;
 const BACKDATE_MEMORY_MS = 45 * 60 * 1000;
 
 /**
- * Nach Art gruppiert statt sieben gleichrangige Kacheln.
+ * Grouped by kind instead of seven equal tiles.
  *
- * Die Gruppen sind keine Kosmetik, sie benennen einen echten Unterschied: Die
- * ersten drei sind der Alltag und der Grund, warum man überhaupt nachträgt. Die
- * mittleren kommen selten. Die letzten beiden sind ZEITRÄUME — sie haben ein Ende
- * und verhalten sich anders als alles darüber.
+ * The groups are not cosmetic, they name a real difference: the first three are the
+ * everyday things and the reason you add entries at all. The middle ones are rare. The
+ * last two are PERIODS — they have an end and behave differently from everything above.
  *
- * Nichts ist versteckt: Alles bleibt einen Tap entfernt, nur das Gewicht folgt der
- * Häufigkeit.
+ * Nothing is hidden: everything stays one tap away, only the weight follows frequency.
  */
 const TYPE_GROUPS: { titleKey: string; types: { value: EntryType; key: string }[] }[] = [
   {
@@ -125,11 +122,11 @@ const spatUp = ref(false);
 const vitaminD = ref(false);
 
 /**
- * Hängt an einer ANDEREN Mahlzeit DESSELBEN TAGES schon das Vitamin D?
+ * Does ANOTHER feed on the SAME DAY already carry the vitamin D?
  *
- * Maßgeblich ist der Tag des Eintrags, nicht heute — beim Nachtragen von gestern muss
- * das Häkchen für gestern setzbar bleiben. Der eigene Eintrag zählt nicht mit, sonst
- * ließe sich ein einmal gesetzter Haken nie wieder entfernen.
+ * What counts is the day of the entry, not today — when adding yesterday's feed the tick
+ * must remain settable for yesterday. The entry's own tick does not count, otherwise a
+ * tick once set could never be removed again.
  */
 const vitaminAlreadyThatDay = computed(() => {
   const holder = vitaminHolderOn(
@@ -142,12 +139,11 @@ const vitaminAlreadyThatDay = computed(() => {
 const temperatureDc = ref<number | null>(null);
 
 /**
- * Ob das Ende schon feststeht.
+ * Whether the end is already known.
  *
- * Standardmäßig NEIN: Einen Zeitraum trägt man ein, wenn er beginnt — beim Einschlafen
- * nach dem Aufwachzeitpunkt zu fragen ist genau die Rückfrage, die eine Eingabe
- * verhindert. Läuft der Eintrag, taucht er unter "Läuft gerade" auf und wird dort mit
- * einem Tap beendet.
+ * NO by default: a period is recorded when it begins — asking for the waking time while
+ * the child is falling asleep is exactly the prompt that prevents an entry. While it
+ * runs it appears under "Currently running" and is ended there with one tap.
  */
 const hasEnd = ref(false);
 const PERIOD_TYPES = new Set<EntryType>(["sleep", "illness", "absence"]);
@@ -219,8 +215,8 @@ watch(open, (isOpen) => {
   }
 
   type.value = "feed";
-  // Der angezeigte Tag hat Vorrang vor dem zuletzt gemerkten Zeitpunkt: Er steht
-  // sichtbar auf dem Bildschirm, das Gemerkte nicht.
+  // The day on screen takes precedence over the last remembered moment: it is visibly
+  // there, the remembered one is not.
   at.value = props.defaultAt ? new Date(props.defaultAt) : (lastBackdatedAt ?? new Date());
   endAt.value = new Date(at.value.getTime() + 30 * 60_000);
   amountMl.value = data.suggestedAmountMl;
@@ -248,7 +244,7 @@ const canSave = computed(() => {
     case "note":
       return note.value.trim().length > 0;
     case "sleep":
-      // Ohne Ende gilt der Schlaf als laufend — das ist der Normalfall beim Anlegen.
+      // Without an end the sleep counts as running — the normal case when creating.
       return !hasEnd.value || endAt.value.getTime() > at.value.getTime();
     case "illness":
     case "absence":
@@ -277,7 +273,7 @@ function num(value: string): number | null {
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
-/** Die typabhängigen Felder — beim Anlegen wie beim Ändern identisch. */
+/** The type-dependent fields — identical when creating and when editing. */
 function fields() {
   return {
     amountMl: type.value === "feed" ? amountMl.value : null,
@@ -304,7 +300,7 @@ async function save() {
 
   const existing = props.entry;
   if (existing) {
-    // Id, Anleger und Lebenswoche bleiben — geändert wird nur, was im Blatt steht.
+    // Id, author and week of life stay — only what the sheet holds gets changed.
     await data.update({
       ...existing,
       type: type.value,
@@ -315,7 +311,7 @@ async function save() {
     return;
   }
 
-  // Nur merken, wenn wirklich nachgetragen wurde.
+  // Only remember it when something really was backdated.
   lastBackdatedAt =
     Date.now() - at.value.getTime() > BACKDATE_MEMORY_MS ? new Date(at.value) : null;
 
@@ -448,8 +444,8 @@ async function save() {
 
         <div class="field">
           <span class="field__label">{{ $t("add.where") }}</span>
-          <!-- Damit für diese Tage das Wetter am Urlaubsort gilt statt zu Hause.
-               Ein Eintrag statt einer täglichen Ortsangabe. -->
+          <!-- So the weather for those days comes from the holiday location instead of home.
+               One entry instead of a daily location. -->
           <p v-if="place" class="place__chosen">
             {{ place.placeName }}
             <button type="button" class="place__clear" @click="place = null">ändern</button>
@@ -477,7 +473,7 @@ async function save() {
         </div>
       </template>
 
-      <!-- Ein Zeitraum darf in der Zukunft beginnen: Einen Urlaub trägt man vorher ein. -->
+      <!-- A period may start in the future: a holiday gets recorded beforehand. -->
       <TimeField v-model="at" :allow-future="type === 'absence'" />
 
       <div v-if="PERIOD_TYPES.has(type)" class="field">

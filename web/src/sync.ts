@@ -17,19 +17,19 @@ export type SyncOutcome = {
   state: SyncState;
   pulled: number;
   pushed: number;
-  /** Einträge, die der Server dauerhaft nicht annimmt — brauchen eine Korrektur. */
+  /** Entries the server permanently refuses — they need correcting. */
   invalid: InvalidEntry[];
 };
 
 let inFlight: Promise<SyncOutcome> | null = null;
 
 /**
- * Obergrenze für jede Netzanfrage.
+ * An upper bound for every network request.
  *
- * Ein hängender `fetch` schlägt NICHT fehl — er antwortet nur nie. Ohne Zeitlimit
- * bleibt jeder `await` darauf für immer stehen, und was daran hängt, hängt mit.
- * Genau so ist der Startvorgang in einer Endlosschleife gelandet: In einem schlechten
- * Netz blieb die Sitzungsprüfung offen, und die App kam nie über den Ladepunkt hinaus.
+ * A hanging `fetch` does NOT fail — it simply never answers. Without a timeout every
+ * `await` on it stands still forever, and whatever depends on it stands still too.
+ * That is exactly how the boot sequence ended up in an endless loop: on a bad network
+ * the session check stayed open and the app never got past the loading dot.
  */
 const NETWORK_TIMEOUT_MS = 8000;
 
@@ -38,11 +38,10 @@ function timeoutSignal(ms = NETWORK_TIMEOUT_MS): AbortSignal {
 }
 
 /**
- * Push und Pull in einem Request.
+ * Push and pull in one request.
  *
- * Läuft immer nur einmal gleichzeitig: ein zweiter Aufruf bekommt das laufende
- * Versprechen zurück. Sonst würden ein Timer-Tick und ein Fokuswechsel denselben
- * Ausgangskorb doppelt senden.
+ * Only ever runs once at a time: a second call gets the promise already in flight.
+ * Otherwise a timer tick and a focus change would send the same outbox twice.
  */
 export function sync(childId: string): Promise<SyncOutcome> {
   if (inFlight) return inFlight;
@@ -63,12 +62,12 @@ async function run(childId: string): Promise<SyncOutcome> {
       method: "POST",
       headers: { "content-type": "application/json" },
       credentials: "same-origin",
-      // Der Sync darf länger dauern als eine Sitzungsprüfung — er trägt Daten.
+      // Syncing may take longer than a session check — it carries data.
       signal: timeoutSignal(20_000),
       body: JSON.stringify({ childId, since, changes: entries, child }),
     });
   } catch {
-    // Kein Netz. Der Ausgangskorb bleibt unangetastet und geht beim nächsten Mal mit.
+    // No network. The outbox stays untouched and goes along next time.
     return { state: "offline", pulled: 0, pushed: 0, invalid: [] };
   }
 
@@ -86,16 +85,16 @@ async function run(childId: string): Promise<SyncOutcome> {
   await setMeta(META_CURSOR, String(body.rev));
 
   if (body.rejected.length > 0) {
-    // Kein Fehler: das andere Gerät war schneller, und dessen Fassung steht jetzt
-    // bereits im Bestand — sie kam in derselben Antwort mit.
+    // Not an error: the other device was faster, and its version is already in the
+    // store — it came along in the same response.
     console.info(`${body.rejected.length} Änderung(en) vom Server überstimmt`);
   }
 
   const invalid = body.invalid ?? [];
   if (invalid.length > 0) {
-    // Aus dem Ausgangskorb nehmen, aber NICHT lokal löschen: Ein erneuter Versuch
-    // hilft nie, aber die Eingabe gehört dem Menschen, nicht dem Schema. Sie bleibt
-    // sichtbar und korrigierbar — nur blockiert sie nicht länger alles dahinter.
+    // Take it out of the outbox but do NOT delete it locally: retrying never helps,
+    // but the input belongs to the person, not to the schema. It stays visible and
+    // correctable — it just no longer blocks everything behind it.
     await dropFromOutbox(invalid.map((i) => i.id));
     console.warn("Rejected by the server:", invalid);
   }
@@ -111,8 +110,8 @@ async function run(childId: string): Promise<SyncOutcome> {
 /* ── Sitzung ────────────────────────────────────────────────────────────────── */
 
 /**
- * Vorschlag des Servers für das Land. Schlägt der Abruf fehl, bleibt es leer und der
- * Assistent zeigt "keine Termine" — das ist die richtige Vorgabe, wenn man nichts weiß.
+ * The server's suggestion for the country. If the call fails it stays empty and the
+ * setup screen shows "no appointments" — the right default when you know nothing.
  */
 export async function fetchDefaultRegion(): Promise<string> {
   try {
@@ -133,9 +132,9 @@ export async function checkSession(): Promise<{ authenticated: boolean; name?: s
     if (!res.ok) return { authenticated: false };
     return await res.json();
   } catch {
-    // Offline ODER Zeitüberschreitung: Wir wissen es nicht. Als angemeldet behandeln,
-    // damit die App im Funkloch weiterläuft statt auf den Einladungsbildschirm
-    // zurückzufallen — die Eingabe funktioniert lokal ohnehin.
+    // Offline OR timed out: we do not know. Treat as signed in so the app keeps working
+    // in a dead spot instead of falling back to the invite screen — recording works
+    // locally anyway.
     return { authenticated: true };
   }
 }

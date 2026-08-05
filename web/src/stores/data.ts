@@ -30,17 +30,17 @@ export const useData = defineStore("data", () => {
   const entries = shallowRef<LocalEntry[]>([]);
   const child = ref<Child | null>(null);
   const deviceName = ref<string>("");
-  /** Vorschlag des Servers für das Land — nur beim Einrichten benutzt. */
+  /** The server's suggestion for the country — only used during setup. */
   const defaultRegion = ref<string>("");
   const syncState = ref<SyncState>("idle");
   const pending = ref(0);
   const ready = ref(false);
-  /** Vom Server dauerhaft abgelehnte Einträge — brauchen eine Korrektur von Hand. */
+  /** Entries permanently rejected by the server — they need correcting by hand. */
   const invalidEntries = ref<InvalidEntry[]>([]);
 
   const timezone = computed(() => child.value?.timezone ?? "Europe/Berlin");
 
-  /** Alle Einträge, neueste zuerst. Basis für Statuszeile und Historie. */
+  /** All entries, newest first. The basis for the status line and the history. */
   const byTimeDesc = computed(() =>
     [...entries.value].sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
   );
@@ -58,9 +58,9 @@ export const useData = defineStore("data", () => {
   );
 
   /**
-   * Vorbelegung des ml-Felds: der Median der letzten sieben Mahlzeiten.
-   * Median statt Mittelwert, weil ein einzelnes Mini-Fläschchen den Mittelwert
-   * spürbar zieht und die Vorbelegung dann jedes Mal korrigiert werden müsste.
+   * Prefill for the ml field: the median of the last seven feeds.
+   * Median rather than mean, because a single tiny bottle drags the mean noticeably and
+   * the prefill would then have to be corrected every time.
    */
   const suggestedAmountMl = computed(() => {
     const recent = byTimeDesc.value
@@ -75,7 +75,7 @@ export const useData = defineStore("data", () => {
     return Math.round(median / 10) * 10;
   });
 
-  /** Aktuelle Lebenswoche — die Identität, unter der die App das Kind führt. */
+  /** The current week of life — the identity the app runs the child under. */
   const currentWeek = computed(() =>
     child.value ? calcLifeWeek(child.value.birthDate, new Date(), timezone.value) : 0,
   );
@@ -105,7 +105,7 @@ export const useData = defineStore("data", () => {
     ready.value = true;
   }
 
-  /** Baut einen vollständigen Eintrag aus den typspezifischen Feldern. */
+  /** Builds a complete entry from the type-specific fields. */
   function draft(type: EntryType, at: Date, fields: Partial<Entry> = {}): Entry {
     const now = new Date().toISOString();
     return {
@@ -160,12 +160,12 @@ export const useData = defineStore("data", () => {
   }
 
   /**
-   * Windel eintragen, mit Schutz gegen Doppeltaps.
+   * Record a nappy, with a guard against double taps.
    *
-   * Die Unterscheidung zwischen Versehen und Korrektur steckt in `classifyDiaperTap`
-   * und ist dort getestet. Beides wird sichtbar zurückgemeldet und bleibt über den
-   * Verlauf umkehrbar — ein stiller Schutz, der Eingaben verschluckt, wäre schlimmer
-   * als das Problem, das er löst.
+   * The distinction between a slip and a correction lives in `classifyDiaperTap` and is
+   * tested there. Both are reported back visibly and stay reversible through the
+   * history — a silent guard that swallows inputs would be worse than the problem it
+   * solves.
    */
   async function logDiaper(kind: "empty" | "wet" | "soiled"): Promise<DiaperResult> {
     const recent = byTimeDesc.value.find(
@@ -201,8 +201,8 @@ export const useData = defineStore("data", () => {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   /**
-   * Kurz sammeln, dann senden. Wer drei Windeln hintereinander einträgt, löst
-   * damit einen Request aus statt drei.
+   * Collect briefly, then send. Recording three nappies in a row triggers one request
+   * instead of three.
    */
   function pushSoon(): void {
     if (timer) clearTimeout(timer);
@@ -211,21 +211,21 @@ export const useData = defineStore("data", () => {
 
   async function pushNow(): Promise<void> {
     /**
-     * "bootstrap" ist kein Fehler, sondern der Weg für ein frisch eingeladenes Gerät:
-     * Es kennt die childId noch nicht, der Server löst sie aus dem vorhandenen
-     * Datensatz auf und schickt Kind und Einträge zurück.
+     * "bootstrap" is not an error but the path for a freshly invited device: it does not
+     * know the childId yet, the server resolves it from the existing record and sends
+     * the child and the entries back.
      */
     const id = child.value?.id ?? (await getMeta(META_CHILD_ID)) ?? "bootstrap";
 
     syncState.value = "syncing";
     const outcome = await sync(id);
     syncState.value = outcome.state;
-    // Abgelehnte Einträge zur Anzeige durchreichen: Sie sind aus dem Ausgangskorb
-    // draußen und brauchen eine Korrektur von Hand — das darf nicht still passieren.
+    // Pass rejected entries through for display: they are out of the outbox and need
+    // correcting by hand — that must not happen silently.
     if (outcome.state === "idle") {
-      // Bei einem erfolgreichen Durchgang gilt die Liste neu: Was jetzt nicht mehr
-      // gemeldet wird, ist angenommen worden. Sonst bliebe der Hinweis für immer
-      // stehen, obwohl die Korrektur längst durch ist.
+      // After a successful round the list is authoritative again: whatever is no longer
+      // reported has been accepted. Otherwise the warning would sit there forever even
+      // though the correction went through long ago.
       invalidEntries.value = outcome.invalid;
     }
     if (outcome.pulled > 0) await load();
