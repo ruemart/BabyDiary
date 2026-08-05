@@ -503,6 +503,7 @@ async function remove() {
 /* ── Foto der Verpackung ─────────────────────────────────────────────────── */
 
 .thumb {
+  position: relative;
   flex: none;
   width: 4.5rem;
   height: 4.5rem;
@@ -515,6 +516,10 @@ async function remove() {
 }
 
 .thumb img {
+  /* Absolut gespannt statt prozentual: Eine Prozenthöhe kann unbestimmt sein und
+     fällt dann auf die Eigenhöhe des Bildes zurück — siehe WeekRibbon.vue. */
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -537,6 +542,7 @@ async function remove() {
 }
 
 .photo__preview {
+  position: relative;
   flex: none;
   width: 4.5rem;
   height: 4.5rem;
@@ -549,6 +555,10 @@ async function remove() {
 }
 
 .photo__preview img {
+  /* Absolut gespannt statt prozentual: Eine Prozenthöhe kann unbestimmt sein und
+     fällt dann auf die Eigenhöhe des Bildes zurück — siehe WeekRibbon.vue. */
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;

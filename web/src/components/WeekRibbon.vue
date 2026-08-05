@@ -344,6 +344,7 @@ defineExpose({ scrollToWeek });
 }
 
 .cell__photo {
+  position: relative;
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 50%;
@@ -354,10 +355,26 @@ defineExpose({ scrollToWeek });
   box-shadow: var(--bm-shadow-card);
 }
 
+/**
+ * Das Bild wird über den Kreis GELEGT, nicht in ihn hineingerechnet.
+ *
+ * Mit `height: 100%` allein füllte es ihn nicht: Für ein Rasterkind ist eine
+ * Prozenthöhe gegen eine automatisch bemessene Zeile unbestimmt, der Browser fällt auf
+ * `auto` zurück — nachgemessen kam bei einem 52-px-Kreis ein 69 px hohes Bild heraus,
+ * in BEIDEN Maschinen. Sichtbar wurde es nur auf dem iPhone, weil WebKit den Überhang
+ * anders ausrichtet: Dort rutschte das Bild nach unten und man sah seine Oberkante im
+ * Kreis liegen.
+ *
+ * Absolut über die vier Kanten gespannt gibt es keine Prozentrechnung mehr, und
+ * `object-fit: cover` bekommt endlich eine Box, auf die es sich beziehen kann.
+ */
 .cell__photo img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .cell__photo-empty {

@@ -67,3 +67,27 @@ Benachrichtigungen hatten kein Bild.
 Gezeichnet wird auf 1024 px und heruntergerechnet; das glättet die Kanten besser als
 eine Zeichnung direkt in Zielgröße. Das maskierbare Symbol hält den sicheren Bereich
 ein: Android beschneidet frei, verlässlich sichtbar ist nur der mittlere Kreis.
+
+## `check-ios.mjs`
+
+Prüft die App in **WebKit** — der Maschine, die auch auf dem iPhone läuft.
+
+```bash
+node tools/check-ios.mjs
+```
+
+Anlass waren drei Fehler hintereinander, die es nur auf dem iPhone gab und die in
+Chromium sauber aussahen: tote Navigationspunkte, ein Blatt, das zu drei Vierteln unter
+dem Bildschirm lag, und ein Wochenfoto, das seinen Kreis nicht füllte. Jedes Mal hieß es
+raten, weil hier keine zweite Maschine lief.
+
+Läuft gegen den **Entwicklungsserver**, nicht gegen den Docker-Stapel: Das
+Sitzungs-Cookie ist dort `Secure`, und WebKit lehnt solche Cookies über HTTP ab.
+Chromium macht bei localhost eine Ausnahme — genau deshalb fiel das lange nicht auf.
+
+Einmalig nötig, damit WebKit startet:
+
+```bash
+npx playwright install webkit
+sudo apt-get install -y libharfbuzz-icu0 libmanette-0.2-0 libhyphen0
+```

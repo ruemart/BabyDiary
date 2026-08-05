@@ -187,8 +187,8 @@ npm run build --workspace=web
 ```
 
 `tools/` enthält einen Generator für realistische Testdaten, einen
-Bildschirmfoto-Durchlauf, die Offline-Abgleich-Prüfung und den Symbol-Generator — siehe
-[tools/README.md](tools/README.md).
+Bildschirmfoto-Durchlauf, die Offline-Abgleich-Prüfung, den Symbol-Generator und eine
+**WebKit-Prüfung für iPhone-Eigenheiten** — siehe [tools/README.md](tools/README.md).
 
 ---
 

@@ -16,12 +16,37 @@ defineProps<{ title: string }>();
 
 const dialog = ref<HTMLDialogElement>();
 
+/**
+ * Die Einblendung wird erst im nächsten Bild zugeschaltet und danach wieder entfernt.
+ *
+ * Auf dem iPhone blieb die Animation auf ihrem ERSTEN Bild stehen — `translateY(12%)`
+ * wirkte dauerhaft weiter. Bei einem 598 px hohen Blatt sind das 72 px: Die Unterkante
+ * lag unter dem Bildschirmrand, sichtbar war nur der Titel, und der Speichern-Knopf war
+ * unerreichbar. Ein stehengebliebenes `transform` macht das Blatt außerdem zum
+ * Bezugsrahmen für alles Fixierte darin — daran ließ es sich nachweisen.
+ *
+ * Zwei Vorkehrungen: Die Animation startet erst, wenn das Blatt bereits sichtbar ist,
+ * und sie hängt an einer eigenen Klasse, die am Ende wieder verschwindet. Damit kann ein
+ * Fehlschlag nur noch bedeuten, dass es NICHT hereinfährt — nie mehr, dass es falsch
+ * liegt.
+ */
 watch(open, (isOpen) => {
   const element = dialog.value;
   if (!element) return;
-  if (isOpen && !element.open) element.showModal();
-  if (!isOpen && element.open) element.close();
+
+  if (isOpen && !element.open) {
+    element.showModal();
+    requestAnimationFrame(() => element.classList.add("sheet--entering"));
+  }
+  if (!isOpen && element.open) {
+    element.classList.remove("sheet--entering");
+    element.close();
+  }
 });
+
+function onAnimationEnd() {
+  dialog.value?.classList.remove("sheet--entering");
+}
 
 function onClose() {
   open.value = false;
@@ -29,7 +54,7 @@ function onClose() {
 </script>
 
 <template>
-  <dialog ref="dialog" class="sheet" @close="onClose" @cancel="onClose">
+  <dialog ref="dialog" class="sheet" @close="onClose" @cancel="onClose" @animationend="onAnimationEnd">
     <div class="sheet__grip" aria-hidden="true" />
     <header class="sheet__head">
       <h2>{{ title }}</h2>
@@ -101,8 +126,15 @@ dialog.sheet[open] {
   backdrop-filter: blur(2px);
 }
 
-.sheet[open] {
+/* Nur solange die Klasse anliegt — die Ruhelage des Blattes ist immer die richtige. */
+.sheet--entering {
   animation: sheet-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet--entering {
+    animation: none;
+  }
 }
 
 @keyframes sheet-in {
