@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import {
-  calendarDateLabel,
-  lifeWeek as calcLifeWeek,
-  localDayKey,
-  type SupplyCategory,
-} from "@babymonitor/shared";
+import { lifeWeek as calcLifeWeek, localDayKey, type SupplyCategory } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import SheetDialog from "../components/SheetDialog.vue";
 import TimeField from "../components/TimeField.vue";
+import { supplyPeriods, type SupplyPeriod } from "../utils/supplyPeriods.ts";
 
 /**
  * Was wir kaufen — zum Nachschlagen im Laden.
@@ -39,21 +35,43 @@ const supplies = computed(() =>
   data.byTimeDesc.filter((e) => e.type === "supply" && e.supplyCategory),
 );
 
-/** Aktueller Stand je Kategorie = der neueste Eintrag. */
+/**
+ * Je Kategorie die Kette der Stände, neueste zuerst — mit Geltungszeitraum.
+ *
+ * Einmal berechnet statt pro Aufruf: Die Vorlage fragt sonst für jede Zeile erneut,
+ * und der aktuelle Stand ist schlicht der erste Eintrag der Kette.
+ */
+const byCategory = computed(() => {
+  const today = localDayKey(new Date(), data.timezone);
+  const key = (iso: string) => localDayKey(iso, data.timezone);
+  const map = new Map<SupplyCategory, SupplyPeriod<LocalEntry>[]>();
+  for (const cat of CATEGORIES) {
+    const entries = supplies.value.filter((e) => e.supplyCategory === cat.value);
+    map.set(cat.value, supplyPeriods(entries, key, today));
+  }
+  return map;
+});
+
+function periods(category: SupplyCategory): SupplyPeriod<LocalEntry>[] {
+  return byCategory.value.get(category) ?? [];
+}
+
 function current(category: SupplyCategory): LocalEntry | undefined {
-  return supplies.value.find((e) => e.supplyCategory === category);
+  return periods(category)[0]?.entry;
 }
 
 /** Alle früheren Stände, neueste zuerst. */
-function history(category: SupplyCategory): LocalEntry[] {
-  return supplies.value.filter((e) => e.supplyCategory === category).slice(1);
+function history(category: SupplyCategory): SupplyPeriod<LocalEntry>[] {
+  return periods(category).slice(1);
 }
 
-function since(entry: LocalEntry): string {
-  if (!data.child) return "";
-  const day = localDayKey(entry.startedAt, data.timezone);
-  const week = calcLifeWeek(data.child.birthDate, entry.startedAt, data.timezone);
-  return `seit ${calendarDateLabel(day)} · Woche ${week}`;
+/** „seit 17. Jul 2026 · 3 Wochen · Woche 11" — beim laufenden Stand. */
+function since(period: SupplyPeriod<LocalEntry>): string {
+  const parts = [period.rangeLabel, period.durationLabel].filter(Boolean);
+  if (data.child) {
+    parts.push(`Woche ${calcLifeWeek(data.child.birthDate, period.entry.startedAt, data.timezone)}`);
+  }
+  return parts.join(" · ");
 }
 
 function describe(entry: LocalEntry): string {
@@ -102,6 +120,18 @@ function startNew(next: SupplyCategory) {
   sheetOpen.value = true;
 }
 
+/**
+ * Aus einer Korrektur doch einen Wechsel machen.
+ *
+ * Der Ausweg für den Fall, dass jemand den falschen Weg erwischt hat: Die eingegebenen
+ * Werte bleiben stehen, nur der bestehende Eintrag wird in Ruhe gelassen und ein neuer
+ * angelegt. Ohne diesen Knopf müsste man das Blatt schließen und alles neu tippen.
+ */
+function convertToChange() {
+  editing.value = null;
+  at.value = new Date();
+}
+
 function startEdit(entry: LocalEntry) {
   editing.value = entry;
   sheetOpen.value = true;
@@ -141,41 +171,57 @@ async function remove() {
     </header>
 
     <section v-for="cat in CATEGORIES" :key="cat.value" class="card">
-      <div class="card__head">
-        <h2 class="card__title">{{ cat.label }}</h2>
-        <button class="card__action" type="button" @click="startNew(cat.value)">
-          {{ current(cat.value) ? "Gewechselt" : "Eintragen" }}
-        </button>
-      </div>
+      <h2 class="card__title">{{ cat.label }}</h2>
 
-      <template v-if="current(cat.value)">
-        <button class="current" type="button" @click="startEdit(current(cat.value)!)">
-          <span class="current__value">{{ describe(current(cat.value)!) }}</span>
-          <span v-if="current(cat.value)!.supplyShop" class="current__shop">
-            bei {{ current(cat.value)!.supplyShop }}
+      <template v-if="periods(cat.value).length">
+        <!-- Der aktuelle Stand ist reine Anzeige. Ihn anzutippen hat früher den
+             Eintrag ÜBERSCHRIEBEN — der naheliegendste Griff war ausgerechnet der,
+             der die Historie zerstört. Beide Wege stehen jetzt benannt darunter. -->
+        <div class="current">
+          <span class="current__value">{{ describe(periods(cat.value)[0]!.entry) }}</span>
+          <span v-if="periods(cat.value)[0]!.entry.supplyShop" class="current__shop">
+            bei {{ periods(cat.value)[0]!.entry.supplyShop }}
           </span>
-          <span class="current__since">{{ since(current(cat.value)!) }}</span>
-          <span v-if="current(cat.value)!.note" class="current__note">
-            {{ current(cat.value)!.note }}
+          <span class="current__since">{{ since(periods(cat.value)[0]!) }}</span>
+          <span v-if="periods(cat.value)[0]!.entry.note" class="current__note">
+            {{ periods(cat.value)[0]!.entry.note }}
           </span>
-        </button>
+        </div>
 
+        <div class="deeds">
+          <button class="deeds__main" type="button" @click="startNew(cat.value)">
+            Gewechselt
+          </button>
+          <button class="deeds__minor" type="button" @click="startEdit(current(cat.value)!)">
+            Angaben korrigieren
+          </button>
+        </div>
+
+        <!-- Zugeklappt: Was gerade gekauft wird, ist die Frage im Laden. Die Historie
+             braucht man selten — aber dann genau. -->
         <details v-if="history(cat.value).length" class="history">
-          <summary>Vorher ({{ history(cat.value).length }})</summary>
+          <summary>Frühere Stände ({{ history(cat.value).length }})</summary>
           <ul>
-            <li v-for="old in history(cat.value)" :key="old.id">
-              <button type="button" @click="startEdit(old)">
-                <span>{{ describe(old) }}</span>
-                <span class="history__since">{{ since(old) }}</span>
+            <li v-for="old in history(cat.value)" :key="old.entry.id">
+              <button type="button" @click="startEdit(old.entry)">
+                <span class="history__value">{{ describe(old.entry) }}</span>
+                <span class="history__since">{{ [old.rangeLabel, old.durationLabel].filter(Boolean).join(" · ") }}</span>
               </button>
             </li>
           </ul>
         </details>
       </template>
 
-      <p v-else class="card__empty">
-        Noch nichts hinterlegt.<span v-if="cat.hint"> {{ cat.hint }}</span>
-      </p>
+      <template v-else>
+        <p class="card__empty">
+          Noch nichts hinterlegt.<span v-if="cat.hint"> {{ cat.hint }}</span>
+        </p>
+        <div class="deeds">
+          <button class="deeds__main" type="button" @click="startNew(cat.value)">
+            Eintragen
+          </button>
+        </div>
+      </template>
     </section>
 
     <SheetDialog
@@ -183,6 +229,22 @@ async function remove() {
       :title="editing ? 'Eintrag ändern' : `${categoryMeta.label} eintragen`"
     >
       <div class="form">
+        <!-- Sagt vor dem Tippen, was der Knopf am Ende tut. Genau diese Unterscheidung
+             ist vorher untergegangen. -->
+        <p class="explain">
+          <template v-if="editing">
+            Korrigiert nur diesen Eintrag — für einen echten Wechsel gehört ein neuer
+            Stand angelegt, sonst geht der bisherige verloren.
+          </template>
+          <template v-else>
+            Wird als neuer Stand gespeichert. Der bisherige bleibt als Historie erhalten.
+          </template>
+        </p>
+
+        <button v-if="editing" class="convert" type="button" @click="convertToChange">
+          Doch ein Wechsel? Als neuen Stand anlegen
+        </button>
+
         <div v-if="!editing" class="field">
           <span class="field__label">Kategorie</span>
           <div class="segmented">
@@ -262,29 +324,9 @@ async function remove() {
   box-shadow: var(--bm-shadow-card);
 }
 
-.card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.6rem;
-}
-
 .card__title {
   font-size: 1.15rem;
-}
-
-.card__action {
-  min-height: 2.25rem;
-  padding: 0 0.8rem;
-  border: 1px solid var(--bm-hairline);
-  border-radius: 62.5rem;
-  background: var(--bm-surface-sunk);
-  color: var(--bm-ink);
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
+  margin-bottom: 0.6rem;
 }
 
 .card__empty {
@@ -298,14 +340,6 @@ async function remove() {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
 }
 
 .current__value {
@@ -324,6 +358,66 @@ async function remove() {
   margin-top: 0.25rem;
   font-size: 0.85rem;
   color: var(--bm-ink-soft);
+}
+
+/* Der Wechsel ist die Handlung, die es fast immer ist — also bekommt er die Fläche.
+   Das Korrigieren bleibt erreichbar, tritt aber zurück. */
+.deeds {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.deeds__main {
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border: none;
+  border-radius: 62.5rem;
+  background: var(--bm-feed);
+  color: #2a2028;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deeds__minor {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--bm-ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.explain {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.convert {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history__value {
+  font-weight: 600;
 }
 
 .history {

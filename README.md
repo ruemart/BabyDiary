@@ -18,6 +18,7 @@ Uhr nachts, ein Arm frei.** Daraus folgt fast alles andere.
 | **Wochenband** | Waagrechter Zeitstrahl über 80 Lebenswochen, beim Öffnen auf die aktuelle Woche gescrollt. Die Wochenfotos sitzen auf der Achse. Dazu Sprung-Bänder, U-Termine, Impfungen und eine „Demnächst“-Liste. |
 | **Kurven** | Trinkmenge pro Tag mit gleitendem Wochenmittel, Mahlzeiten-Rhythmus über Tageszeit, Windel-Raster nach Stunde, Wachstum gegen die WHO-Perzentile. |
 | **Verlauf** | Alles nach Tagen gruppiert, mit Tagessumme. Nachtragen für jede Eintragsart mit frei wählbarem Zeitpunkt. |
+| **Was wir kaufen** | Milchnahrung, Windelgröße und Sonstiges — jeweils der aktuelle Stand groß, darunter zugeklappt die Wechsel-Historie mit Zeitraum und Dauer. |
 | **Einstellungen** | Kind-Stammdaten, Darstellung, Wetterort, Zeitraffer-Export der Wochenfotos als MP4, Benachrichtigungen. |
 
 **Offline benutzbar.** Jede Eingabe geht zuerst in die lokale Datenbank des Geräts und
@@ -33,6 +34,13 @@ daneben schläft, ganz sicher nicht.
 > **Auf iPhone und iPad geht Web Push nur, wenn die App auf dem Home-Bildschirm
 > liegt** (ab iOS 16.4) — in Safari selbst nicht. Auf Android funktioniert beides.
 > Ohne hinterlegte VAPID-Schlüssel ist der Bereich schlicht ausgeblendet.
+
+**Ein Wechsel ist ein neuer Eintrag, keine Änderung.** Bei Milchnahrung und
+Windelgröße entsteht die Historie aus der Kette der Einträge: Jeder Stand gilt, bis der
+nächste beginnt. Deshalb sind „Gewechselt" und „Angaben korrigieren" getrennte
+Schaltflächen — wer beides vermischt, verliert genau die Information, für die man später
+zurückschaut. Wenn etwas nicht bekommt, ist die Frage „was kam wann dazu", und eine
+überschriebene Zeile beantwortet sie nie.
 
 **Nachts warm und gedämpft.** Zwischen 20 und 7 Uhr schaltet die App selbstständig auf
 ein bernsteinfarbenes, kontrastreduziertes Erscheinungsbild. Das ist keine Spielerei:
