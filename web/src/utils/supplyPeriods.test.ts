@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { localDayKey } from "@babymonitor/shared";
+import { localDayKey, setDisplayLocale } from "@babymonitor/shared";
 import { supplyPeriods } from "./supplyPeriods.ts";
 
 const TZ = "Europe/Berlin";
+// Fest auf Deutsch: Die Datumsschreibweise hängt an der Anzeigesprache, und ein Test,
+// der je nach Voreinstellung anders ausgeht, prüft nichts.
+setDisplayLocale("de");
 const key = (iso: string) => localDayKey(iso, TZ);
 const HEUTE = "2026-08-05";
 
@@ -22,11 +25,11 @@ describe("Wechsel-Historie aus der Eintragskette", () => {
   it("lässt jeden Stand gelten, bis der nächste beginnt", () => {
     const [aktuell, mittel, erster] = supplyPeriods(KETTE, key, HEUTE);
 
-    expect(aktuell!.rangeLabel).toBe("seit 17. Jul 2026");
+    expect(aktuell!.rangeLabel).toBe("seit 17. Juli 2026");
     // 2. Mai bis 17. Juli — der Nachfolger beendet den Zeitraum.
-    expect(mittel!.rangeLabel).toBe("2. Mai – 17. Jul 2026");
+    expect(mittel!.rangeLabel).toBe("2. Mai – 17. Juli 2026");
     expect(mittel!.days).toBe(76);
-    expect(erster!.rangeLabel).toBe("28. Apr – 2. Mai 2026");
+    expect(erster!.rangeLabel).toBe("28. Apr. – 2. Mai 2026");
     expect(erster!.durationLabel).toBe("4 Tage");
   });
 
