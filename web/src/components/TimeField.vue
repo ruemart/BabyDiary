@@ -6,26 +6,24 @@ import { getDisplayLocale } from "@babymonitor/shared";
 
 const { t } = useI18n();
 /**
- * Zeitpunkt eines Eintrags.
+ * The moment of an entry.
  *
- * Zwei Bedienwege in einem Feld, weil es zwei sehr verschiedene Situationen gibt:
+ * Two ways to operate one field, because there are two very different situations:
  *
- *  - Der Normalfall ist "gerade eben". Dafür genügen die Minus-Chips — ohne Tastatur,
- *    ohne Datumsauswahl, einhändig.
- *  - Der Nachtragefall ("gestern Abend haben wir vergessen einzutragen") braucht ein
- *    freies Datum. Das steckt hinter "Anderer Zeitpunkt", damit es den Normalfall
- *    nicht verlangsamt.
+ *  - The normal case is "just now". The minus chips are enough for that — no keyboard,
+ *    no date picker, one-handed.
+ *  - Catching up ("we forgot to record last night") needs a free date. That sits behind
+ *    "another time" so it does not slow the normal case down.
  */
 const model = defineModel<Date>({ required: true });
 
 const props = withDefaults(
   defineProps<{
     /**
-     * Zukünftige Zeitpunkte zulassen.
+     * Allow moments in the future.
      *
-     * Standardmäßig aus: Eine Mahlzeit, die noch nicht stattgefunden hat, ergibt
-     * keinen Sinn. Beim ENDE eines Zeitraums schon — einen Urlaub trägt man
-     * durchaus vorher ein.
+     * Off by default: a feed that has not happened yet makes no sense. For the END of a
+     * period it does — a holiday is quite reasonably recorded beforehand.
      */
     allowFuture?: boolean;
   }>(),
@@ -50,7 +48,7 @@ const dayLabel = computed(() => {
   return model.value.toLocaleDateString(getDisplayLocale(), { day: "numeric", month: "short" });
 });
 
-/** Wert für <input type="datetime-local"> — der erwartet LOKALE Zeit ohne Zone. */
+/** Value for <input type="datetime-local"> — which expects LOCAL time without a zone. */
 const exactValue = computed({
   get() {
     const d = model.value;
@@ -63,12 +61,11 @@ const exactValue = computed({
 });
 
 /**
- * Schritte in beide Richtungen, symmetrisch angeordnet.
+ * Steps in both directions, arranged symmetrically.
  *
- * Vorher gab es nur Minus-Schritte — gedacht für den Normalfall "gerade eben, minus
- * ein paar Minuten". Beim Nachtragen einer ganzen Nacht oder beim Setzen eines
- * Zeitraum-Endes arbeitet man sich aber genauso oft vorwärts, und dann fehlte
- * schlicht die Hälfte.
+ * There used to be only minus steps — meant for the normal case "just now, minus a few
+ * minutes". But catching up on a whole night, or setting the end of a period, means
+ * working forwards just as often, and then half of it was simply missing.
  */
 const STEPS = [5, 10, 15, 30, 60] as const;
 
@@ -78,7 +75,7 @@ function stepLabel(minutes: number): string {
 
 function shift(minutes: number) {
   const next = new Date(model.value.getTime() + minutes * 60_000);
-  // Ohne ausdrückliche Erlaubnis nicht in die Zukunft.
+  // No going into the future without explicit permission.
   model.value = !props.allowFuture && next.getTime() > Date.now() ? new Date() : next;
 }
 
@@ -98,8 +95,8 @@ function reset() {
       </button>
     </div>
 
-    <!-- Zwei Reihen, spiegelbildlich: minus oben, plus unten. Die Symmetrie macht
-         auf einen Blick klar, was die Zahlen bedeuten — Minuten, außer "1 Std". -->
+    <!-- Two rows, mirrored: minus on top, plus below. The symmetry makes it clear at a
+         glance what the numbers mean — minutes, except for "1 h". -->
     <div class="time__steps">
       <div class="time__row">
         <button
@@ -224,7 +221,7 @@ function reset() {
   background: var(--bm-surface);
   color: var(--bm-ink);
   font: inherit;
-  /* 16 px verhindert, dass iOS beim Fokussieren hineinzoomt. */
+  /* 16 px stops iOS from zooming in on focus. */
   font-size: 1rem;
 }
 </style>

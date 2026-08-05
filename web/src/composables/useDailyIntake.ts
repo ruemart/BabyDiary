@@ -5,33 +5,31 @@ import { useI18n } from "vue-i18n";
 
 
 /**
- * Einordnung der heutigen Trinkmenge — bewusst KEIN Tagesziel.
+ * Context for today's intake — deliberately NOT a daily target.
  *
- * Der Wunsch war eine Bestätigung wie "heute genug getrunken", und die gibt es hier
- * auch. Was es NICHT gibt, ist ein Fortschrittsbalken auf eine Sollmenge, und das aus
- * einem sachlichen Grund:
+ * The request was for reassurance like "drunk enough today", and that is here. What is
+ * NOT here is a progress bar towards a target amount, for a substantive reason:
  *
- * Die Ernährungsempfehlungen für Säuglinge (kindergesundheit-info.de des BZgA,
- * Gesund ins Leben) nennen die Mengenangaben ausdrücklich als grobe Orientierung und
- * betonen, dass das Kind selbst bestimmt, wie viel es trinkt — Hunger- und
- * Sättigungszeichen zählen mehr als jede Zahl. Ein Balken, der sich zu einem Ziel
- * füllt, würde genau das Gegenteil nahelegen und Eltern dazu bringen, gegen die
- * Signale ihres Kindes zu füttern.
+ * Infant feeding guidance (the German BZgA's kindergesundheit-info.de, Gesund ins Leben)
+ * explicitly presents the amounts as a rough orientation and stresses that the child
+ * decides how much it drinks — hunger and fullness cues count for more than any number.
+ * A bar filling towards a goal would suggest the exact opposite and push parents to feed
+ * against their child's signals.
  *
- * Deshalb: Die Zahl steht da, der Richtwert steht daneben, und wenn beides zusammen
- * passt, gibt es eine freundliche Bestätigung. Ein Rückstand wird NIE als Mangel
- * dargestellt — der Tag ist ja noch nicht vorbei, und morgens um neun ist jede
- * Tagesmenge zwangsläufig "zu wenig".
+ * So: the number is there, the guide value stands next to it, and when the two fit
+ * together there is a friendly confirmation. A shortfall is NEVER presented as a
+ * deficiency — the day is not over, and at nine in the morning every daily amount is
+ * necessarily "too little".
  */
 
 export type IntakeStatus = {
-  /** Was heute bisher angekommen ist (Ausgespucktes zählt nicht). */
+  /** What has arrived today so far (what came back up does not count). */
   todayMl: number;
-  /** Grober Richtwert für einen ganzen Tag, falls ein Gewicht bekannt ist. */
+  /** A rough guide for a whole day, if a weight is known. */
   orientationMl: number | null;
   /** Übliche Tagesmenge dieses Kindes, aus den letzten vollständigen Tagen. */
   usualMl: number | null;
-  /** Freundliche Bestätigung — oder null, wenn es (noch) nichts zu bestätigen gibt. */
+  /** Friendly confirmation — or null when there is (yet) nothing to confirm. */
   praise: string | null;
 };
 
@@ -52,17 +50,17 @@ export function useDailyIntake(
       .reduce((s, f) => s + (f.amountMl ?? 0), 0);
 
     /**
-     * Deutsche Faustregel: Die Gesamtmilchmenge in 24 Stunden entspricht etwa einem
-     * Sechstel des Körpergewichts. Gilt für die Zeit vor der Beikost; danach sinkt
-     * der Milchanteil. Steht deshalb ausdrücklich als "etwa" in der Oberfläche.
+     * German rule of thumb: the total milk over 24 hours is about one sixth of body
+     * weight. Applies before solids; afterwards the milk share drops. Which is why the
+     * interface says "about" explicitly.
      */
     const latestWeight = entries()
       .filter((e) => e.type === "growth" && e.weightG !== null)
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0]?.weightG;
     const orientationMl = latestWeight ? Math.round(latestWeight / 6 / 10) * 10 : null;
 
-    // Der eigene Schnitt der letzten vollständigen Tage — aussagekräftiger als jeder
-    // Bevölkerungswert, weil er zu genau diesem Kind gehört.
+    // Her own average over the last complete days — more meaningful than any
+    // population figure, because it belongs to this child.
     const byDay = new Map<string, number>();
     for (const f of feeds) {
       const day = localDayKey(f.startedAt, tz);
@@ -77,7 +75,7 @@ export function useDailyIntake(
       ? Math.round(lastDays.reduce((s, v) => s + v, 0) / lastDays.length)
       : null;
 
-    // Bestätigen, sobald einer der beiden Bezugswerte erreicht ist. Nie das Gegenteil.
+    // Confirm as soon as either reference value is reached. Never the opposite.
     let praise: string | null = null;
     if (usualMl !== null && todayMl >= usualMl) {
       praise = t("intake.praiseUsual");

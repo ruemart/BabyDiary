@@ -3,15 +3,14 @@ import { useI18n } from "vue-i18n";
 import { currentLocale } from "../i18n/index.ts";
 
 /**
- * Benachrichtigungen für dieses Gerät.
+ * Notifications for this device.
  *
- * Die Einstellungen hängen bewusst AM GERÄT: Wer nachts ohnehin wach ist, will die
- * Erinnerung auch nachts; wer daneben schläft, ganz sicher nicht. Eine gemeinsame
- * Einstellung würde zwangsläufig einen von beiden falsch bedienen.
+ * The settings deliberately hang off THE DEVICE: someone awake at night anyway wants the
+ * reminder at night; someone sleeping next to them certainly does not. A shared setting
+ * would inevitably serve one of the two badly.
  *
- * Auf dem iPhone und iPad funktioniert Web Push NUR, wenn die App auf dem
- * Home-Bildschirm liegt — in Safari selbst nicht. Das steht auch so in der
- * Oberfläche, sonst tippt man dort vergeblich auf einen Knopf.
+ * On iPhone and iPad web push only works when the app sits on the home screen — not in
+ * Safari itself. The interface says so, otherwise you tap a button there in vain.
  */
 
 export type PushState =
@@ -33,8 +32,8 @@ const SETTINGS_KEY = "bm.push.settings";
 
 export const DEFAULT_SETTINGS: PushSettings = {
   leadMinutes: 10,
-  // Standardmäßig nachts still: Für ein Neugeborenes ist das Kind der Wecker, und
-  // ein Summen um drei Uhr weckt vor allem den, der gerade schlafen darf.
+  // Quiet at night by default: for a newborn the child is the alarm clock, and a buzz
+  // at three in the morning mainly wakes the one who is allowed to sleep.
   quietFromHour: 22,
   quietToHour: 6,
 };
@@ -55,7 +54,7 @@ export function usePushNotifications() {
     }
   }
 
-  /** Läuft die App als installierte Anwendung statt im Browser-Tab? */
+  /** Is the app running as an installed application rather than in a browser tab? */
   function isStandalone(): boolean {
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -82,8 +81,8 @@ export function usePushNotifications() {
 
   async function refresh(): Promise<void> {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      // Auf iOS fehlt PushManager, solange die App im Browser läuft — das ist kein
-      // fehlender Browser-Support, sondern eine Installationsfrage.
+      // On iOS PushManager is missing while the app runs in the browser — that is not
+      // missing browser support but a question of installation.
       state.value = isIos() && !isStandalone() ? "needs-install" : "unsupported";
       return;
     }
@@ -107,8 +106,8 @@ export function usePushNotifications() {
       const key = await serverKey();
       if (!key) return t("push.noKeys");
 
-      // Die Abfrage MUSS aus einer direkten Nutzeraktion kommen — sonst lehnen
-      // iOS und Safari sie ohne Rückfrage ab.
+      // The prompt MUST come from a direct user action — otherwise iOS and Safari
+      // refuse it without asking.
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         state.value = permission === "denied" ? "denied" : "off";
@@ -127,8 +126,8 @@ export function usePushNotifications() {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        // locale mitgeben: Die Meldung formuliert der Server, und er muss wissen,
-        // in welcher Sprache dieses Gerät sie lesen will.
+        // Send the locale: the server writes the message and has to know which
+        // language this device wants to read it in.
         body: JSON.stringify({ ...subscription.toJSON(), ...settings.value, locale: currentLocale() }),
       });
       if (!res.ok) return "Die Anmeldung konnte nicht gespeichert werden.";
@@ -162,7 +161,7 @@ export function usePushNotifications() {
     }
   }
 
-  /** Einstellungen ändern und, falls angemeldet, gleich zum Server durchreichen. */
+  /** Change settings and, if subscribed, pass them straight on to the server. */
   async function saveSettings(next: PushSettings): Promise<void> {
     settings.value = next;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
@@ -196,8 +195,8 @@ export function usePushNotifications() {
 }
 
 /**
- * Der VAPID-Schlüssel kommt als base64url, `applicationServerKey` will rohe Bytes.
- * Ohne diese Umwandlung lehnt der Browser die Anmeldung wortkarg ab.
+ * The VAPID key arrives as base64url, `applicationServerKey` wants raw bytes. Without
+ * this conversion the browser refuses the subscription tersely.
  */
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");

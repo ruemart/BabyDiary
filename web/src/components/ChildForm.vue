@@ -136,7 +136,7 @@ function toNumber(value: string): number | null {
   background: var(--bm-surface);
   color: var(--bm-ink);
   font: inherit;
-  /* 16 px: darunter zoomt iOS beim Fokussieren in das Feld hinein. */
+  /* 16 px: below that, iOS zooms into the field on focus. */
   font-size: 1rem;
 }
 

@@ -14,17 +14,17 @@ const router = useRouter();
 
 const authenticated = ref<boolean | null>(null);
 /**
- * Ob der erste Abgleich mit dem Server durch ist.
+ * Whether the first sync with the server has completed.
  *
- * Entscheidend für das ZWEITE Gerät: Dessen lokale Datenbank ist leer, die Kinddaten
- * liegen aber längst auf dem Server. Ohne dieses Flag würde dem zweiten Elternteil
- * der Einrichtungsdialog gezeigt und er müsste alles noch einmal eintippen — und
- * hätte am Ende ein zweites Kind in der Datenbank.
+ * Crucial for the SECOND device: its local database is empty while the child's details
+ * have long been on the server. Without this flag the second parent would be shown the
+ * setup screen and would have to type everything in again — and would end up with a
+ * second child in the database.
  */
 const initialSyncDone = ref(false);
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 
-/** Der Einladungsbildschirm bringt sein eigenes Layout mit. */
+/** The invite screen brings its own layout. */
 const isJoinRoute = computed(() => route.name === "start");
 
 const needsSetup = computed(
@@ -41,11 +41,11 @@ const showShell = computed(
 );
 
 /**
- * Der Startvorgang darf nie ohne Ausweg hängen bleiben.
+ * The boot sequence must never hang without a way out.
  *
- * Nach ein paar Sekunden erscheinen Schaltflächen zum Neuladen und zum Zurücksetzen
- * der lokalen Daten. Eine App, die sich im Ladepunkt aufhängt und den Menschen ohne
- * jede Handhabe zurücklässt, ist kaputt — egal aus welchem Grund sie hängt.
+ * After a few seconds, buttons appear to reload and to reset the local data. An app that
+ * hangs on the loading dot and leaves the person with no handle at all is broken — no
+ * matter why it is hanging.
  */
 const bootStalled = ref(false);
 const bootError = ref<string | null>(null);
@@ -78,26 +78,26 @@ async function boot() {
   await data.load();
 
   const session = await checkSession();
-  // Parallel wäre schöner, aber der Assistent braucht es erst nach dem Abgleich.
+  // In parallel would be nicer, but the setup screen only needs it after the sync.
   data.defaultRegion = await fetchDefaultRegion();
   authenticated.value = session.authenticated;
   if (session.name && !data.deviceName) await data.setDeviceName(session.name);
 
   if (!session.authenticated) {
-    // Ohne Sitzung wird NICHT abgeglichen. Vorher lief auf dem Einladungsbildschirm
-    // trotzdem ein Sync-Versuch los, der zwangsläufig 401 bekam — ein sinnloser
-    // Request, der die Konsole mit einem Fehler beschriftet und den Sync-Zustand
-    // auf "nicht angemeldet" setzt, bevor sich überhaupt jemand anmelden konnte.
+    // Without a session there is NO sync. Previously the invite screen still kicked off
+    // a sync attempt that inevitably got a 401 — a pointless request that labels the
+    // console with an error and sets the sync state to "not signed in" before anyone
+    // could even sign in.
     if (!isJoinRoute.value) await router.replace({ name: "start" });
     return;
   }
 
-  // Erst abgleichen, dann entscheiden, ob eingerichtet werden muss.
+  // Sync first, then decide whether setup is needed.
   await data.pushNow();
   initialSyncDone.value = true;
 
-  // Beim Zurückholen der App sofort abgleichen — dann sieht man die Einträge des
-  // anderen Geräts direkt beim Aufwachen und nicht erst nach dem nächsten Timer.
+  // Sync immediately when the app comes back — that way you see the other device's
+  // entries right on waking rather than after the next timer tick.
   document.addEventListener("visibilitychange", onVisibility);
   syncTimer = setInterval(() => {
     if (!document.hidden) void data.pushNow();
@@ -166,7 +166,7 @@ function onVisibility() {
   margin-inline: auto;
 }
 
-/* Platz für die Navigationsleiste plus die Home-Indicator-Zone auf iOS. */
+/* Room for the navigation bar plus the home indicator zone on iOS. */
 .app__content--with-nav {
   padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
 }

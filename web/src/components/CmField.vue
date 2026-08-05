@@ -5,19 +5,18 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 /**
- * Längenangabe in Zentimetern.
+ * A length in centimetres.
  *
- * Gespeichert wird in Millimetern als ganze Zahl (keine Fließkomma-Rundung über
- * Jahre hinweg), eingegeben wird in Zentimetern mit einer Nachkommastelle — genau so,
- * wie es im Mutterpass und beim Kinderarzt steht: 52 cm, 35,5 cm.
+ * Stored in millimetres as an integer (no floating-point rounding over years), entered
+ * in centimetres with one decimal — exactly the way it is written in the health booklet
+ * and at the doctor's: 52 cm, 35.5 cm.
  *
- * Die erste Fassung fragte Millimeter ab. Das war eine Speicher-Entscheidung, die in
- * die Bedienoberfläche durchgeschlagen ist, und sie hat prompt zu unbrauchbaren
- * Eingaben geführt. Einheiten gehören dorthin, wo der Mensch sie kennt.
+ * The first version asked for millimetres. That was a storage decision leaking into the
+ * user interface, and it promptly led to unusable input. Units belong where the person
+ * knows them.
  */
-// `undefined` mit erlaubt, weil das Feld auch auf teilweise gefüllten Formularen
-// (`Partial<Child>` beim Einrichten) sitzt — dort ist ein noch nie berührtes Feld
-// undefined, kein null.
+// `undefined` allowed as well, because the field also sits on partially filled forms
+// (`Partial<Child>` during setup) — there a never-touched field is undefined, not null.
 const model = defineModel<number | null | undefined>({ required: true });
 
 defineProps<{ label: string; hint?: string }>();
@@ -25,7 +24,7 @@ defineProps<{ label: string; hint?: string }>();
 const asText = computed({
   get() {
     if (model.value === null || model.value === undefined) return "";
-    // Ganze Zentimeter ohne Nachkommastelle: "52" liest sich besser als "52,0".
+    // Whole centimetres without a decimal: "52" reads better than "52.0".
     const cm = model.value / 10;
     return Number.isInteger(cm) ? String(cm) : String(cm).replace(".", ",");
   },
@@ -35,8 +34,8 @@ const asText = computed({
       model.value = null;
       return;
     }
-    // Komma als Dezimaltrennzeichen: Auf einer deutschen Tastatur ist das die
-    // naheliegende Eingabe, und `Number("35,5")` wäre NaN.
+    // Comma as the decimal separator: on a German keyboard that is the obvious input,
+    // and `Number("35,5")` would be NaN.
     const parsed = Number(trimmed.replace(",", "."));
     if (!Number.isFinite(parsed)) return;
     model.value = Math.round(parsed * 10);
@@ -48,8 +47,8 @@ const asText = computed({
   <label class="cm">
     <span class="cm__label">{{ label }}</span>
     <span class="cm__group">
-      <!-- `text` mit inputmode `decimal`: `number` würde das Komma je nach
-           Browsersprache verschlucken. -->
+      <!-- `text` with inputmode `decimal`: `number` would swallow the comma depending on
+           the browser language. -->
       <input
         v-model="asText"
         type="text"
@@ -91,7 +90,7 @@ const asText = computed({
   background: var(--bm-surface);
   color: var(--bm-ink);
   font: inherit;
-  /* 16 px: darunter zoomt iOS beim Fokussieren in das Feld hinein. */
+  /* 16 px: below that, iOS zooms into the field on focus. */
   font-size: 1rem;
 }
 

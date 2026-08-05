@@ -74,7 +74,7 @@ async function toggleNight() {
 
 const childRejected = computed(() => data.invalidEntries.find((i) => i.id === "child"));
 
-/* ── Ort für das Wetter ───────────────────────────────────────────────────── */
+/* ── Location for the weather ─────────────────────────────────────────────── */
 
 type Place = { name: string; latitude: number; longitude: number; admin?: string };
 
@@ -129,7 +129,7 @@ async function save() {
     editedAt: new Date().toISOString(),
   });
   saving.value = false;
-  // Der Hinweis verschwindet erst, wenn der Server die neuen Werte annimmt.
+  // The warning only disappears once the server accepts the new values.
   await data.pushNow();
   toast.show({ headline: t("settings.saved"), color: "success" });
 }
@@ -164,8 +164,8 @@ async function downloadTimelapse() {
 }
 
 async function signOut() {
-  // Nur dieses Gerät zurücksetzen. Die Daten auf dem Server bleiben unangetastet —
-  // das andere Handy und alle Einträge sind davon nicht betroffen.
+  // Reset this device only. The data on the server stays untouched — the other phone
+  // and all entries are unaffected.
   await wipeLocal();
   document.cookie = "bm_session=; Max-Age=0; path=/";
   location.href = "/start";
@@ -176,8 +176,8 @@ async function signOut() {
   <div class="settings">
     <h1 class="settings__title">{{ $t("settings.title") }}</h1>
 
-    <!-- Die Stammdaten werden vom Server abgelehnt. Der Hinweis gehört genau hierhin,
-         wo sie sich auch korrigieren lassen — nicht in eine allgemeine Fehlerliste. -->
+    <!-- The child's details are rejected by the server. The note belongs exactly here,
+         where they can also be corrected — not in a general error list. -->
     <div v-if="childRejected" class="warning" role="alert">
       <p class="warning__title">{{ $t("settings.childRejected.title") }}</p>
       <p class="warning__text">
@@ -186,7 +186,8 @@ async function signOut() {
       <p class="warning__reason">{{ childRejected.reason }}</p>
     </div>
 
-    <!-- Ganz oben, weil man das im Laden nachschlägt und nicht suchen will. -->
+    <!-- Right at the top, because this is looked up at the shop and should not need
+         searching for. -->
     <nav class="shortcuts">
       <RouterLink to="/zahlen" class="shortcut">
         <span class="shortcut__label">{{ $t("settings.shortcut.totals") }}</span>
@@ -214,7 +215,7 @@ async function signOut() {
       </button>
     </section>
 
-    <!-- Land: bestimmt, welche Vorsorge- und Impftermine der Zeitstrahl zeigt. -->
+    <!-- Country: decides which check-ups and vaccinations the timeline shows. -->
     <section class="card">
       <h2 class="card__title">{{ $t("region.label") }}</h2>
       <p class="card__lead">{{ $t("region.lead") }}</p>
@@ -230,8 +231,8 @@ async function signOut() {
           <span class="option__label">{{ r.name }}</span>
         </button>
       </div>
-      <!-- Der Hinweis steht DORT, wo die Wahl getroffen wird, nicht in der
-           Dokumentation: Nur Deutschland ist gegen die amtliche Quelle geprüft. -->
+      <!-- The note sits WHERE the choice is made, not in the documentation: only Germany
+           has been checked against the official source. -->
       <p v-if="!activeRegion.verified && activeRegion.code !== 'none'" class="card__note">
         {{ $t("region.unverified") }}
       </p>
@@ -243,8 +244,8 @@ async function signOut() {
       </p>
     </section>
 
-    <!-- Sprache vor Darstellung: Wer die App in einer fremden Sprache vor sich hat,
-         sucht zuerst danach — und findet den Rest erst, wenn sie stimmt. -->
+    <!-- Language before appearance: someone looking at the app in a foreign language
+         searches for this first — and finds the rest only once it is right. -->
     <section class="card">
       <h2 class="card__title">{{ $t("settings.language") }}</h2>
       <p class="card__lead">{{ $t("settings.languageLead") }}</p>
@@ -257,8 +258,8 @@ async function signOut() {
           :class="{ 'option--active': locale === option.code }"
           @click="setLocale(option.code)"
         >
-          <!-- Der Name der Sprache steht IN dieser Sprache. "Deutsch" erkennt auch
-               jemand, der die App gerade auf Englisch vor sich hat. -->
+          <!-- The name of each language is written IN that language. "Deutsch" is recognised
+               even by someone currently looking at the app in English. -->
           <span class="option__label">{{ option.label }}</span>
         </button>
       </div>
