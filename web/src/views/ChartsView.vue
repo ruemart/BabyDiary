@@ -8,6 +8,9 @@ import DiaperHeatmap from "../components/charts/DiaperHeatmap.vue";
 import GrowthChart from "../components/charts/GrowthChart.vue";
 import { ageInDays } from "@babymonitor/shared";
 import { zScore, zToPercentile, type GrowthMeasure } from "../data/who/index.ts";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const DAYS = 30;
 

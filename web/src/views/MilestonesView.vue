@@ -5,6 +5,9 @@ import { useData } from "../stores/data.ts";
 import { AREA_LABEL, MILESTONES, MILESTONE_NOTE, type Milestone } from "../data/milestones.ts";
 import SheetDialog from "../components/SheetDialog.vue";
 import TimeField from "../components/TimeField.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 /**
  * Abhakliste statt Freitext.
@@ -82,7 +85,7 @@ async function save() {
     await data.add(
       data.draft("milestone", at.value, {
         milestoneKey: milestone.key,
-        label: milestone.label,
+        label: t(`milestone.${milestone.key}`),
       }),
     );
   }
@@ -123,7 +126,7 @@ function doneLabel(row: Row): string {
           <button class="item" type="button" @click="open(row)">
             <span class="item__box" aria-hidden="true" />
             <span class="item__body">
-              <span class="item__label">{{ row.label }}</span>
+              <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
               <span class="item__meta">
                 {{ AREA_LABEL[row.area] }} · {{ windowLabel(row) }}
                 <span v-if="row.source === 'who'" class="item__who">WHO</span>
@@ -146,7 +149,7 @@ function doneLabel(row: Row): string {
               </svg>
             </span>
             <span class="item__body">
-              <span class="item__label">{{ row.label }}</span>
+              <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
               <span class="item__meta">seit {{ doneLabel(row) }}</span>
             </span>
           </button>
@@ -161,7 +164,7 @@ function doneLabel(row: Row): string {
           <button class="item item--future" type="button" @click="open(row)">
             <span class="item__box" aria-hidden="true" />
             <span class="item__body">
-              <span class="item__label">{{ row.label }}</span>
+              <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
               <span class="item__meta">
                 {{ AREA_LABEL[row.area] }} · {{ windowLabel(row) }}
                 <span v-if="row.source === 'who'" class="item__who">WHO</span>
@@ -174,7 +177,7 @@ function doneLabel(row: Row): string {
 
     <p class="note">{{ MILESTONE_NOTE }}</p>
 
-    <SheetDialog v-model:open="sheetOpen" :title="selected?.label ?? 'Meilenstein'">
+    <SheetDialog v-model:open="sheetOpen" :title="selected ? $t(`milestone.${selected.key}`) : $t('entry.milestone')">
       <div class="ms-sheet">
         <p v-if="selected" class="ms-sheet__window">
           Üblich in {{ windowLabel(selected) }}<span v-if="selected.source === 'who'"> (WHO)</span>

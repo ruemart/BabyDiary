@@ -171,6 +171,88 @@
     "who": "Wer trägt hier ein?",
     "wrongToken": "Der Einladungs-Link stimmt nicht. Bitte beim anderen Elternteil nachfragen."
   },
+  "leap": {
+    "afterwards": "Was danach oft dazukommt:",
+    "disclaimer": "Die Sprungwochen stammen aus einem verbreiteten, wissenschaftlich aber umstrittenen Modell. Nehmt sie als groben Anhaltspunkt, nicht als Fahrplan — jedes Kind hat seinen eigenen.",
+    "title": "Sprung {n}: {name}",
+    "1": {
+      "description": "Die Sinne werden wacher. Viele Babys wirken schreckhafter und wollen mehr getragen werden.",
+      "newSkills": "Längeres Wachbleiben, aufmerksameres Schauen, erstes bewusstes Lächeln.",
+      "title": "Empfindungen"
+    },
+    "10": {
+      "description": "Das Kind begreift sich als eigene Person und passt sein Verhalten der Situation an.",
+      "newSkills": "Sagt Ich, zeigt Mitgefühl, spielt längere Rollenspiele.",
+      "title": "Systeme"
+    },
+    "2": {
+      "description": "Formen, Linien und wiederkehrende Abläufe werden interessant. Oft unruhigeres Trinken und leichterer Schlaf.",
+      "newSkills": "Entdeckt die eigenen Hände, verfolgt Dinge mit den Augen, gurrt.",
+      "title": "Muster"
+    },
+    "3": {
+      "description": "Bewegungen und Geräusche werden als fließend wahrgenommen statt als Einzelbilder. Eine meist kurze Phase.",
+      "newSkills": "Gezielteres Greifen, Kopf sicherer halten, quietschen und lachen.",
+      "title": "Sanfte Übergänge"
+    },
+    "4": {
+      "description": "Ein längerer, oft anstrengender Abschnitt. Viele Eltern berichten von mehr Nähebedürfnis und unruhigen Nächten.",
+      "newSkills": "Greift gezielt nach Gegenständen, steckt alles in den Mund, dreht sich.",
+      "title": "Ereignisse"
+    },
+    "5": {
+      "description": "Abstände und Zusammenhänge werden begreifbar — häufig zusammen mit dem ersten Fremdeln.",
+      "newSkills": "Sitzt mit Unterstützung, robbt, versteht Abläufe wie Verstecken.",
+      "title": "Beziehungen"
+    },
+    "6": {
+      "description": "Dinge werden sortiert und verglichen. Oft wechselhafte Stimmung.",
+      "newSkills": "Krabbeln, gezieltes Zeigen, erste bewusste Silben.",
+      "title": "Kategorien"
+    },
+    "7": {
+      "description": "Reihenfolgen werden erkannt: erst dies, dann das.",
+      "newSkills": "Zieht sich hoch, stapelt und steckt zusammen, ahmt Gesten nach.",
+      "title": "Abfolgen"
+    },
+    "8": {
+      "description": "Ganze Handlungsketten werden verstanden — anziehen, essen, aufräumen. Häufig ausgeprägter eigener Wille.",
+      "newSkills": "Erste Schritte, einfache Aufträge verstehen, erste Wörter.",
+      "title": "Programme"
+    },
+    "9": {
+      "description": "Regeln werden erprobt, indem sie gebrochen werden. Viele Eltern erleben hier die ersten Trotzmomente.",
+      "newSkills": "Verhandelt, probiert Grenzen aus, spielt so tun als ob.",
+      "title": "Grundsätze"
+    }
+  },
+  "milestone": {
+    "babble": "Bildet Silben (ba-ba, da-da)",
+    "coo": "Gurrt und quietscht",
+    "crawl": "Krabbelt auf Händen und Knien",
+    "eye-contact": "Hält Blickkontakt",
+    "first-tooth": "Erster Zahn",
+    "first-word": "Erstes richtiges Wort",
+    "follow-eyes": "Verfolgt Dinge mit den Augen",
+    "grasp": "Greift gezielt nach etwas",
+    "hands": "Entdeckt die eigenen Hände",
+    "head-control": "Hält den Kopf selbst",
+    "laugh": "Lacht laut",
+    "pincer": "Greift mit Daumen und Zeigefinger",
+    "roll": "Dreht sich vom Rücken auf den Bauch",
+    "sit-alone": "Sitzt frei ohne Hilfe",
+    "smile": "Erstes bewusstes Lächeln",
+    "stand-alone": "Steht frei",
+    "stand-assisted": "Steht mit Festhalten",
+    "stranger-anxiety": "Fremdelt",
+    "tears": "Erste echte Tränen",
+    "two-words": "Verbindet zwei Wörter",
+    "usualWeeks": "üblich in Woche {from}–{to}",
+    "walk-alone": "Läuft frei",
+    "walk-assisted": "Läuft an der Hand oder an Möbeln",
+    "wave": "Winkt oder zeigt auf Dinge",
+    "who": " (WHO)"
+  },
   "nav": {
     "charts": "Kurven",
     "main": "Hauptnavigation",
@@ -180,7 +262,9 @@
     "weeks": "Wochen"
   },
   "period": {
+    "away": "Unterwegs",
     "generic": "Zeitraum",
+    "ill": "Krank",
     "sleep": "Schlaf"
   },
   "photo": {

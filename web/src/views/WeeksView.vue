@@ -5,9 +5,12 @@ import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
-import { LEAP_DISCLAIMER } from "../data/leaps.ts";
+
 import { regionByCode } from "../data/regions/index.ts";
 import WeekRibbon from "../components/WeekRibbon.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const data = useData();
 const region = computed(() => regionByCode(data.child?.region));
@@ -28,7 +31,10 @@ const { bands, pins, upcoming, activeLeap } = useTimeline(() => data.child);
 /** Krankheiten und Abwesenheiten als eigene Spuren im Band. */
 const periods = computed(() =>
   data.child
-    ? periodBands(data.entries, data.child.birthDate, data.timezone, data.currentWeek)
+    ? periodBands(data.entries, data.child.birthDate, data.timezone, data.currentWeek, {
+        ill: t("period.ill"),
+        away: t("period.away"),
+      })
     : [],
 );
 
@@ -215,13 +221,13 @@ function daysAwayLabel(days: number): string {
 
     <section v-if="runningLeap" class="leap">
       <p class="leap__eyebrow">Sprung {{ runningLeap.number }} · Woche {{ runningLeap.week }}</p>
-      <h2 class="leap__title">{{ runningLeap.title }}</h2>
-      <p class="leap__text">{{ runningLeap.description }}</p>
-      <p class="leap__skills"><strong>Was danach oft dazukommt:</strong> {{ runningLeap.newSkills }}</p>
+      <h2 class="leap__title">{{ $t("leap.title", { n: runningLeap.number, name: $t(`leap.${runningLeap.number}.title`) }) }}</h2>
+      <p class="leap__text">{{ $t(`leap.${runningLeap.number}.description`) }}</p>
+      <p class="leap__skills"><strong>{{ $t("leap.afterwards") }}</strong> {{ $t(`leap.${runningLeap.number}.newSkills`) }}</p>
     </section>
 
     <footer class="notes">
-      <p>{{ LEAP_DISCLAIMER }}</p>
+      <p>{{ $t("leap.disclaimer") }}</p>
       <!-- Der Hinweis kommt aus der Länderdatei, weil er von Land zu Land anders
            lautet — die deutschen Fristen etwa hängen an der Kassenleistung. -->
       <p v-if="region.checkupNote">{{ region.checkupNote }}</p>

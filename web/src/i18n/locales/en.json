@@ -171,6 +171,88 @@
     "who": "Who is recording here?",
     "wrongToken": "The invite link is not right. Please ask the other parent."
   },
+  "leap": {
+    "afterwards": "What often comes next:",
+    "disclaimer": "The leap weeks come from a popular but scientifically contested model. Take them as a rough pointer, not a timetable — every child has their own.",
+    "title": "Leap {n}: {name}",
+    "1": {
+      "description": "The senses wake up. Many babies seem more easily startled and want to be carried more.",
+      "newSkills": "Staying awake longer, looking more attentively, a first real smile.",
+      "title": "Sensations"
+    },
+    "10": {
+      "description": "A sense of self emerges — mine, yours, me. Moods swing widely.",
+      "newSkills": "Naming themselves, playing pretend, following simple rules.",
+      "title": "Systems"
+    },
+    "2": {
+      "description": "Shapes, sounds and movements start to fall into patterns. Hands and voice get discovered.",
+      "newSkills": "Grasping deliberately, following things with the eyes, first cooing.",
+      "title": "Patterns"
+    },
+    "3": {
+      "description": "Movements become less jerky. Many babies watch their surroundings much more closely.",
+      "newSkills": "Turning the head towards sounds, rolling attempts, laughing out loud.",
+      "title": "Smooth transitions"
+    },
+    "4": {
+      "description": "Sequences begin to make sense. Frustration grows because wanting outpaces being able.",
+      "newSkills": "Reaching for things on purpose, passing them hand to hand, babbling in syllables.",
+      "title": "Events"
+    },
+    "5": {
+      "description": "Distance becomes noticeable — and so does being apart. Stranger anxiety often starts here.",
+      "newSkills": "Sitting freely, moving towards things, understanding simple words.",
+      "title": "Relationships"
+    },
+    "6": {
+      "description": "Things get sorted: this belongs together, that does not. Curiosity gets very physical.",
+      "newSkills": "Crawling, pulling up to stand, pointing at things.",
+      "title": "Categories"
+    },
+    "7": {
+      "description": "One thing after another — stacking, filling, emptying. Imitation becomes a favourite game.",
+      "newSkills": "First steps with support, first words, drinking from a cup.",
+      "title": "Sequences"
+    },
+    "8": {
+      "description": "Whole routines are understood: eating, tidying up, going to bed.",
+      "newSkills": "Walking freely, helping to undress, following short instructions.",
+      "title": "Programmes"
+    },
+    "9": {
+      "description": "Testing what happens when. Boundaries get explored deliberately.",
+      "newSkills": "Running, climbing, two-word sentences.",
+      "title": "Principles"
+    }
+  },
+  "milestone": {
+    "babble": "Forms syllables (ba-ba, da-da)",
+    "coo": "Coos and squeaks",
+    "crawl": "Crawls on hands and knees",
+    "eye-contact": "Holds eye contact",
+    "first-tooth": "First tooth",
+    "first-word": "First real word",
+    "follow-eyes": "Follows things with the eyes",
+    "grasp": "Reaches for things on purpose",
+    "hands": "Discovers her own hands",
+    "head-control": "Holds the head up",
+    "laugh": "Laughs out loud",
+    "pincer": "Picks things up with thumb and finger",
+    "roll": "Rolls from back to tummy",
+    "sit-alone": "Sits freely without help",
+    "smile": "First real smile",
+    "stand-alone": "Stands freely",
+    "stand-assisted": "Stands while holding on",
+    "stranger-anxiety": "Is wary of strangers",
+    "tears": "First real tears",
+    "two-words": "Puts two words together",
+    "usualWeeks": "usually in week {from}–{to}",
+    "walk-alone": "Walks freely",
+    "walk-assisted": "Walks holding a hand or furniture",
+    "wave": "Waves or points at things",
+    "who": " (WHO)"
+  },
   "nav": {
     "charts": "Charts",
     "main": "Main navigation",
@@ -180,7 +262,9 @@
     "weeks": "Weeks"
   },
   "period": {
+    "away": "Away",
     "generic": "Period",
+    "ill": "Ill",
     "sleep": "Sleep"
   },
   "photo": {

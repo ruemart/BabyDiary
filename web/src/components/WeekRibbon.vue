@@ -137,9 +137,9 @@ defineExpose({ scrollToWeek });
             :key="band.id"
             class="band"
             :style="bandStyle(band)"
-            :title="`Sprung ${band.leap.number}: ${band.leap.title}`"
+            :title="$t('leap.title', { n: band.leap.number, name: $t(`leap.${band.leap.number}.title`) })"
           >
-            <span class="band__label">{{ band.leap.title }}</span>
+            <span class="band__label">{{ $t(`leap.${band.leap.number}.title`) }}</span>
           </div>
         </div>
 

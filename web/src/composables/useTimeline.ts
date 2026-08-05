@@ -66,7 +66,10 @@ export function periodBands(
   birthDate: string,
   timezone: string,
   currentWeek: number,
+  labels: { ill: string; away: string },
 ): PeriodBand[] {
+  // Die beiden Ersatzbeschriftungen kommen von außen: Diese Funktion läuft außerhalb
+  // einer Setup-Umgebung und darf useI18n() deshalb nicht selbst aufrufen.
   return entries
     .filter((e) => e.type === "illness" || e.type === "absence")
     .map((e) => {
@@ -77,7 +80,7 @@ export function periodBands(
         fromWeek,
         // Ohne Ende bis heute zeichnen — ein Balken ohne Ausdehnung wäre unsichtbar.
         toWeek: ongoing ? Math.max(fromWeek, currentWeek) : lifeWeek(birthDate, e.endedAt!, timezone),
-        label: e.label ?? (e.type === "illness" ? "Krank" : "Unterwegs"),
+        label: e.label ?? (e.type === "illness" ? labels.ill : labels.away),
         kind: e.type as "illness" | "absence",
         ongoing,
       };
@@ -188,9 +191,11 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
         id: `milestone-${milestone.key}`,
         week: milestone.fromWeek,
         kind: "milestone",
-        label: milestone.label,
-        detail: milestone.hint ?? "",
-        when: `üblich in Woche ${milestone.fromWeek}–${milestone.toWeek}${milestone.source === "who" ? " (WHO)" : ""}`,
+        label: t(`milestone.${milestone.key}`),
+        detail: milestone.hint ? t(`milestone.${milestone.key}.hint`) : "",
+        when:
+          t("milestone.usualWeeks", { from: milestone.fromWeek, to: milestone.toWeek }) +
+          (milestone.source === "who" ? t("milestone.who") : ""),
       });
     }
 
