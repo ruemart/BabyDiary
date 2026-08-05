@@ -15,7 +15,7 @@ describe("Doppeltap-Schutz für Windeln", () => {
   });
 
   it("behandelt eine andere Art als Korrektur, nicht als zweite Windel", () => {
-    // "Feucht" getippt, dann gemerkt dass es doch voll war.
+    // Tapped "wet", then remembered it was soiled after all.
     const recent = { id: "a", startedAt: ago(20_000), diaper: "wet" };
     expect(classifyDiaperTap(recent, "soiled", NOW)).toEqual({ action: "correct", id: "a" });
   });
@@ -31,8 +31,8 @@ describe("Doppeltap-Schutz für Windeln", () => {
   });
 
   it("verschluckt keine echte zweite Windel eine Stunde später", () => {
-    // Der Fall, der den Schutz gefährlich machen würde: Wenn er zu weit griffe,
-    // fehlten Einträge in der Auswertung, ohne dass es jemand bemerkt.
+    // The case that would make the guard dangerous: if it reached too far, entries
+    // would be missing from the charts without anyone noticing.
     const recent = { id: "a", startedAt: ago(60 * 60 * 1000), diaper: "soiled" };
     expect(classifyDiaperTap(recent, "soiled", NOW)).toEqual({ action: "create" });
   });

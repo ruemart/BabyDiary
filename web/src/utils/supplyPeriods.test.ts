@@ -3,8 +3,8 @@ import { localDayKey, setDisplayLocale } from "@babymonitor/shared";
 import { supplyPeriods } from "./supplyPeriods.ts";
 
 const TZ = "Europe/Berlin";
-// Fest auf Deutsch: Die Datumsschreibweise hängt an der Anzeigesprache, und ein Test,
-// der je nach Voreinstellung anders ausgeht, prüft nichts.
+// Pinned to German: the date notation depends on the display language, and a test that
+// comes out differently depending on a preference is testing nothing.
 setDisplayLocale("de");
 const key = (iso: string) => localDayKey(iso, TZ);
 const HEUTE = "2026-08-05";
@@ -51,7 +51,7 @@ describe("Wechsel-Historie aus der Eintragskette", () => {
   });
 
   it("ordnet eine Nachtangabe dem lokalen Tag zu", () => {
-    // 23:30 UTC ist in Berlin schon der Folgetag.
+    // 23:30 UTC is already the next day in Berlin.
     const periods = supplyPeriods([{ startedAt: "2026-05-01T23:30:00.000Z" }], key, HEUTE);
     expect(periods[0]!.rangeLabel).toBe("seit 2. Mai 2026");
   });

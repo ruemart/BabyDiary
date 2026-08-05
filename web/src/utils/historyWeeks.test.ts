@@ -3,7 +3,7 @@ import type { LocalEntry } from "../db/local.ts";
 import { availableWeeks, buildWeek, dayAfterWeekChange } from "./historyWeeks.ts";
 
 const TZ = "Europe/Berlin";
-/** Montag, 3. August 2026 — Anfang der Woche, in der der 5. August liegt. */
+/** Monday, 3 August 2026 — start of the week that 5 August falls in. */
 const MONTAG = "2026-08-03";
 const HEUTE = "2026-08-05";
 
@@ -53,7 +53,7 @@ describe("Woche im Verlauf", () => {
       MONTAG,
       HEUTE,
     );
-    // Gefüttert wurde zweimal, drin geblieben ist nur die erste Menge.
+    // She was fed twice; only the first amount stayed down.
     expect(week.days[2]!.totalMl).toBe(120);
     expect(week.days[2]!.feeds).toBe(2);
   });
@@ -92,7 +92,7 @@ describe("Woche im Verlauf", () => {
           endedAt: "2026-08-05T11:30:00.000Z",
           type: "sleep",
         }),
-        // Läuft noch — hat noch keine Dauer.
+        // Still running — no duration yet.
         entry({ startedAt: "2026-08-05T14:00:00.000Z", type: "sleep" }),
       ],
       TZ,
@@ -128,12 +128,12 @@ describe("Wochenauswahl", () => {
 
 describe("Wochenwechsel", () => {
   it("behält den Wochentag bei, damit sich Wochen vergleichen lassen", () => {
-    // Von Mittwoch aus eine Woche zurück -> der Mittwoch davor.
+    // A week back from Wednesday -> the Wednesday before.
     expect(dayAfterWeekChange("2026-07-27", 2, HEUTE)).toBe("2026-07-29");
   });
 
   it("klemmt auf heute, statt in die Zukunft zu springen", () => {
-    // Freitag der laufenden Woche liegt noch vor uns.
+    // Friday of the current week still lies ahead of us.
     expect(dayAfterWeekChange(MONTAG, 4, HEUTE)).toBe(HEUTE);
   });
 });

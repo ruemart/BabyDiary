@@ -3,15 +3,15 @@ import en from "./locales/en.json";
 import de from "./locales/de.json";
 
 /**
- * Die Sprachdateien gegeneinander prüfen.
+ * Check the language files against each other.
  *
- * Englisch ist die Rückfallsprache: Ein Schlüssel, der dort fehlt, erscheint im
- * schlimmsten Fall als roher Punktpfad auf dem Bildschirm — genau das, was eine
- * Übersetzung verhindern soll. Umgekehrt ist ein Schlüssel, den nur eine Sprache hat,
- * fast immer ein Überbleibsel: Er wurde umbenannt und die andere Datei nicht mitgezogen.
+ * English is the fallback language: a key missing there appears, in the worst case, as a
+ * raw dotted path on screen — exactly what a translation is meant to prevent. The other
+ * way round, a key only one language has is almost always a leftover: it was renamed and
+ * the other file was not carried along.
  *
- * Läuft auch im CI, weil beides beim Übersetzen leicht passiert und beim Lesen einer
- * 700-Zeilen-JSON niemandem auffällt.
+ * Runs in CI too, because both happen easily while translating and nobody spots them
+ * reading a 700-line JSON file.
  */
 
 function flatten(tree: unknown, prefix = ""): string[] {
@@ -43,8 +43,8 @@ describe("Sprachdateien", () => {
   });
 
   it("behält die Platzhalter jeder Übersetzung bei", () => {
-    // {name} wird vom Code gefüllt. Wer ihn wegübersetzt, bekommt einen Satz mit
-    // einer Lücke — und das fällt erst dem Benutzer auf.
+    // {name} is filled in by the code. Translating it away leaves a sentence with a
+    // hole in it — and only the user notices.
     const placeholders = (text: string) =>
       [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!).sort();
 

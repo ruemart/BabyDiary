@@ -24,8 +24,8 @@ describe("localDayKey", () => {
   });
 
   it("hält die Tagesgrenze über die Zeitumstellung hinweg", () => {
-    // Nacht der Rückstellung 2026: 03:00 MESZ -> 02:00 MEZ am 25.10.2026
-    // 00:30 UTC = 02:30 MESZ, noch der 25.
+    // The night the clocks go back in 2026: 03:00 CEST -> 02:00 CET on 25 Oct 2026.
+    // 00:30 UTC = 02:30 CEST, still the 25th.
     expect(localDayKey("2026-10-25T00:30:00Z", TZ)).toBe("2026-10-25");
     // 23:30 UTC = 00:30 MEZ am 26.
     expect(localDayKey("2026-10-25T23:30:00Z", TZ)).toBe("2026-10-26");
@@ -43,7 +43,7 @@ describe("minutesIntoLocalDay", () => {
   });
 
   it("verschiebt eine Nachtmahlzeit über die Zeitumstellung nicht", () => {
-    // Eine 03:00-Fütterung lokaler Zeit muss vor UND nach der Umstellung 180 ergeben.
+    // A 03:00 local-time feed must come out as 180 both before AND after the change.
     expect(minutesIntoLocalDay("2026-10-20T01:00:00Z", TZ)).toBe(180); // MESZ
     expect(minutesIntoLocalDay("2026-10-30T02:00:00Z", TZ)).toBe(180); // MEZ
   });
@@ -51,9 +51,9 @@ describe("minutesIntoLocalDay", () => {
 
 describe("Kalenderarithmetik", () => {
   it("zählt Tage über die Zeitumstellung korrekt", () => {
-    // Über die Rückstellung (ein 25-Stunden-Tag): trotzdem genau 2 Tage.
+    // Across the fall back (a 25-hour day): still exactly 2 days.
     expect(daysBetween("2026-10-24", "2026-10-26")).toBe(2);
-    // Über die Vorstellung (ein 23-Stunden-Tag) 2026: 29.03.
+    // Across the spring forward (a 23-hour day) in 2026: 29 March.
     expect(daysBetween("2026-03-28", "2026-03-30")).toBe(2);
   });
 
@@ -75,7 +75,7 @@ describe("Kalenderwochen", () => {
     // 3. August 2026 ist ein Montag.
     expect(weekdayIndex("2026-08-03")).toBe(0);
     expect(weekdayIndex("2026-08-05")).toBe(2);
-    // Der Sonntag ist das ENDE der Woche, nicht ihr Anfang.
+    // Sunday is the END of the week, not its start.
     expect(weekdayIndex("2026-08-09")).toBe(6);
   });
 
@@ -83,12 +83,12 @@ describe("Kalenderwochen", () => {
     for (const tag of ["2026-08-03", "2026-08-05", "2026-08-09"]) {
       expect(startOfWeek(tag)).toBe("2026-08-03");
     }
-    // Der Sonntag gehört noch zur Vorwoche.
+    // Sunday still belongs to the previous week.
     expect(startOfWeek("2026-08-02")).toBe("2026-07-27");
   });
 
   it("bleibt über die Sommerzeitumstellung hinweg richtig", () => {
-    // In der Nacht zum 25.10.2026 wird die Uhr zurückgestellt.
+    // The clocks go back in the night of 25 Oct 2026.
     expect(startOfWeek("2026-10-25")).toBe("2026-10-19");
     expect(weekdayIndex("2026-10-26")).toBe(0);
   });
@@ -106,7 +106,7 @@ describe("Lebensalter", () => {
   it("zählt den Geburtstag als Tag 0 und Woche 0", () => {
     expect(ageInDays(birth, "2026-06-15T10:00:00Z", TZ)).toBe(0);
     expect(lifeWeek(birth, "2026-06-15T10:00:00Z", TZ)).toBe(0);
-    // Tag 6 ist noch Woche 0, Tag 7 ist Woche 1
+    // Day 6 is still week 0, day 7 is week 1
     expect(lifeWeek(birth, "2026-06-21T10:00:00Z", TZ)).toBe(0);
     expect(lifeWeek(birth, "2026-06-22T10:00:00Z", TZ)).toBe(1);
   });
@@ -133,7 +133,7 @@ describe("Lebensalter", () => {
   });
 
   it("liefert vor dem Termin negative korrigierte Wochen", () => {
-    // Frühchen, noch vor dem errechneten Termin — der Zeitstrahl muss das aushalten.
+    // A premature baby, still before the due date — the timeline has to cope with that.
     expect(correctedWeek("2026-06-15", "2026-05-25", "2026-06-01T12:00:00Z", TZ)).toBe(-2);
   });
 });
@@ -142,7 +142,7 @@ describe("elapsedSince", () => {
   const now = new Date("2026-08-04T12:00:00Z");
 
   it("zerlegt die verstrichene Zeit in Zahl und Einheit", () => {
-    // Keine Worte: Die Formulierung kommt aus den Sprachdateien.
+    // No words: the phrasing comes from the language files.
     expect(elapsedSince("2026-08-04T11:59:30Z", now)).toEqual({ unit: "now" });
     expect(elapsedSince("2026-08-04T11:15:00Z", now)).toEqual({ unit: "minutes", minutes: 45 });
     expect(elapsedSince("2026-08-04T09:45:00Z", now)).toEqual({
@@ -156,7 +156,7 @@ describe("elapsedSince", () => {
   });
 
   it("stürzt bei Zeitstempeln aus der Zukunft nicht ab", () => {
-    // Kommt vor: Ein Gerät mit falsch gestellter Uhr schiebt einen Eintrag hoch.
+    // It happens: a device with a wrongly set clock pushes an entry up.
     expect(elapsedSince("2026-08-04T12:05:00Z", now)).toEqual({ unit: "now" });
   });
 });

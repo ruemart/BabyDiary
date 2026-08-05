@@ -12,7 +12,7 @@ describe("Nummerierung innerhalb eines Tages", () => {
     // Chronologisch: Flasche, Windel, Flasche, Flasche
     const ordinals = numberWithinDay(day("feed", "diaper", "feed", "feed"));
 
-    // Die ÄLTESTE Flasche ist die erste des Tages.
+    // The OLDEST bottle is the first of the day.
     expect(ordinals.get("e0")).toBe(1);
     expect(ordinals.get("e2")).toBe(2);
     expect(ordinals.get("e3")).toBe(3);
@@ -22,7 +22,7 @@ describe("Nummerierung innerhalb eines Tages", () => {
 
   it("lässt bestehende Nummern in Ruhe, wenn ein Eintrag dazukommt", () => {
     const before = numberWithinDay(day("feed", "feed"));
-    // Eine neue Flasche kommt hinten dazu — die alten Ids behalten ihre Nummer.
+    // A new bottle is added at the end — the old ids keep their numbers.
     const after = numberWithinDay([...day("feed", "feed"), { id: "neu", type: "feed" as EntryType }]);
 
     for (const [id, n] of before) expect(after.get(id)).toBe(n);

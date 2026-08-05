@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-// `config` verlangt diese Werte beim Laden. Die Logik hier braucht sie nicht — aber
-// die Modulkette schon, solange config.ts beim Import prüft.
+// `config` demands these values on load. The logic here does not need them — but the
+// module chain does, as long as config.ts validates on import.
 process.env["HOUSEHOLD_SECRET"] = "test-household-secret-0123456789";
 process.env["COOKIE_SECRET"] = "test-cookie-secret-0123456789abc";
 
@@ -49,22 +49,21 @@ describe("Fällige Erinnerungen", () => {
   const due = "2026-08-05T12:00:00Z"; // 14:00 lokal, außerhalb der Ruhezeit
 
   it("meldet sich zur Vorlaufzeit, nicht früher", () => {
-    // 20 Minuten vorher, Vorlauf ist 10 -> noch nichts.
+    // 20 minutes before, lead time is 10 -> nothing yet.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T11:40:00Z"), TZ)).toHaveLength(0);
     // 10 Minuten vorher -> jetzt.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T11:50:00Z"), TZ)).toHaveLength(1);
   });
 
   it("erinnert nicht zweimal an dieselbe Mahlzeit", () => {
-    // Sonst ginge die Meldung im Minutentakt raus, solange nichts eingetragen wird.
+    // Otherwise the message would go out every minute while nothing is recorded.
     const alreadySent = sub({ last_notified_for: "f1" });
     expect(dueNotifications([alreadySent], next(due), new Date("2026-08-05T11:55:00Z"), TZ)).toHaveLength(0);
   });
 
   it("gibt eine lange überfällige Erwartung auf", () => {
-    // Zwei Stunden nach dem erwarteten Zeitpunkt: Entweder wurde gefüttert und
-    // nicht eingetragen, oder der Rhythmus hat sich verschoben. Beides macht die
-    // Erinnerung wertlos.
+    // Two hours after the expected moment: either a feed happened and was not recorded,
+    // or the rhythm has shifted. Either way the reminder is worthless.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T14:00:00Z"), TZ)).toHaveLength(0);
   });
 

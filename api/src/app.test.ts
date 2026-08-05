@@ -111,7 +111,7 @@ describe("Einladung", () => {
       url: "/api/sync",
       payload: { childId: CHILD_ID, since: 0, changes: [], child: null },
     });
-    // JSON, kein Redirect: der Service Worker soll das als Fehler sehen, nicht als HTML.
+    // JSON, not a redirect: the service worker should see this as an error, not as HTML.
     expect(res.statusCode).toBe(401);
     expect(res.json()).toEqual({ error: "unauthorized" });
   });
@@ -146,7 +146,7 @@ describe("Sync über HTTP", () => {
       payload: {
         childId: CHILD_ID,
         since: 0,
-        // Der Client behauptet "Mama" — der Server muss das überschreiben.
+        // The client claims "Mama" — the server has to override that.
         changes: [entry({ id: "a", createdBy: "Mama" })],
         child: null,
       },
@@ -196,9 +196,9 @@ describe("Sync über HTTP", () => {
       },
     });
 
-    // DER entscheidende Punkt: Ein einziger fehlerhafter Eintrag darf nicht das
-    // ganze Paket zu Fall bringen. Sonst leert sich der Ausgangskorb des Geräts nie,
-    // und JEDER danach angelegte Eintrag bleibt ebenfalls für immer liegen.
+    // THE decisive point: a single faulty entry must not bring down the whole batch.
+    // Otherwise the device's outbox never drains, and EVERY entry created afterwards
+    // is stuck forever as well.
     expect(res.statusCode).toBe(200);
 
     const body = res.json<SyncResponse>();
@@ -275,7 +275,7 @@ describe("Zweites Gerät", () => {
   it("bekommt Kind und Einträge, ohne die childId zu kennen", async () => {
     const mama = await login("Mama");
 
-    // Mama richtet ein und trägt etwas ein.
+    // Mama sets things up and records something.
     await app.inject({
       method: "POST",
       url: "/api/sync",
@@ -302,7 +302,7 @@ describe("Zweites Gerät", () => {
       },
     });
 
-    // Papas Gerät ist frisch: leere lokale Datenbank, kennt die childId nicht.
+    // Papa's device is fresh: empty local database, does not know the childId.
     const papa = await login("Papa");
     const res = await app.inject({
       method: "POST",
@@ -312,8 +312,8 @@ describe("Zweites Gerät", () => {
     });
 
     const body = res.json<SyncResponse>();
-    // Ohne die Auflösung serverseitig bekäme Papa hier nichts und die App würde
-    // ihm den Einrichtungsdialog zeigen — mit einem zweiten Kind als Ergebnis.
+    // Without resolving it server-side Papa would get nothing here and the app would
+    // show him the setup screen — resulting in a second child.
     expect(body.child?.name).toBe("Lotte");
     expect(body.entries.map((e) => e.id)).toEqual(["a"]);
   });

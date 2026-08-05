@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { PERCENTILE_LINES, valueAtZ, zScore, zToPercentile } from "./index.ts";
 
 /**
- * Die Perzentilrechnung wird gegen veröffentlichte WHO-Referenzwerte geprüft, nicht
- * gegen sich selbst. Bei einer Anzeige, die Eltern als Aussage über die Entwicklung
- * ihres Kindes lesen, ist "sieht plausibel aus" kein ausreichender Maßstab.
+ * The percentile calculation is checked against published WHO reference values, not
+ * against itself. For a display parents read as a statement about their child's
+ * development, "looks plausible" is not a sufficient standard.
  */
 
 describe("Z-Wert gegen WHO-Referenzwerte", () => {
@@ -80,7 +80,7 @@ describe("zToPercentile", () => {
 
 describe("Randfälle", () => {
   it("klemmt Alter außerhalb der Tabelle auf die Ränder", () => {
-    // Vor der Geburt und nach zwei Jahren darf nichts abstürzen.
+    // Nothing may crash before birth or after two years.
     expect(zScore("weight", "female", -10, 3.2322)).toBeCloseTo(0, 3);
     expect(zScore("weight", "female", 5000, 12)).not.toBeNull();
   });
@@ -91,8 +91,8 @@ describe("Randfälle", () => {
   });
 
   it("interpoliert zwischen den Wochen-Stützstellen", () => {
-    // Tag 10 liegt zwischen den Stützstellen 7 und 14; der Median muss dazwischen
-    // liegen und nicht auf eine der beiden zurückfallen.
+    // Day 10 lies between the anchors 7 and 14; the median has to fall between them
+    // and not snap back to either one.
     const m7 = valueAtZ("weight", "female", 7, 0)!;
     const m10 = valueAtZ("weight", "female", 10, 0)!;
     const m14 = valueAtZ("weight", "female", 14, 0)!;

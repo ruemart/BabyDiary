@@ -135,7 +135,7 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
   });
 
   it("gibt bei Gleichstand dem Server recht", () => {
-    // Sonst schreiben sich zwei Geräte mit identischem editedAt endlos gegenseitig um.
+    // Otherwise two devices with identical editedAt would rewrite each other forever.
     store.applyChanges(CHILD_ID, [entry({ id: "a", amountMl: 150 })], null);
     const result = store.applyChanges(CHILD_ID, [entry({ id: "a", amountMl: 100 })], null);
 
@@ -144,8 +144,8 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
   });
 
   it("vergleicht Zeitstempel mit Offset korrekt", () => {
-    // 12:00+02:00 ist 10:00Z — also ÄLTER als 11:00Z, obwohl der String größer aussieht.
-    // Ohne Normalisierung auf UTC würde der Vergleich hier falsch herum ausgehen.
+    // 12:00+02:00 is 10:00Z — so OLDER than 11:00Z, even though the string looks bigger.
+    // Without normalising to UTC the comparison here would come out backwards.
     store.applyChanges(
       CHILD_ID,
       [entry({ id: "a", amountMl: 150, editedAt: "2026-08-04T11:00:00.000Z" })],
@@ -173,8 +173,8 @@ describe("Soft-Delete", () => {
       null,
     );
 
-    // Das zweite Gerät muss die Löschung beim Pull sehen — deshalb bleibt die Zeile
-    // bestehen und bekommt eine neue rev, statt zu verschwinden.
+    // The second device has to see the deletion on pull — which is why the row stays
+    // and gets a new rev instead of disappearing.
     const delta = store.entriesSince(CHILD_ID, cursorBeforeDelete);
     expect(delta).toHaveLength(1);
     expect(delta[0]!.id).toBe("a");
@@ -269,8 +269,8 @@ describe("Ausgespuckte Mahlzeit", () => {
     );
 
     const byId = new Map(store.entriesSince(CHILD_ID, 0).map((e) => [e.id, e]));
-    // Die Menge bleibt erhalten — sie wurde ja angeboten. Nur die Auswertung
-    // zählt sie nicht mit; das entscheidet der Client.
+    // The amount is kept — it was offered, after all. Only the charts leave it out;
+    // that is the client's decision.
     expect(byId.get("a")!.spatUp).toBe(true);
     expect(byId.get("a")!.amountMl).toBe(120);
     expect(byId.get("b")!.spatUp).toBe(false);
@@ -290,8 +290,8 @@ describe("Migrationen", () => {
     expect(applied).toContain("001_init.sql");
     expect(applied).toContain("002_spat_up.sql");
 
-    // Zweites Öffnen darf nicht versuchen, die Spalte erneut anzulegen —
-    // ALTER TABLE ADD COLUMN ist nicht idempotent und würde werfen.
+    // Opening a second time must not try to add the column again —
+    // ALTER TABLE ADD COLUMN is not idempotent and would throw.
     const second = openDatabase(path);
     const again = second
       .prepare<[], { name: string }>("SELECT name FROM schema_migrations")
@@ -301,9 +301,8 @@ describe("Migrationen", () => {
   });
 
   it("rüstet eine Datenbank nach, die die Spalte noch nicht kennt", () => {
-    // Der reale Fall: Auf dem Pi liegt bereits eine Datenbank aus der Zeit vor
-    // dem Ausspuck-Kennzeichen. Ohne Migrationsschritt wäre der Server erst beim
-    // ersten Schreibzugriff gescheitert.
+    // The real case: the Pi already holds a database from before the spat-up flag.
+    // Without a migration step the server would only have failed on the first write.
     const path = join(dir, "alt.db");
     const legacy = openDatabase(path);
     legacy.exec("DROP TABLE entries");
@@ -330,11 +329,10 @@ describe("Migrationen", () => {
 
 describe("Alle bekannten Eintragsarten", () => {
   it("werden von der Datenbank angenommen", () => {
-    // Wächter gegen ein Auseinanderdriften: Die CHECK-Bedingung auf `type` stand
-    // einmal noch auf dem Stand der ersten Migration, während das Schema längst
-    // neue Arten kannte. Ergebnis war ein 500er, den das Gerät endlos wiederholte.
-    // Dieser Test schlägt fehl, sobald eine Art im Schema steht, die die Datenbank
-    // nicht kennt.
+    // A guard against drift: the CHECK constraint on `type` was once still at the
+    // state of the first migration while the schema had long known new kinds. The
+    // result was a 500 the device retried forever. This test fails as soon as a kind
+    // is in the schema that the database does not know.
     const changes = ENTRY_TYPES.map((type) =>
       entry({
         id: `t-${type}`,
@@ -358,10 +356,9 @@ describe("Alle bekannten Eintragsarten", () => {
   });
 
   it("lässt einen einzelnen unbrauchbaren Eintrag den Rest nicht mitreißen", () => {
-    // Die Bedingung auf `type` ist bewusst entfallen (Migration 007) — sie hat nie
-    // einen Fehler verhindert, aber für jede neue Art einen Tabellen-Neubau
-    // erzwungen. Die Widerstandsfähigkeit wird hier über `diaper` geprüft, wo eine
-    // kleine, stabile Aufzählung sinnvoll bleibt.
+    // The constraint on `type` was deliberately dropped (migration 007) — it never
+    // prevented a fault but forced a table rebuild for every new kind. Resilience is
+    // checked here through `diaper`, where a small, stable enum stays sensible.
     const result = store.applyChanges(
       CHILD_ID,
       [
