@@ -51,6 +51,13 @@ services:
     # von außen nicht. Der öffentliche Weg läuft ausschließlich über den Tunnel.
     ports:
       - "127.0.0.1:8090:80"
+    environment:
+      # Wie lange Bausteine einer alten Fassung liegen bleiben.
+      ASSET_KEEP_DAYS: ${ASSET_KEEP_DAYS:-30}
+    volumes:
+      # Überdauert den Neubau des Abbilds, damit ein Gerät mit noch geöffneter alter
+      # Fassung seine Dateien weiter findet. Siehe web/entrypoint.sh.
+      - ./data/web-assets:/usr/share/nginx/html/assets
     networks:
       - internal
       - cloudflare_proxy

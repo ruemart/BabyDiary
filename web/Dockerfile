@@ -17,7 +17,14 @@ RUN npm run build --workspace=@babymonitor/web
 
 FROM nginx:1.27-alpine AS runtime
 COPY web/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/web/dist /usr/share/nginx/html
+
+# Der Bauplan liegt daneben, nicht direkt im Auslieferungsordner: Das Startskript legt
+# die Dateien dort ab und lässt die der vorigen Fassung stehen. Warum, steht dort.
+COPY --from=build /app/web/dist /opt/app-dist
+COPY web/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 80
 

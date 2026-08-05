@@ -133,6 +133,17 @@ genug für den nächtlichen Gebrauch.
 > niemand kennt, ist das der bewusste Tausch gegen null Anmelde-Reibung. Wer mehr
 > will, kann Cloudflare Access davorschalten.
 
+### Warum die Bausteine der App das Ausrollen überleben
+
+Die Ansichten werden bei Bedarf nachgeladen, und ihre Dateinamen tragen einen
+Inhalts-Hash. Wurde das Abbild komplett ersetzt, waren die Dateien der alten Fassung im
+selben Moment weg — ein Handy, das die App noch offen hatte, verwies auf nicht mehr
+vorhandene Dateien, und der Navigationspunkt tat scheinbar **nichts**.
+
+Deshalb liegt `/assets` unter `./data/web-assets` und überdauert den Neubau: Neue
+Dateien kommen dazu, alte bleiben (`ASSET_KEEP_DAYS`, Vorgabe 30). Der Notausgang im
+Router — hartes Neuladen auf die Zielseite — bleibt als Netz darunter bestehen.
+
 ### Sicherungen
 
 Der `backup`-Container legt jede Nacht eine Kopie unter `backups/` an und hält
