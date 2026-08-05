@@ -6,30 +6,29 @@ import us from "./us.json";
 import none from "./none.json";
 
 /**
- * Vorsorgetermine und Impfkalender sind LANDESSACHE.
+ * Check-ups and vaccination schedules are a NATIONAL matter.
  *
- * Vorher standen die deutschen Daten fest im Code. Für einen Haushalt in Deutschland
- * war das richtig und für alle anderen falsch — und zwar auf die unangenehme Art:
- * Die App hätte Termine angezeigt, die es dort nicht gibt, bei Gesundheitsdaten eines
- * Kindes. Deshalb liegt jedes Land in einer eigenen Datei, die auch jemand ohne
- * Programmierkenntnisse lesen und ergänzen kann.
+ * The German data used to sit hard-coded in the source. For a household in Germany that
+ * was right and for everyone else wrong — in the unpleasant way: the app would have
+ * shown appointments that do not exist there, for a child's health data. So every
+ * country lives in a file of its own that someone without programming knowledge can
+ * read and extend.
  *
- * NUR DEUTSCHLAND IST GEPRÜFT. Die Datei wurde in diesem Projekt aus dem Original des
- * Robert Koch-Instituts übertragen und gegengelesen. Alle anderen sind aus öffentlichen
- * Quellen zusammengetragen und ausdrücklich NICHT abgenommen — die App sagt das an der
- * Stelle, an der die Termine stehen, statt es in der Dokumentation zu verstecken.
- * Wer ein Land beisteuert und es gegen die amtliche Quelle geprüft hat, setzt
- * `verified` auf true.
+ * ONLY GERMANY IS VERIFIED. That file was transcribed in this project from the Robert
+ * Koch Institute's original and proofread. All others were gathered from public sources
+ * and are explicitly NOT signed off — the app says so right where the appointments are
+ * shown, rather than hiding it in the documentation. Anyone contributing a country and
+ * checking it against the official source sets `verified` to true.
  */
 
 export type CheckupUnit = "day" | "week" | "month";
 
 export type RegionCheckup = {
   id: string;
-  /** Wie das jeweilige Land es nennt — beim Arzt soll man es wiedererkennen. */
+  /** What the country itself calls it — you should recognise it at the doctor's. */
   windowLabel: string;
   unit: CheckupUnit;
-  /** Nullbasierter Abstand zur Geburt, in `unit`. Der Geburtstag ist Tag 0. */
+  /** Zero-based distance from birth, in `unit`. The birthday is day 0. */
   from: number;
   to: number;
   what: string;
@@ -46,15 +45,15 @@ export type Region = {
   code: string;
   name: string;
   englishName: string;
-  /** Gegen die amtliche Quelle geprüft? Steuert den Hinweis in der App. */
+  /** Checked against the official source? Drives the note in the app. */
   verified: boolean;
   /** Wie die Untersuchungen im Land heißen — "U-Untersuchungen", "NHS reviews" … */
   checkupsLabel: string;
   sources: { checkups?: string; vaccinations?: string; url?: string };
   /**
-   * Hinweis zu den Fristen. Entweder ein Text oder nach Sprachcode aufgeschlüsselt —
-   * für Länder, deren Regeln sich nicht in einem Satz übersetzen lassen. Wer eine
-   * Sprache nicht führt, bekommt die erste vorhandene.
+   * Note about the deadlines. Either a text or keyed by language code — for countries
+   * whose rules do not translate into one sentence. A language that is not present
+   * falls back to the first one available.
    */
   checkupNote?: string | Record<string, string>;
   checkups: RegionCheckup[];
@@ -62,15 +61,14 @@ export type Region = {
 };
 
 /**
- * Reihenfolge = Reihenfolge in der Auswahl. "Ohne Termine" steht bewusst am Ende:
- * Es ist die richtige Wahl für jedes noch fehlende Land, aber nicht die erste,
- * die jemand sehen soll.
+ * Order = order in the picker. "No appointments" deliberately sits last: it is the right
+ * choice for every country still missing, but not the first one someone should see.
  */
 export const REGIONS: Region[] = [de, at, ch, gb, us, none] as Region[];
 
 export const DEFAULT_REGION = "none";
 
-/** Den Hinweis in der gewünschten Sprache holen, mit Rückfall auf das Vorhandene. */
+/** Fetch the note in the desired language, falling back to whatever is there. */
 export function regionNote(
   note: string | Record<string, string> | undefined,
   locale: string,

@@ -3,11 +3,11 @@ import { addDays, localDayKey, minutesIntoLocalDay } from "@babymonitor/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**
- * Aggregationen für die Auswertungen.
+ * Aggregations for the charts.
  *
- * Jede Tagesgrenze und jede Uhrzeit läuft über die Helfer aus `shared/time` mit fester
- * Zeitzone — niemals über Epoch-Arithmetik. Sonst verschieben sich bei der
- * Zeitumstellung genau die Nachtmahlzeiten, deren Verlauf hier interessiert.
+ * Every day boundary and every clock time goes through the helpers in `shared/time` with
+ * a fixed time zone — never through epoch arithmetic. Otherwise the clock change shifts
+ * exactly the night feeds whose pattern is the interesting part.
  */
 
 export type DailyTotal = {
@@ -22,7 +22,7 @@ export type DailyTotal = {
 export function useStats(entries: () => LocalEntry[], timezone: () => string, days = 30) {
   const feeds = computed(() => entries().filter((e) => e.type === "feed" && e.amountMl !== null));
 
-  /** Lückenlose Tagesreihe: Tage ohne Eintrag müssen als 0 erscheinen, nicht fehlen. */
+  /** A gapless series of days: days without entries must appear as 0, not be missing. */
   const dailyTotals = computed<DailyTotal[]>(() => {
     const tz = timezone();
     const today = localDayKey(new Date(), tz);
@@ -31,9 +31,9 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     for (const feed of feeds.value) {
       const key = localDayKey(feed.startedAt, tz);
       const current = totals.get(key) ?? { ml: 0, count: 0 };
-      // Vollständig ausgespuckte Mahlzeiten zählen als Mahlzeit, aber nicht als
-      // Menge — sonst weist die Tagessumme eine Aufnahme aus, die nie im Kind
-      // angekommen ist, und die ml/kg-Kennzahl wird systematisch zu hoch.
+      // Feeds brought back up count as a feed but not as an amount — otherwise the
+      // daily total reports an intake that never made it into the child, and the ml/kg
+      // figure comes out systematically too high.
       if (!feed.spatUp) current.ml += feed.amountMl ?? 0;
       current.count += 1;
       totals.set(key, current);
@@ -52,8 +52,8 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       });
     }
 
-    // Gleitendes Mittel erst ab dem siebten Tag — davor wäre es ein Mittel über
-    // Nullen und würde einen Anstieg vortäuschen, den es nicht gab.
+    // The rolling average only from the seventh day — before that it would be an
+    // average over zeros and would fake a rise that never happened.
     for (let i = 6; i < series.length; i++) {
       const window = series.slice(i - 6, i + 1);
       series[i]!.rollingMl = Math.round(window.reduce((s, d) => s + d.totalMl, 0) / 7);
@@ -62,7 +62,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     return series;
   });
 
-  /** Punktwolke: x = Tagesindex, y = Minuten seit lokaler Mitternacht, r aus der Menge. */
+  /** Scatter: x = day index, y = minutes since local midnight, r from the amount. */
   const rhythm = computed(() => {
     const tz = timezone();
     const today = localDayKey(new Date(), tz);
@@ -82,7 +82,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       });
   });
 
-  /** Windeln je Tag und Stunde, für das Raster. */
+  /** Nappies per day and hour, for the grid. */
   const diaperGrid = computed(() => {
     const tz = timezone();
     const today = localDayKey(new Date(), tz);
@@ -94,8 +94,8 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       const hour = Math.floor(minutesIntoLocalDay(entry.startedAt, tz) / 60);
       const key = `${day}|${hour}`;
       const existing = cells.get(key);
-      // "Voll" schlägt "feucht" schlägt "leer" — die auffälligste Beobachtung
-      // der Stunde soll die Zelle bestimmen.
+      // "Soiled" beats "wet" beats "empty" — the most notable observation of the hour
+      // should decide the cell.
       const rank = { empty: 1, wet: 2, soiled: 3, both: 3 } as Record<string, number>;
       const incoming = entry.diaper ?? "empty";
       if (!existing || (rank[incoming] ?? 0) > (rank[existing.kind] ?? 0)) {
@@ -117,16 +117,15 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     return rows;
   });
 
-  /** Kennzahlen für die Kacheln über den Diagrammen. */
+  /** Key figures for the tiles above the charts. */
   const summary = computed(() => {
     /**
-     * Der HEUTIGE Tag bleibt aus allen Mittelwerten draußen.
+     * TODAY stays out of every average.
      *
-     * Er ist per Definition unvollständig — um 8 Uhr morgens stehen erst zwei
-     * Mahlzeiten drin. Rechnet man ihn mit, zieht er den Wochenschnitt nach unten und
-     * die App meldet "11 % weniger als letzte Woche", während die Balken sichtbar
-     * steigen. Eine Kennzahl, die dem Diagramm daneben widerspricht, ist schlimmer
-     * als gar keine.
+     * It is incomplete by definition — at eight in the morning there are two feeds in it.
+     * Counting it drags the weekly average down and the app reports "11 % less than last
+     * week" while the bars visibly rise. A figure that contradicts the chart next to it
+     * is worse than no figure at all.
      */
     const complete = dailyTotals.value.slice(0, -1);
     const recent = complete.slice(-7).filter((d) => d.feeds > 0);
@@ -154,8 +153,8 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
           ? Math.round(((avgMl - avgPrevious) / avgPrevious) * 100)
           : null,
       /**
-       * Milliliter je Kilogramm Körpergewicht. Die Zahl, die tatsächlich sagt, ob die
-       * Menge mit dem Wachstum mithält — absolute Milliliter steigen ja ohnehin.
+       * Millilitres per kilogram of body weight. The number that actually says whether
+       * intake keeps up with growth — absolute millilitres rise anyway.
        */
       mlPerKg:
         avgMl !== null && latestWeight

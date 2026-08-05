@@ -1,25 +1,25 @@
 import type { EntryType } from "@babymonitor/shared";
 
 /**
- * Flaschen und Windeln innerhalb eines Tages durchzählen: 1. Flasche, 2. Flasche …
+ * Number bottles and nappies within a day: 1st bottle, 2nd bottle …
  *
- * Gezählt wird vom Tagesanfang an — dieselbe Richtung, in der die Liste den Tag zeigt.
- * Nur so bleibt eine Nummer stabil: Die dritte Flasche von heute Mittag heißt heute Abend
- * immer noch „3.". Rückwärts gezählt würde jeder neue Eintrag alle darunter umbenennen,
- * und eine Zahl, die sich ändert, kann man niemandem sagen.
+ * Counted from the start of the day — the same direction in which the list shows it.
+ * Only that way does a number stay stable: the third bottle from midday is still "3."
+ * in the evening. Counted backwards, every new entry would rename everything below it,
+ * and a number that changes is a number you cannot tell anyone.
  *
- * Nebeneffekt, der die eigentliche Frage beantwortet: Die letzte Zahl des Tages ist
- * zugleich die Anzahl. „6. Flasche" heißt sechs Flaschen an dem Tag.
+ * A side effect that answers the actual question: the last number of the day is also
+ * the count. "6th bottle" means six bottles that day.
  */
 const NUMBERED_TYPES = new Set<EntryType>(["feed", "diaper"]);
 
 type Countable = { id: string; type: EntryType };
 
 /**
- * @param entries Einträge EINES Tages, aufsteigend nach Zeit (so wie die Liste sie zeigt).
- * @returns Eintrags-Id → laufende Nummer. Arten ohne sinnvolle Zählung fehlen darin:
- *   Bei Wachstum oder Meilenstein sagt eine laufende Nummer nichts, und ein Bad am Tag
- *   braucht keine.
+ * @param entries Entries of ONE day, ascending by time (the way the list shows them).
+ * @returns Entry id → running number. Kinds without a meaningful count are absent:
+ *   for growth or a milestone a running number says nothing, and one bath a day needs
+ *   no counting.
  */
 export function numberWithinDay(entries: readonly Countable[]): Map<string, number> {
   const counted = new Map<EntryType, number>();

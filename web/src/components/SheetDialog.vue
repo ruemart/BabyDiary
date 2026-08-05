@@ -2,14 +2,13 @@
 import { ref, watch } from "vue";
 
 /**
- * Eingabeblatt, das von unten hereinfährt.
+ * An input sheet that slides in from the bottom.
  *
- * Bewusst ein natives <dialog> statt eines eigenen Overlays: Damit kommen
- * Fokusfalle, Escape-Taste, Inertisierung des Hintergrunds und die korrekte
- * Vorlese-Reihenfolge ohne eigenen Code — vier Dinge, die selbstgebaute Modale
- * fast immer falsch machen.
+ * Deliberately a native <dialog> rather than a home-made overlay: that brings the focus
+ * trap, the escape key, inerting the background and the correct screen-reader order
+ * without any code of our own — four things hand-built modals almost always get wrong.
  *
- * Von unten, weil der obere Bildschirmrand einhändig nicht erreichbar ist.
+ * From the bottom, because the top edge of the screen cannot be reached one-handed.
  */
 const open = defineModel<boolean>("open", { required: true });
 defineProps<{ title: string }>();
@@ -17,18 +16,17 @@ defineProps<{ title: string }>();
 const dialog = ref<HTMLDialogElement>();
 
 /**
- * Die Einblendung wird erst im nächsten Bild zugeschaltet und danach wieder entfernt.
+ * The entry animation is switched on one frame later and removed again afterwards.
  *
- * Auf dem iPhone blieb die Animation auf ihrem ERSTEN Bild stehen — `translateY(12%)`
- * wirkte dauerhaft weiter. Bei einem 598 px hohen Blatt sind das 72 px: Die Unterkante
- * lag unter dem Bildschirmrand, sichtbar war nur der Titel, und der Speichern-Knopf war
- * unerreichbar. Ein stehengebliebenes `transform` macht das Blatt außerdem zum
- * Bezugsrahmen für alles Fixierte darin — daran ließ es sich nachweisen.
+ * On the iPhone the animation stayed on its FIRST frame — `translateY(12%)` kept
+ * applying. On a 598 px tall sheet that is 72 px: the bottom edge sat below the screen,
+ * only the title was visible, and the save button was out of reach. A stuck `transform`
+ * also makes the sheet the containing block for anything fixed inside it — which is how
+ * it was proven.
  *
- * Zwei Vorkehrungen: Die Animation startet erst, wenn das Blatt bereits sichtbar ist,
- * und sie hängt an einer eigenen Klasse, die am Ende wieder verschwindet. Damit kann ein
- * Fehlschlag nur noch bedeuten, dass es NICHT hereinfährt — nie mehr, dass es falsch
- * liegt.
+ * Two safeguards: the animation only starts once the sheet is already visible, and it
+ * hangs off a class of its own that disappears at the end. A failure can therefore only
+ * mean it does NOT slide in — never again that it sits in the wrong place.
  */
 watch(open, (isOpen) => {
   const element = dialog.value;
@@ -77,26 +75,26 @@ function onClose() {
 
 <style scoped>
 /**
- * Geschlossen heißt unsichtbar — ausdrücklich, nicht nur laut Browser-Vorgabe.
+ * Closed means invisible — stated explicitly, not just by browser default.
  *
- * Vue vererbt die Scope-Kennung der Elternkomponente auf das Wurzelelement einer
- * Kindkomponente. Eine Regel wie `.sheet { display: flex }` im Elternteil trifft
- * damit auch diesen <dialog> und hebt das `display: none` der Browser-Vorgabe auf —
- * das Blatt liegt dann dauerhaft über der Seite und schluckt jeden Klick.
+ * Vue passes the parent component's scope id onto the root element of a child component.
+ * A rule like `.sheet { display: flex }` in the parent therefore also hits this <dialog>
+ * and cancels the browser default's `display: none` — the sheet then sits permanently
+ * over the page and swallows every click.
  *
- * Diese Regel hat höhere Spezifität als eine reine Klassenregel und gewinnt daher
- * gegen einen solchen Unfall.
+ * This rule has higher specificity than a plain class rule and so wins against such an
+ * accident.
  */
 dialog.sheet:not([open]) {
   display: none;
 }
 
 /**
- * Offen: eine Spalte aus festem Kopf, scrollendem Inhalt und festem Fuß.
+ * Open: a column of fixed header, scrolling content and fixed footer.
  *
- * Vorher scrollte das ganze Blatt am Stück — bei einem längeren Formular lag der
- * Speichern-Knopf damit unterhalb des Bildschirms, und man musste erst suchen, um
- * abzuschließen. Jetzt scrollt nur der Inhalt, der Knopf bleibt stehen.
+ * The whole sheet used to scroll as one piece — on a longer form that put the save
+ * button below the screen, and you had to go looking to finish. Now only the content
+ * scrolls and the button stays put.
  */
 dialog.sheet[open] {
   display: flex;
@@ -117,7 +115,7 @@ dialog.sheet[open] {
   background: var(--bm-surface);
   color: var(--bm-ink);
   box-shadow: var(--bm-shadow-lift);
-  /* Der Inhalt scrollt, nicht das Blatt. */
+  /* The content scrolls, not the sheet. */
   overflow: hidden;
 }
 
@@ -126,7 +124,7 @@ dialog.sheet[open] {
   backdrop-filter: blur(2px);
 }
 
-/* Nur solange die Klasse anliegt — die Ruhelage des Blattes ist immer die richtige. */
+/* Only while the class is applied — the sheet's resting position is always correct. */
 .sheet--entering {
   animation: sheet-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -187,14 +185,13 @@ dialog.sheet[open] {
   min-height: 0;
   overflow-y: auto;
   padding: 0 1.25rem;
-  /* Etwas Luft, damit das letzte Feld nicht am Fuß klebt. */
+  /* A little air so the last field does not stick to the footer. */
   padding-bottom: 1rem;
 }
 
 /**
- * Der Fuß bleibt stehen. Die Trennlinie und die leicht abgesetzte Fläche machen
- * sichtbar, dass darüber noch etwas weitergeht — sonst wirkt ein abgeschnittenes
- * Formular wie ein vollständiges.
+ * The footer stays put. The dividing line and the slightly offset surface make it
+ * visible that something continues above — otherwise a cut-off form looks complete.
  */
 .sheet__actions:not(:empty) {
   flex: none;

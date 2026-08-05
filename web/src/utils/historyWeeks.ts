@@ -2,17 +2,18 @@ import { addDays, daysBetween, localDayKey, startOfWeek } from "@babymonitor/sha
 import type { LocalEntry } from "../db/local.ts";
 
 /**
- * Der Verlauf, in Wochen zerlegt.
+ * The history, broken into weeks.
  *
- * Eine endlose Liste beantwortet die Frage „was war letzten Mittwoch" nur durch Scrollen,
- * und je länger die App benutzt wird, desto schlechter. Eine Woche mit sieben Tagen ist
- * die Einheit, in der man ohnehin denkt — und die Tagesleiste zeigt die Zahlen des ganzen
- * Wochenverlaufs auf einen Blick, ohne dass man einen einzigen Tag öffnen müsste.
+ * An endless list answers "what happened last Wednesday" only by scrolling, and the
+ * longer the app is used the worse it gets. A week of seven days is the unit people
+ * think in anyway — and the day strip shows the numbers of the whole week at a glance,
+ * without having to open a single day.
  *
- * Innerhalb eines Tages geht es AUFWÄRTS, von morgens nach abends. In einer Liste aller
- * Tage muss das Neueste oben stehen; ein abgeschlossener Tag dagegen hat kein "neuestes",
- * er hat einen Anfang. So beginnt jeder Tag an derselben Stelle — oben — und lässt sich
- * mit dem nächsten vergleichen, statt dass der Morgen je nach Eintragszahl woanders sitzt.
+ * Within a day it runs UPWARDS, from morning to evening. In a list of all days the
+ * newest must be on top; a completed day, by contrast, has no "newest" — it has a
+ * beginning. That way every day starts in the same place — at the top — and can be
+ * compared with the next, instead of the morning sitting somewhere different depending
+ * on how many entries there are.
  */
 
 export type DaySummary = {
@@ -20,17 +21,17 @@ export type DaySummary = {
   key: string;
   /** 0 = Montag … 6 = Sonntag. */
   weekday: number;
-  /** Kalendertag als Zahl, für die Tagesleiste. */
+  /** Day of the month as a number, for the day strip. */
   dayOfMonth: number;
-  /** Chronologisch aufsteigend — der Tag wird von morgens nach abends gelesen. */
+  /** Chronologically ascending — the day is read from morning to evening. */
   entries: LocalEntry[];
-  /** Getrunkene Menge — Ausgespucktes zählt nicht mit. */
+  /** The amount drunk — what came back up does not count. */
   totalMl: number;
   feeds: number;
   diapers: number;
-  /** Nur abgeschlossene Schlafphasen; eine laufende hat noch keine Dauer. */
+  /** Completed sleeps only; one still running has no duration yet. */
   sleepMinutes: number;
-  /** Liegt in der Zukunft — dort ist nichts einzutragen. */
+  /** Lies in the future — nothing to record there. */
   isFuture: boolean;
 };
 
@@ -43,11 +44,11 @@ export type HistoryWeek = {
 const WEEK_LENGTH = 7;
 
 /**
- * Baut die sieben Tage einer Woche, auch die leeren.
+ * Builds the seven days of a week, including the empty ones.
  *
- * Leere Tage bleiben bewusst in der Leiste: Eine Lücke ist eine Aussage — an dem Tag
- * wurde nichts eingetragen. Würde man sie weglassen, verschöben sich die Wochentage
- * und die Leiste wäre nicht mehr vergleichbar.
+ * Empty days deliberately stay in the strip: a gap is a statement — nothing was recorded
+ * that day. Leaving them out would shift the weekdays around and the strip would no
+ * longer be comparable.
  */
 export function buildWeek(
   entries: readonly LocalEntry[],
@@ -93,11 +94,11 @@ function sleepDuration(entry: LocalEntry): number {
 }
 
 /**
- * Alle Wochen mit Einträgen, neueste zuerst — die laufende Woche immer dabei.
+ * Every week with entries, newest first — the current week always included.
  *
- * Lückenlos von der ältesten bis zur laufenden Woche, auch wenn dazwischen nichts
- * eingetragen wurde. Eine Auswahl, in der Wochen fehlen, lässt einen an der eigenen
- * Erinnerung zweifeln statt an der Eingabe.
+ * Gapless from the oldest to the current week, even when nothing was recorded in
+ * between. A picker with weeks missing makes you doubt your own memory rather than the
+ * data entry.
  */
 export function availableWeeks(
   entries: readonly LocalEntry[],
@@ -117,11 +118,11 @@ export function availableWeeks(
 }
 
 /**
- * Der Tag, auf dem man beim Wochenwechsel landen soll.
+ * The day to land on when the week changes.
  *
- * Derselbe Wochentag wie vorher: Wer von Mittwoch aus eine Woche zurückgeht, will meist
- * den Mittwoch davor — das macht Wochen vergleichbar. In der laufenden Woche wird auf
- * heute geklemmt, weil ein Tag in der Zukunft nichts anzuzeigen hätte.
+ * The same weekday as before: going back a week from Wednesday usually means the
+ * Wednesday before — which makes weeks comparable. In the current week it is clamped to
+ * today, because a day in the future would have nothing to show.
  */
 export function dayAfterWeekChange(weekStart: string, weekday: number, today: string): string {
   const wanted = addDays(weekStart, weekday);
