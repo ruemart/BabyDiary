@@ -1,0 +1,33 @@
+name: Bug report
+description: Something does not work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: And what you expected instead.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: iPhone 14, Safari, app on the home screen
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: App language
+      options: [English, German, other]
+  - type: textarea
+    id: console
+    attributes:
+      label: Anything in the console or in `docker compose logs`
+      render: shell
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste screenshots containing your child's name, dates of birth
+        or measurements. A cropped screenshot is fine.

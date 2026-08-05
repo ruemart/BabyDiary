@@ -119,20 +119,19 @@ function onVisibility() {
         <span class="boot__dot" />
         <div v-if="bootStalled || bootError" class="boot__rescue">
           <p class="boot__text">
-            {{ bootError ? "Beim Start ist etwas schiefgelaufen." : "Das dauert länger als gewohnt." }}
+            {{ bootError ? $t("boot.failed") : $t("boot.slow") }}
           </p>
           <p v-if="bootError" class="boot__detail">{{ bootError }}</p>
           <div class="boot__actions">
             <button class="boot__button" type="button" @click="reload">
-              Neu laden
+              {{ $t("boot.reload") }}
             </button>
             <button class="boot__button boot__button--quiet" type="button" @click="resetLocalData">
-              Lokale Daten zurücksetzen
+              {{ $t("boot.reset") }}
             </button>
           </div>
           <p class="boot__note">
-            Zurücksetzen löscht nur die Kopie auf diesem Gerät. Alle Einträge bleiben
-            auf dem Server und den anderen Geräten erhalten.
+            {{ $t("boot.resetHint") }}
           </p>
         </div>
       </div>

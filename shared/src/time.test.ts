@@ -8,7 +8,7 @@ import {
   lifeWeekStart,
   localDayKey,
   minutesIntoLocalDay,
-  relativeSince,
+  elapsedSince,
   startOfWeek,
   weekdayIndex,
 } from "./time.ts";
@@ -138,19 +138,25 @@ describe("Lebensalter", () => {
   });
 });
 
-describe("relativeSince", () => {
+describe("elapsedSince", () => {
   const now = new Date("2026-08-04T12:00:00Z");
 
-  it("formatiert die Statuszeile", () => {
-    expect(relativeSince("2026-08-04T11:59:30Z", now)).toBe("gerade eben");
-    expect(relativeSince("2026-08-04T11:15:00Z", now)).toBe("vor 45 Min");
-    expect(relativeSince("2026-08-04T09:45:00Z", now)).toBe("vor 2 Std 15 Min");
-    expect(relativeSince("2026-08-04T09:00:00Z", now)).toBe("vor 3 Std");
-    expect(relativeSince("2026-08-03T09:00:00Z", now)).toBe("vor 1 Tag");
-    expect(relativeSince("2026-08-01T09:00:00Z", now)).toBe("vor 3 Tagen");
+  it("zerlegt die verstrichene Zeit in Zahl und Einheit", () => {
+    // Keine Worte: Die Formulierung kommt aus den Sprachdateien.
+    expect(elapsedSince("2026-08-04T11:59:30Z", now)).toEqual({ unit: "now" });
+    expect(elapsedSince("2026-08-04T11:15:00Z", now)).toEqual({ unit: "minutes", minutes: 45 });
+    expect(elapsedSince("2026-08-04T09:45:00Z", now)).toEqual({
+      unit: "hoursMinutes",
+      hours: 2,
+      minutes: 15,
+    });
+    expect(elapsedSince("2026-08-04T09:00:00Z", now)).toEqual({ unit: "hours", hours: 3 });
+    expect(elapsedSince("2026-08-03T09:00:00Z", now)).toEqual({ unit: "days", days: 1 });
+    expect(elapsedSince("2026-08-01T09:00:00Z", now)).toEqual({ unit: "days", days: 3 });
   });
 
   it("stürzt bei Zeitstempeln aus der Zukunft nicht ab", () => {
-    expect(relativeSince("2026-08-04T12:05:00Z", now)).toBe("gerade eben");
+    // Kommt vor: Ein Gerät mit falsch gestellter Uhr schiebt einen Eintrag hoch.
+    expect(elapsedSince("2026-08-04T12:05:00Z", now)).toEqual({ unit: "now" });
   });
 });

@@ -23,6 +23,13 @@
       "title": "Seit {hours} Stunden keine nasse Windel"
     }
   },
+  "boot": {
+    "failed": "Beim Start ist etwas schiefgelaufen.",
+    "reload": "Neu laden",
+    "reset": "Lokale Daten zurücksetzen",
+    "resetHint": "Zurücksetzen löscht nur die Kopie auf diesem Gerät. Alle Einträge bleiben auf dem Server und den anderen Geräten erhalten.",
+    "slow": "Das dauert länger als gewohnt."
+  },
   "common": {
     "cancel": "Abbrechen",
     "close": "Schließen",
@@ -78,6 +85,19 @@
     "praiseGood": "Heute gut getrunken.",
     "praiseUsual": "Heute schon so viel wie an einem gewöhnlichen Tag."
   },
+  "join": {
+    "busy": "Einen Moment …",
+    "code": "Einladungs-Code",
+    "incompleteLink": "Der Einladungs-Link ist unvollständig. Bitte den vollständigen Link öffnen.",
+    "intro": "Dieses Gerät einmal anmelden — danach bleibt ihr angemeldet und tragt direkt ein.",
+    "needName": "Bitte einen Namen wählen.",
+    "otherName": "oder ein anderer Name",
+    "otherPlaceholder": "z. B. Oma",
+    "submit": "Loslegen",
+    "title": "Willkommen",
+    "who": "Wer trägt hier ein?",
+    "wrongToken": "Der Einladungs-Link stimmt nicht. Bitte beim anderen Elternteil nachfragen."
+  },
   "nav": {
     "charts": "Kurven",
     "main": "Hauptnavigation",
@@ -102,6 +122,88 @@
       "action": "Hinzufügen",
       "text": "Foto für Woche {week} fehlt noch"
     }
+  },
+  "settings": {
+    "appearance": "Darstellung",
+    "appearanceAuto": "Automatisch",
+    "appearanceAutoHint": "abends dunkel, tagsüber hell",
+    "appearanceDark": "Immer dunkel",
+    "appearanceLead": "Nachts schaltet die App auf ein warmes, gedämpftes Erscheinungsbild — helles, blaustichiges Licht um drei Uhr macht das Wiedereinschlafen unnötig schwer.",
+    "appearanceLight": "Immer hell",
+    "child": "Kind",
+    "device": "Dieses Gerät",
+    "deviceLead": "Einträge werden als {name} gespeichert.",
+    "deviceUs": "Wir",
+    "language": "Sprache",
+    "languageLead": "Gilt nur für dieses Gerät. Datums- und Zeitangaben folgen der gewählten Sprache.",
+    "photos": "Wochenfotos",
+    "photosLead": "{n} Foto gesammelt. | {n} Fotos gesammelt.",
+    "photosLead2": "Aus den Wochenfotos macht der Server ein Video in Reihenfolge der Wochen.",
+    "placePlaceholder": "Ort oder Postleitzahl",
+    "saveChanges": "Änderungen speichern",
+    "saved": "Gespeichert",
+    "saving": "Wird gespeichert …",
+    "search": "Suchen",
+    "searching": "Sucht …",
+    "signOut": "Von diesem Gerät abmelden",
+    "signOutNote": "Löscht nur die lokale Kopie auf diesem Telefon. Alle Einträge bleiben auf dem Server und auf dem anderen Gerät erhalten.",
+    "timelapse": "Zeitraffer herunterladen",
+    "timelapseBusy": "Wird erzeugt …",
+    "timelapseFailed": "Zeitraffer nicht möglich",
+    "timelapseServer": "Der Server konnte das Video nicht erzeugen.",
+    "timelapseTooFew": "Dafür braucht es mindestens zwei Wochenfotos.",
+    "title": "Einstellungen",
+    "weather": "Wetter",
+    "weatherCurrent": "Aktuell: {place}",
+    "weatherLead": "Mit einem Ort holt der Pi einmal täglich die Tagestemperatur und legt sie neben die Trinkmenge. Bei Hitze trinkt sie oft mehr — dann sieht man auch, warum. Es gehen nur Koordinaten hinaus, keine Daten über das Kind.",
+    "childRejected": {
+      "text": "Ein Wert liegt außerhalb des Erlaubten — meist die Geburtsgröße oder der Kopfumfang. Bitte in Zentimetern eintragen (z. B. 52) und speichern.",
+      "title": "Die Angaben zum Kind werden nicht übertragen"
+    },
+    "push": {
+      "alsoAtNight": "Auch nachts",
+      "alsoAtNightHint": "Rund um die Uhr — zum Umschalten tippen.",
+      "busy": "Einen Moment …",
+      "denied": "Benachrichtigungen sind für diese Seite im Browser abgelehnt. Das lässt sich nur dort wieder ändern, nicht in der App.",
+      "enable": "Benachrichtigungen einschalten",
+      "enabled": "Benachrichtigungen sind an",
+      "failed": "Ging nicht",
+      "hers": "ihrem",
+      "lead": "Meldet sich, wenn die nächste Flasche fällig sein könnte — geschätzt aus {name} eigenem Rhythmus, nicht aus einer Tabelle. Die Einstellung gilt nur für dieses Gerät.",
+      "leadTime": "Wie früh vorher",
+      "minutes": "{n} Min",
+      "needsInstall": "Auf iPhone und iPad gehen Benachrichtigungen nur, wenn die App auf dem Home-Bildschirm liegt — in Safari selbst nicht. Über das Teilen-Menü „Zum Home-Bildschirm“ hinzufügen und die App von dort öffnen.",
+      "note": "Eine Erinnerung, kein Wecker: Wann sie wirklich Hunger hat, entscheidet sie — die Schätzung ist nur der bisherige Abstand zwischen den Mahlzeiten.",
+      "off": "Ausschalten",
+      "onTime": "pünktlich",
+      "quietAtNight": "Nachts still (22–6 Uhr)",
+      "quietAtNightHint": "Nachts ist das Kind ohnehin der Wecker. Zum Umschalten tippen.",
+      "serverDisabled": "Auf dem Server sind keine Schlüssel hinterlegt. Ohne die kann niemand benachrichtigt werden.",
+      "test": "Testnachricht",
+      "testFailed": "Testnachricht ging nicht raus",
+      "testFailedHint": "Bitte die Anmeldung noch einmal erneuern.",
+      "testSent": "Testnachricht unterwegs",
+      "testSentHint": "Sie sollte gleich ankommen.",
+      "title": "Erinnerung ans Fläschchen"
+    },
+    "shortcut": {
+      "history": "Verlauf",
+      "historyHint": "Alles ansehen, ändern und nachtragen",
+      "supply": "Was wir kaufen",
+      "supplyHint": "Milchnahrung, Windelgröße, Laden",
+      "totals": "Zahlen",
+      "totalsHint": "Summen, Schnitte und Rekorde",
+      "travel": "Reisekarte",
+      "travelHint": "Wo sie schon überall war"
+    }
+  },
+  "setup": {
+    "atBirth": "Bei der Geburt",
+    "busy": "Wird gespeichert …",
+    "eyebrow": "Einmal einrichten",
+    "intro": "Aus diesen Angaben ergeben sich die Lebenswochen, der Zeitstrahl und die Wachstumskurven. Alles lässt sich später in den Einstellungen ändern.",
+    "submit": "Los geht's",
+    "title": "Wen begleiten wir?"
   },
   "stepper": {
     "less": "{step} {unit} weniger",

@@ -23,6 +23,13 @@
       "title": "No wet nappy for {hours} hours"
     }
   },
+  "boot": {
+    "failed": "Something went wrong while starting.",
+    "reload": "Reload",
+    "reset": "Reset local data",
+    "resetHint": "Resetting only clears the copy on this device. All entries stay on the server and on the other devices.",
+    "slow": "This is taking longer than usual."
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
@@ -78,6 +85,19 @@
     "praiseGood": "Drinking well today.",
     "praiseUsual": "Already as much as on an ordinary day."
   },
+  "join": {
+    "busy": "One moment …",
+    "code": "Invite code",
+    "incompleteLink": "The invite link is incomplete. Please open the full link.",
+    "intro": "Sign this device in once — after that you stay signed in and record straight away.",
+    "needName": "Please choose a name.",
+    "otherName": "or another name",
+    "otherPlaceholder": "e.g. Grandma",
+    "submit": "Let's go",
+    "title": "Welcome",
+    "who": "Who is recording here?",
+    "wrongToken": "The invite link is not right. Please ask the other parent."
+  },
   "nav": {
     "charts": "Charts",
     "main": "Main navigation",
@@ -102,6 +122,88 @@
       "action": "Add",
       "text": "Photo for week {week} still missing"
     }
+  },
+  "settings": {
+    "appearance": "Appearance",
+    "appearanceAuto": "Automatic",
+    "appearanceAutoHint": "dark in the evening, light by day",
+    "appearanceDark": "Always dark",
+    "appearanceLead": "At night the app switches to a warm, muted look — bright, blue-tinted light at three in the morning makes falling back asleep needlessly hard.",
+    "appearanceLight": "Always light",
+    "child": "Child",
+    "device": "This device",
+    "deviceLead": "Entries are saved as {name}.",
+    "deviceUs": "Us",
+    "language": "Language",
+    "languageLead": "Applies to this device only. Dates and times follow the chosen language.",
+    "photos": "Weekly photos",
+    "photosLead": "{n} photo collected. | {n} photos collected.",
+    "photosLead2": "From the weekly photos the server builds a video in week order.",
+    "placePlaceholder": "Town or postcode",
+    "saveChanges": "Save changes",
+    "saved": "Saved",
+    "saving": "Saving …",
+    "search": "Search",
+    "searching": "Searching …",
+    "signOut": "Sign out on this device",
+    "signOutNote": "Only clears the local copy on this phone. All entries stay on the server and on the other device.",
+    "timelapse": "Download time-lapse",
+    "timelapseBusy": "Building …",
+    "timelapseFailed": "Time-lapse not possible",
+    "timelapseServer": "The server could not build the video.",
+    "timelapseTooFew": "That needs at least two weekly photos.",
+    "title": "Settings",
+    "weather": "Weather",
+    "weatherCurrent": "Currently: {place}",
+    "weatherLead": "With a location the server fetches the daily temperature once a day and puts it next to the intake. In hot weather she often drinks more — this way you can see why. Only coordinates leave the device, no data about the child.",
+    "childRejected": {
+      "text": "A value is out of range — usually birth length or head circumference. Please enter it in centimetres (e.g. 52) and save.",
+      "title": "The child details are not being synced"
+    },
+    "push": {
+      "alsoAtNight": "At night too",
+      "alsoAtNightHint": "Around the clock — tap to switch.",
+      "busy": "One moment …",
+      "denied": "Notifications are blocked for this site in the browser. That can only be changed there, not in the app.",
+      "enable": "Turn notifications on",
+      "enabled": "Notifications are on",
+      "failed": "Did not work",
+      "hers": "her",
+      "lead": "Lets you know when the next bottle might be due — estimated from {name} own rhythm, not from a table. This setting applies to this device only.",
+      "leadTime": "How far ahead",
+      "minutes": "{n} min",
+      "needsInstall": "On iPhone and iPad notifications only work when the app sits on the home screen — not in Safari itself. Use the share menu to “Add to Home Screen” and open the app from there.",
+      "note": "A reminder, not an alarm: when she is really hungry is her call — the estimate is only the gap between past feeds.",
+      "off": "Turn off",
+      "onTime": "on time",
+      "quietAtNight": "Quiet at night (10 pm–6 am)",
+      "quietAtNightHint": "At night the child is the alarm clock anyway. Tap to switch.",
+      "serverDisabled": "No keys are configured on the server. Without them nobody can be notified.",
+      "test": "Send a test",
+      "testFailed": "Test notification failed",
+      "testFailedHint": "Please register this device again.",
+      "testSent": "Test notification on its way",
+      "testSentHint": "It should arrive shortly.",
+      "title": "Bottle reminder"
+    },
+    "shortcut": {
+      "history": "History",
+      "historyHint": "View, edit and add past entries",
+      "supply": "What we buy",
+      "supplyHint": "Formula, nappy size, shop",
+      "totals": "Numbers",
+      "totalsHint": "Totals, averages and records",
+      "travel": "Travel map",
+      "travelHint": "Everywhere she has been"
+    }
+  },
+  "setup": {
+    "atBirth": "At birth",
+    "busy": "Saving …",
+    "eyebrow": "One-time setup",
+    "intro": "These details drive the weeks of life, the timeline and the growth charts. All of it can be changed later in settings.",
+    "submit": "Let's go",
+    "title": "Who are we following?"
   },
   "stepper": {
     "less": "{step} {unit} less",

@@ -9,7 +9,11 @@ import ChildForm from "../components/ChildForm.vue";
 import { onMounted } from "vue";
 import { usePushNotifications } from "../composables/usePushNotifications.ts";
 import { RouterLink } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { LOCALES, setLocale } from "../i18n/index.ts";
 
+
+const { t, locale } = useI18n();
 const data = useData();
 const toast = useToast();
 
@@ -17,10 +21,10 @@ const form = ref<Partial<Child>>({ ...(data.child ?? {}) });
 const saving = ref(false);
 const exporting = ref(false);
 
-const APPEARANCES: { value: AppearanceSetting; label: string; hint: string }[] = [
-  { value: "auto", label: "Automatisch", hint: "abends dunkel, tagsüber hell" },
-  { value: "day", label: "Immer hell", hint: "" },
-  { value: "night", label: "Immer dunkel", hint: "" },
+const APPEARANCES: { value: AppearanceSetting; key: string; hintKey: string }[] = [
+  { value: "auto", key: "settings.appearanceAuto", hintKey: "settings.appearanceAutoHint" },
+  { value: "day", key: "settings.appearanceLight", hintKey: "" },
+  { value: "night", key: "settings.appearanceDark", hintKey: "" },
 ];
 
 const photoCount = computed(() => data.photosByWeek.size);
@@ -35,19 +39,19 @@ const LEAD_OPTIONS = [0, 5, 10, 15, 30];
 async function enablePush() {
   const error = await push.enable();
   if (error) {
-    toast.show({ headline: "Ging nicht", description: error, color: "warning", duration: 9000 });
+    toast.show({ headline: t("settings.push.failed"), description: error, color: "warning", duration: 9000 });
     return;
   }
   if (push.state.value === "on") {
-    toast.show({ headline: "Benachrichtigungen sind an", color: "success" });
+    toast.show({ headline: t("settings.push.enabled"), color: "success" });
   }
 }
 
 async function testPush() {
   const ok = await push.sendTest();
   toast.show({
-    headline: ok ? "Testnachricht unterwegs" : "Testnachricht ging nicht raus",
-    description: ok ? "Sie sollte gleich ankommen." : "Bitte die Anmeldung noch einmal erneuern.",
+    headline: ok ? t("settings.push.testSent") : t("settings.push.testFailed"),
+    description: ok ? t("settings.push.testSentHint") : t("settings.push.testFailedHint"),
     color: ok ? "success" : "warning",
   });
 }
@@ -124,7 +128,7 @@ async function save() {
   saving.value = false;
   // Der Hinweis verschwindet erst, wenn der Server die neuen Werte annimmt.
   await data.pushNow();
-  toast.show({ headline: "Gespeichert", color: "success" });
+  toast.show({ headline: t("settings.saved"), color: "success" });
 }
 
 async function downloadTimelapse() {
@@ -134,11 +138,11 @@ async function downloadTimelapse() {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       toast.show({
-        headline: "Zeitraffer nicht möglich",
+        headline: t("settings.timelapseFailed"),
         description:
           body.error === "not_enough_photos"
-            ? "Dafür braucht es mindestens zwei Wochenfotos."
-            : "Der Server konnte das Video nicht erzeugen.",
+            ? t("settings.timelapseTooFew")
+            : t("settings.timelapseServer"),
         color: "warning",
         duration: 8000,
       });
@@ -167,15 +171,14 @@ async function signOut() {
 
 <template>
   <div class="settings">
-    <h1 class="settings__title">Einstellungen</h1>
+    <h1 class="settings__title">{{ $t("settings.title") }}</h1>
 
     <!-- Die Stammdaten werden vom Server abgelehnt. Der Hinweis gehört genau hierhin,
          wo sie sich auch korrigieren lassen — nicht in eine allgemeine Fehlerliste. -->
     <div v-if="childRejected" class="warning" role="alert">
-      <p class="warning__title">Die Angaben zum Kind werden nicht übertragen</p>
+      <p class="warning__title">{{ $t("settings.childRejected.title") }}</p>
       <p class="warning__text">
-        Ein Wert liegt außerhalb des Erlaubten — meist die Geburtsgröße oder der
-        Kopfumfang. Bitte in Zentimetern eintragen (z. B. 52) und speichern.
+        {{ $t("settings.childRejected.text") }}
       </p>
       <p class="warning__reason">{{ childRejected.reason }}</p>
     </div>
@@ -183,36 +186,56 @@ async function signOut() {
     <!-- Ganz oben, weil man das im Laden nachschlägt und nicht suchen will. -->
     <nav class="shortcuts">
       <RouterLink to="/zahlen" class="shortcut">
-        <span class="shortcut__label">Zahlen</span>
-        <span class="shortcut__hint">Summen, Schnitte und Rekorde</span>
+        <span class="shortcut__label">{{ $t("settings.shortcut.totals") }}</span>
+        <span class="shortcut__hint">{{ $t("settings.shortcut.totalsHint") }}</span>
       </RouterLink>
       <RouterLink to="/vorrat" class="shortcut">
-        <span class="shortcut__label">Was wir kaufen</span>
-        <span class="shortcut__hint">Milchnahrung, Windelgröße, Laden</span>
+        <span class="shortcut__label">{{ $t("settings.shortcut.supply") }}</span>
+        <span class="shortcut__hint">{{ $t("settings.shortcut.supplyHint") }}</span>
       </RouterLink>
       <RouterLink to="/reisen" class="shortcut">
-        <span class="shortcut__label">Reisekarte</span>
-        <span class="shortcut__hint">Wo sie schon überall war</span>
+        <span class="shortcut__label">{{ $t("settings.shortcut.travel") }}</span>
+        <span class="shortcut__hint">{{ $t("settings.shortcut.travelHint") }}</span>
       </RouterLink>
       <RouterLink to="/verlauf" class="shortcut">
-        <span class="shortcut__label">Verlauf</span>
-        <span class="shortcut__hint">Alles ansehen, ändern und nachtragen</span>
+        <span class="shortcut__label">{{ $t("settings.shortcut.history") }}</span>
+        <span class="shortcut__hint">{{ $t("settings.shortcut.historyHint") }}</span>
       </RouterLink>
     </nav>
 
     <section class="card">
-      <h2 class="card__title">Kind</h2>
+      <h2 class="card__title">{{ $t("settings.child") }}</h2>
       <ChildForm v-model="form" />
       <button class="primary" type="button" :disabled="saving" @click="save">
-        {{ saving ? "Wird gespeichert …" : "Änderungen speichern" }}
+        {{ saving ? $t("settings.saving") : $t("settings.saveChanges") }}
       </button>
     </section>
 
+    <!-- Sprache vor Darstellung: Wer die App in einer fremden Sprache vor sich hat,
+         sucht zuerst danach — und findet den Rest erst, wenn sie stimmt. -->
     <section class="card">
-      <h2 class="card__title">Darstellung</h2>
+      <h2 class="card__title">{{ $t("settings.language") }}</h2>
+      <p class="card__lead">{{ $t("settings.languageLead") }}</p>
+      <div class="options">
+        <button
+          v-for="option in LOCALES"
+          :key="option.code"
+          type="button"
+          class="option"
+          :class="{ 'option--active': locale === option.code }"
+          @click="setLocale(option.code)"
+        >
+          <!-- Der Name der Sprache steht IN dieser Sprache. "Deutsch" erkennt auch
+               jemand, der die App gerade auf Englisch vor sich hat. -->
+          <span class="option__label">{{ option.label }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card__title">{{ $t("settings.appearance") }}</h2>
       <p class="card__lead">
-        Nachts schaltet die App auf ein warmes, gedämpftes Erscheinungsbild — helles,
-        blaustichiges Licht um drei Uhr macht das Wiedereinschlafen unnötig schwer.
+        {{ $t("settings.appearanceLead") }}
       </p>
       <div class="options">
         <button
@@ -223,36 +246,30 @@ async function signOut() {
           :class="{ 'option--active': appearance === option.value }"
           @click="setAppearance(option.value)"
         >
-          <span class="option__label">{{ option.label }}</span>
-          <span v-if="option.hint" class="option__hint">{{ option.hint }}</span>
+          <span class="option__label">{{ $t(option.key) }}</span>
+          <span v-if="option.hintKey" class="option__hint">{{ $t(option.hintKey) }}</span>
         </button>
       </div>
     </section>
 
     <section v-if="push.state.value !== 'unsupported'" class="card">
-      <h2 class="card__title">Erinnerung ans Fläschchen</h2>
+      <h2 class="card__title">{{ $t("settings.push.title") }}</h2>
 
       <p v-if="push.state.value === 'needs-install'" class="card__lead">
-        Auf iPhone und iPad gehen Benachrichtigungen nur, wenn die App auf dem
-        Home-Bildschirm liegt — in Safari selbst nicht. Über das Teilen-Menü
-        „Zum Home-Bildschirm“ hinzufügen und die App von dort öffnen.
+        {{ $t("settings.push.needsInstall") }}
       </p>
 
       <p v-else-if="push.state.value === 'server-disabled'" class="card__lead">
-        Auf dem Server sind keine Schlüssel hinterlegt. Ohne die kann niemand
-        benachrichtigt werden.
+        {{ $t("settings.push.serverDisabled") }}
       </p>
 
       <p v-else-if="push.state.value === 'denied'" class="card__lead">
-        Benachrichtigungen sind für diese Seite im Browser abgelehnt. Das lässt sich
-        nur dort wieder ändern, nicht in der App.
+        {{ $t("settings.push.denied") }}
       </p>
 
       <template v-else>
         <p class="card__lead">
-          Meldet sich, wenn die nächste Flasche fällig sein könnte — geschätzt aus
-          {{ data.child?.name ?? "ihrem" }} eigenem Rhythmus, nicht aus einer Tabelle.
-          Die Einstellung gilt nur für dieses Gerät.
+          {{ $t("settings.push.lead", { name: data.child?.name ?? $t("settings.push.hers") }) }}
         </p>
 
         <button
@@ -262,12 +279,12 @@ async function signOut() {
           :disabled="push.busy.value"
           @click="enablePush"
         >
-          {{ push.busy.value ? "Einen Moment …" : "Benachrichtigungen einschalten" }}
+          {{ push.busy.value ? $t("settings.push.busy") : $t("settings.push.enable") }}
         </button>
 
         <template v-else>
           <div class="field">
-            <span class="field__label">Wie früh vorher</span>
+            <span class="field__label">{{ $t("settings.push.leadTime") }}</span>
             <div class="leads">
               <button
                 v-for="minutes in LEAD_OPTIONS"
@@ -277,7 +294,7 @@ async function signOut() {
                 :class="{ 'lead--active': push.settings.value.leadMinutes === minutes }"
                 @click="setLead(minutes)"
               >
-                {{ minutes === 0 ? "pünktlich" : `${minutes} Min` }}
+                {{ minutes === 0 ? $t("settings.push.onTime") : $t("settings.push.minutes", { n: minutes }) }}
               </button>
             </div>
           </div>
@@ -289,51 +306,48 @@ async function signOut() {
             @click="toggleNight"
           >
             <span class="option__label">
-              {{ push.settings.value.quietFromHour === null ? "Auch nachts" : "Nachts still (22–6 Uhr)" }}
+              {{ push.settings.value.quietFromHour === null ? $t("settings.push.alsoAtNight") : $t("settings.push.quietAtNight") }}
             </span>
             <span class="option__hint">
               {{
                 push.settings.value.quietFromHour === null
-                  ? "Rund um die Uhr — zum Umschalten tippen."
-                  : "Nachts ist das Kind ohnehin der Wecker. Zum Umschalten tippen."
+                  ? $t("settings.push.alsoAtNightHint")
+                  : $t("settings.push.quietAtNightHint")
               }}
             </span>
           </button>
 
           <div class="push-actions">
-            <button class="secondary" type="button" @click="testPush">Testnachricht</button>
+            <button class="secondary" type="button" @click="testPush">{{ $t("settings.push.test") }}</button>
             <button class="danger" type="button" :disabled="push.busy.value" @click="push.disable">
-              Ausschalten
+              {{ $t("settings.push.off") }}
             </button>
           </div>
         </template>
 
         <p class="card__note">
-          Eine Erinnerung, kein Wecker: Wann sie wirklich Hunger hat, entscheidet sie —
-          die Schätzung ist nur der bisherige Abstand zwischen den Mahlzeiten.
+          {{ $t("settings.push.note") }}
         </p>
       </template>
     </section>
 
     <section class="card">
-      <h2 class="card__title">Wetter</h2>
+      <h2 class="card__title">{{ $t("settings.weather") }}</h2>
       <p class="card__lead">
-        Mit einem Ort holt der Pi einmal täglich die Tagestemperatur und legt sie neben
-        die Trinkmenge. Bei Hitze trinkt sie oft mehr — dann sieht man auch, warum.
-        Es gehen nur Koordinaten hinaus, keine Daten über das Kind.
+        {{ $t("settings.weatherLead") }}
       </p>
       <p v-if="data.child?.placeName" class="card__lead">
-        Aktuell: <strong>{{ data.child.placeName }}</strong>
+        {{ $t("settings.weatherCurrent", { place: data.child.placeName }) }}
       </p>
       <div class="place">
         <input
           v-model="placeQuery"
           type="text"
-          placeholder="Ort oder Postleitzahl"
+          :placeholder="$t('settings.placePlaceholder')"
           @keyup.enter="searchPlace"
         />
         <button class="secondary" type="button" :disabled="searching" @click="searchPlace">
-          {{ searching ? "Sucht …" : "Suchen" }}
+          {{ searching ? $t("settings.searching") : $t("settings.search") }}
         </button>
       </div>
       <ul v-if="placeResults.length" class="place__results">
@@ -346,25 +360,23 @@ async function signOut() {
     </section>
 
     <section class="card">
-      <h2 class="card__title">Wochenfotos</h2>
+      <h2 class="card__title">{{ $t("settings.photos") }}</h2>
       <p class="card__lead">
-        {{ photoCount }} {{ photoCount === 1 ? "Foto" : "Fotos" }} gesammelt. Aus den
-        Wochenfotos macht der Server ein Video in Reihenfolge der Wochen.
+        {{ $t("settings.photosLead", { n: photoCount }, photoCount) }} {{ $t("settings.photosLead2") }}
       </p>
       <button class="secondary" type="button" :disabled="exporting || photoCount < 2" @click="downloadTimelapse">
-        {{ exporting ? "Wird erzeugt …" : "Zeitraffer herunterladen" }}
+        {{ exporting ? $t("settings.timelapseBusy") : $t("settings.timelapse") }}
       </button>
     </section>
 
     <section class="card">
-      <h2 class="card__title">Dieses Gerät</h2>
+      <h2 class="card__title">{{ $t("settings.device") }}</h2>
       <p class="card__lead">
-        Einträge werden als <strong>{{ data.deviceName || "Wir" }}</strong> gespeichert.
+        {{ $t("settings.deviceLead", { name: data.deviceName || $t("settings.deviceUs") }) }}
       </p>
-      <button class="danger" type="button" @click="signOut">Von diesem Gerät abmelden</button>
+      <button class="danger" type="button" @click="signOut">{{ $t("settings.signOut") }}</button>
       <p class="card__note">
-        Löscht nur die lokale Kopie auf diesem Telefon. Alle Einträge bleiben auf dem
-        Server und auf dem anderen Gerät erhalten.
+        {{ $t("settings.signOutNote") }}
       </p>
     </section>
   </div>

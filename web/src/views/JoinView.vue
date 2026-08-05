@@ -3,7 +3,10 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useData } from "../stores/data.ts";
 import { checkSession, redeemInvite } from "../sync.ts";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Einladungsbildschirm — der einzige Anmeldevorgang, den es gibt.
  *
@@ -30,11 +33,11 @@ onMounted(async () => {
 async function join() {
   error.value = "";
   if (!name.value.trim()) {
-    error.value = "Bitte einen Namen wählen.";
+    error.value = t("join.needName");
     return;
   }
   if (!token.value.trim()) {
-    error.value = "Der Einladungs-Link ist unvollständig. Bitte den vollständigen Link öffnen.";
+    error.value = t("join.incompleteLink");
     return;
   }
 
@@ -43,7 +46,7 @@ async function join() {
   busy.value = false;
 
   if (!ok) {
-    error.value = "Der Einladungs-Link stimmt nicht. Bitte beim anderen Elternteil nachfragen.";
+    error.value = t("join.wrongToken");
     return;
   }
 
@@ -57,13 +60,13 @@ async function join() {
 <template>
   <div class="join">
     <div class="join__card">
-      <h1 class="join__title">Willkommen</h1>
+      <h1 class="join__title">{{ $t("join.title") }}</h1>
       <p class="join__lead">
-        Dieses Gerät einmal anmelden — danach bleibt ihr angemeldet und tragt direkt ein.
+        {{ $t("join.intro") }}
       </p>
 
       <fieldset class="who">
-        <legend>Wer trägt hier ein?</legend>
+        <legend>{{ $t("join.who") }}</legend>
         <div class="who__options">
           <button
             v-for="option in SUGGESTIONS"
@@ -77,20 +80,20 @@ async function join() {
           </button>
         </div>
         <label class="who__custom">
-          <span>oder ein anderer Name</span>
-          <input v-model="name" type="text" autocomplete="off" placeholder="z. B. Oma" />
+          <span>{{ $t("join.otherName") }}</span>
+          <input v-model="name" type="text" autocomplete="off" :placeholder="$t('join.otherPlaceholder')" />
         </label>
       </fieldset>
 
       <label v-if="!route.query['t']" class="token">
-        <span>Einladungs-Code</span>
+        <span>{{ $t("join.code") }}</span>
         <input v-model="token" type="text" autocomplete="off" />
       </label>
 
       <p v-if="error" class="join__error" role="alert">{{ error }}</p>
 
       <button class="join__submit" type="button" :disabled="busy" @click="join">
-        {{ busy ? "Einen Moment …" : "Loslegen" }}
+        {{ busy ? $t("join.busy") : $t("join.submit") }}
       </button>
     </div>
   </div>

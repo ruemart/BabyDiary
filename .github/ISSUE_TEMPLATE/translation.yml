@@ -1,0 +1,22 @@
+name: Translation
+description: Add or correct a language
+labels: [i18n]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: Français (fr)
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        See [CONTRIBUTING.md](../CONTRIBUTING.md#translations) — it is one JSON file
+        and two lines of registration. Partial translations are welcome; missing keys
+        fall back to English.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything that did not fit
+      description: Wording that does not work in your language, missing plural forms, and so on.

@@ -3,7 +3,10 @@ import { computed, ref } from "vue";
 import { uuidv7, type Child } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import ChildForm from "./ChildForm.vue";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Einmalige Einrichtung. Danach ist alles hier über die Einstellungen änderbar —
  * nichts davon steckt im Code oder in der Konfiguration, damit die App nicht auf
@@ -53,7 +56,7 @@ async function save() {
         weightG: form.value.birthWeightG ?? null,
         lengthMm: form.value.birthLengthMm ?? null,
         headMm: form.value.birthHeadMm ?? null,
-        note: "Bei der Geburt",
+        note: t("setup.atBirth"),
       }),
     );
   }
@@ -65,17 +68,16 @@ async function save() {
 <template>
   <div class="setup">
     <div class="setup__card">
-      <p class="setup__eyebrow">Einmal einrichten</p>
-      <h1 class="setup__title">Wen begleiten wir?</h1>
+      <p class="setup__eyebrow">{{ $t("setup.eyebrow") }}</p>
+      <h1 class="setup__title">{{ $t("setup.title") }}</h1>
       <p class="setup__lead">
-        Aus diesen Angaben ergeben sich die Lebenswochen, der Zeitstrahl und die
-        Wachstumskurven. Alles lässt sich später in den Einstellungen ändern.
+        {{ $t("setup.intro") }}
       </p>
 
       <ChildForm v-model="form" />
 
       <button class="setup__submit" type="button" :disabled="!canSave || busy" @click="save">
-        {{ busy ? "Wird gespeichert …" : "Los geht's" }}
+        {{ busy ? $t("setup.busy") : $t("setup.submit") }}
       </button>
     </div>
   </div>
