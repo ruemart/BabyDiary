@@ -1,12 +1,11 @@
--- Die CHECK-Bedingung auf `type` kannte die neuen Eintragsarten nicht.
+-- The CHECK constraint on `type` did not know the new entry types.
 --
--- Migration 003/004/005 haben Spalten ergänzt, aber die Aufzählung in der
--- Bedingung stand noch auf dem Stand von 001. Ergebnis: illness, absence und
--- supply wurden von der Datenbank abgewiesen — als 500er, weshalb das Gerät es
--- endlos erneut versucht hätte. Genau die Blockade, die 002 beheben sollte, nur
--- eine Schicht tiefer.
+-- Migrations 003/004/005 added columns but the enumeration in the constraint was still
+-- at the state of 001. The result: illness, absence and supply were rejected by the
+-- database — as a 500, which is why the device would have retried forever. Exactly the
+-- blockage 002 was meant to fix, one layer deeper.
 --
--- SQLite kann eine CHECK-Bedingung nicht ändern; die Tabelle muss neu gebaut werden.
+-- SQLite cannot alter a CHECK constraint; the table has to be rebuilt.
 
 CREATE TABLE entries_new (
   id              TEXT PRIMARY KEY,

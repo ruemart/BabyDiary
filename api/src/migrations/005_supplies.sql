@@ -1,10 +1,9 @@
--- Was wir kaufen: Milchnahrung, Windelgröße und was sonst noch regelmäßig gebraucht wird.
+-- What we buy: formula, nappy size and whatever else is needed regularly.
 --
--- Bewusst als normaler Eintrag mit Datum, nicht als Einstellung: Der jeweils
--- NEUESTE Eintrag je Kategorie ist der aktuelle Stand, alle älteren sind
--- automatisch die Wechsel-Historie. Damit ist "seit wann Größe 3?" ohne
--- zusätzliches Zutun beantwortet — und bei Milchnahrung ist genau dieser Verlauf
--- interessant, weil ein Markenwechsel nicht beiläufig passieren soll.
+-- Deliberately a normal entry with a date rather than a setting: the NEWEST entry per
+-- category is the current one, all older ones are automatically the switch history. That
+-- answers "since when size 3?" with no extra effort — and for formula that history is
+-- exactly what matters, because a brand change should not happen casually.
 ALTER TABLE entries ADD COLUMN supply_category TEXT;
 ALTER TABLE entries ADD COLUMN supply_size TEXT;
 ALTER TABLE entries ADD COLUMN supply_shop TEXT;

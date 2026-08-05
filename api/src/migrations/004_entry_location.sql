@@ -1,9 +1,9 @@
--- Ort an Abwesenheits-Einträgen.
+-- A location on away entries.
 --
--- Im Urlaub ist das Wetter zu Hause uninteressant. Statt einer täglichen
--- Ortsangabe hängt der Ort am Urlaubs-Eintrag, der ohnehin schon Anfang und Ende
--- hat: Für die Tage, die er abdeckt, gilt sein Ort — sonst der Heimatort aus den
--- Einstellungen. Eine Eingabe, kein tägliches Nachpflegen.
+-- On holiday the weather at home is of no interest. Instead of a daily location, the
+-- place hangs off the holiday entry, which already has a start and an end: for the days
+-- it covers, its location applies — otherwise the home location from Settings. One
+-- input, not daily upkeep.
 ALTER TABLE entries ADD COLUMN latitude REAL;
 ALTER TABLE entries ADD COLUMN longitude REAL;
 ALTER TABLE entries ADD COLUMN place_name TEXT;

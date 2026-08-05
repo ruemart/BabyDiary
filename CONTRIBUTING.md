@@ -41,8 +41,11 @@ Currently only the German schedules are included. To add another country:
 
 ## Code
 
-- German comments, English identifiers. The comments explain **why**, not what — if a
-  line needs a comment to say what it does, the line is usually the problem.
+- **Everything in the repository is English**: code, comments, tests, commit messages.
+  The project was written in German first and translated; if you find a German leftover,
+  a pull request fixing it is welcome.
+- Comments explain **why**, not what — if a line needs a comment to say what it does, the
+  line is usually the problem.
 - No new dependency without a reason that survives being said out loud.
 - `npm test` and `npm run build --workspace=web` must pass.
 - For anything touching layout, run `node tools/check-ios.mjs` too. WebKit has bitten

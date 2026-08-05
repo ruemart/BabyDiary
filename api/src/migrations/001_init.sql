@@ -1,6 +1,6 @@
--- Eine Tabelle für alle Eintragstypen, diskriminiert über `type`.
--- Der Grund ist der Sync: ein Endpoint, ein Cursor, und ein neuer Eintragstyp
--- ist später eine reine Frontend-Änderung.
+-- One table for every entry type, discriminated by `type`.
+-- The reason is syncing: one endpoint, one cursor, and a new entry type is later a
+-- frontend-only change.
 CREATE TABLE IF NOT EXISTS entries (
   id          TEXT PRIMARY KEY,
   child_id    TEXT NOT NULL,
@@ -34,16 +34,16 @@ CREATE TABLE IF NOT EXISTS entries (
   deleted     INTEGER NOT NULL DEFAULT 0
 );
 
--- Der Sync-Pfad: "gib mir alles mit rev > ?".
+-- The sync path: "give me everything with rev > ?".
 CREATE INDEX IF NOT EXISTS idx_entries_sync ON entries (child_id, rev);
--- Der Auswertungspfad: Zeitfenster je Typ.
+-- The charting path: a time window per type.
 CREATE INDEX IF NOT EXISTS idx_entries_time ON entries (child_id, type, started_at);
--- Wochenfoto-Galerie und die "fehlt noch"-Prüfung.
+-- The weekly photo gallery and the "still missing" check.
 CREATE INDEX IF NOT EXISTS idx_entries_week ON entries (child_id, life_week)
   WHERE type = 'photo' AND deleted = 0;
 
--- Stammdaten des Kindes. Bewusst eine Tabelle und nicht .env, damit die App
--- nicht auf ein Kind zugeschnitten ist und alles über die Oberfläche änderbar bleibt.
+-- The child's details. Deliberately a table and not .env, so the app is not tailored
+-- to one child and everything stays changeable through the interface.
 CREATE TABLE IF NOT EXISTS child (
   id              TEXT PRIMARY KEY,
   name            TEXT NOT NULL,
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS child (
   rev             INTEGER NOT NULL DEFAULT 0
 );
 
--- Hochgeladene Bilder. Die Datei selbst liegt im Dateisystem unter data/media,
--- damit die SQLite-Datei klein und `sqlite3 .backup` schnell bleibt.
+-- Uploaded images. The file itself lives in the file system under data/media, so the
+-- SQLite file stays small and `sqlite3 .backup` stays fast.
 CREATE TABLE IF NOT EXISTS media (
   id          TEXT PRIMARY KEY,
   child_id    TEXT NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS media (
   created_at  TEXT NOT NULL
 );
 
--- Ein einziger Zähler für die rev-Vergabe. Eine Zeile, in-place erhöht.
+-- A single counter handing out rev values. One row, incremented in place.
 CREATE TABLE IF NOT EXISTS counters (
   name  TEXT PRIMARY KEY,
   value INTEGER NOT NULL

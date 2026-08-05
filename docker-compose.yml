@@ -1,21 +1,18 @@
-# BabyMonitor auf dem Raspberry Pi, angeschlossen an den bereits laufenden
-# Cloudflare-Tunnel.
+# BabyMonitor. Three containers: the API, nginx serving the built frontend, and a
+# nightly backup.
 #
-# Es wird KEIN neuer Tunnel gebraucht: Der vorhandene `cloudflared-tunnel`-Container
-# hängt bereits im externen Netz `cloudflare_proxy` und erreicht `babymonitor-web`
-# über den Containernamen — dasselbe Vorgehen wie bei Baserow. Im Cloudflare-
-# Dashboard genügt ein neuer Public Hostname:
+# Only the web container publishes a port, and only on 127.0.0.1 — nothing is reachable
+# from outside until you put a tunnel or a reverse proxy in front of it. See README.md,
+# "Making it reachable from outside the house".
 #
-#     baby.<deine-domain>  ->  http://babymonitor-web:80
-#
-# Start:  docker compose up -d --build
+# Start:  ./install.sh   (or: docker compose up -d --build)
 
 services:
   api:
     build:
       context: .
       dockerfile: api/Dockerfile
-    # Fester Name, weil nginx im Nachbarcontainer genau diesen auflöst.
+    # A fixed name, because nginx in the neighbouring container resolves exactly this.
     container_name: babymonitor-api
     restart: unless-stopped
     environment:
@@ -23,18 +20,18 @@ services:
       PORT: "3010"
       HOUSEHOLD_SECRET: ${HOUSEHOLD_SECRET:?HOUSEHOLD_SECRET fehlt - siehe .env.example}
       COOKIE_SECRET: ${COOKIE_SECRET:?COOKIE_SECRET fehlt - siehe .env.example}
-      # Hinter dem Tunnel sieht der Browser HTTPS -> Cookie muss `secure` sein.
+      # Behind the tunnel the browser sees HTTPS -> the cookie has to be `secure`.
       COOKIE_SECURE: "true"
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      # Nur ein Vorschlag für den Einrichtungs-Assistenten; verbindlich ist der Wert am Kind.
+      # Only a suggestion for the setup screen; the binding value lives with the child.
       DEFAULT_REGION: ${DEFAULT_REGION:-none}
-      # Fehlen die Schlüssel, sind Benachrichtigungen einfach aus.
+      # Without the keys, notifications are simply off.
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.invalid}
     volumes:
-      # Bind-Mount statt benanntem Volume: Die SQLite-Datei soll im Dateisystem
-      # liegen, wo `sqlite3 .backup` und ein Blick per `ls` ohne Umwege möglich sind.
+      # A bind mount rather than a named volume: the SQLite file should sit in the file
+      # system where `sqlite3 .backup` and a quick `ls` work without detours.
       - ./data:/data
     networks:
       - internal
@@ -43,22 +40,22 @@ services:
     build:
       context: .
       dockerfile: web/Dockerfile
-    # Eindeutiger Name statt des Compose-Alias `web`: Im gemeinsamen Netz
-    # cloudflare_proxy liegen mehrere Projekte, und `web` würde dort kollidieren.
+    # An unambiguous name rather than the Compose alias `web`: several projects can
+    # share an external network, and `web` would collide there.
     container_name: babymonitor-web
     restart: unless-stopped
     depends_on:
       - api
-    # Nur auf localhost: für Fehlersuche und Tests auf dem Pi selbst erreichbar,
-    # von außen nicht. Der öffentliche Weg läuft ausschließlich über den Tunnel.
+    # localhost only: reachable for debugging and tests on the machine itself, not from
+    # outside. The public path runs exclusively through your tunnel or proxy.
     ports:
       - "127.0.0.1:8090:80"
     environment:
-      # Wie lange Bausteine einer alten Fassung liegen bleiben.
+      # How long the files of an older release stay around.
       ASSET_KEEP_DAYS: ${ASSET_KEEP_DAYS:-30}
     volumes:
-      # Überdauert den Neubau des Abbilds, damit ein Gerät mit noch geöffneter alter
-      # Fassung seine Dateien weiter findet. Siehe web/entrypoint.sh.
+      # Survives rebuilding the image so a device still running the old version keeps
+      # finding its files. See web/entrypoint.sh.
       - ./data/web-assets:/usr/share/nginx/html/assets
     networks:
       - internal
@@ -69,7 +66,7 @@ services:
     container_name: babymonitor-backup
     restart: unless-stopped
     volumes:
-      # Lesend genügt für `.backup` — die Sicherung darf die Datenbank nie verändern.
+      # Read-only is enough for `.backup` — a backup must never modify the database.
       - ./data:/data:ro
       - ./backups:/backups
       - ./deploy/backup.sh:/backup.sh:ro

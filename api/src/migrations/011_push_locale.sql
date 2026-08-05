@@ -1,6 +1,6 @@
--- Sprache des Geräts für die Benachrichtigungstexte.
+-- The device's language for the notification texts.
 --
--- Am Gerät und nicht am Haushalt: Der Text wird auf DIESEM Telefon gelesen, und die
--- Sprachwahl steht ohnehin dort. Zwei Eltern dürfen die App in verschiedenen Sprachen
--- benutzen, und dann sollen auch die Meldungen unterschiedlich ankommen.
+-- On the device, not the household: the text is read on THIS phone, and the language
+-- choice lives there anyway. Two parents may use the app in different languages, and
+-- then the messages should arrive differently too.
 ALTER TABLE push_subscriptions ADD COLUMN locale TEXT NOT NULL DEFAULT 'en';

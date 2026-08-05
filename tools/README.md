@@ -1,36 +1,35 @@
-# Entwicklungswerkzeuge
+# Development tools
 
-Nicht Teil der App — beides läuft nur gegen einen lokalen Entwicklungsserver.
+Not part of the app — all of these run against a local development server or the build.
 
 ## `seed-dev-data.mjs`
 
-Sät 30 Tage realistische Daten (Mahlzeiten, Windeln, Schlaf, Wiegungen).
+Seeds 30 days of realistic data (feeds, nappies, sleep, weigh-ins).
 
 ```bash
 node tools/seed-dev-data.mjs
 ```
 
-Ohne echte Daten lassen sich die Auswertungen nicht beurteilen: Ein einzelner
-Datenpunkt zeigt weder, ob die Achsen stimmen, noch ob das Rhythmus-Diagramm das
-nächtliche Band tatsächlich sichtbar macht. Der Zufallsgenerator ist deterministisch,
-zwei Läufe erzeugen dieselben Daten.
+Without real data the charts cannot be judged: a single data point shows neither whether
+the axes are right nor whether the rhythm chart actually makes the night-time band
+visible. The random generator is deterministic, so two runs produce the same data.
 
-Setzt voraus, dass die App bereits eingerichtet ist (ein Kind existiert).
+Assumes the app is already set up (a child exists).
 
 ## `screenshots.mjs`
 
-Fährt die App in beiden Darstellungen ab und legt Bildschirmfotos ab.
+Walks the app in both appearances and writes screenshots.
 
 ```bash
-node tools/screenshots.mjs /pfad/zum/ausgabeordner
+node tools/screenshots.mjs /path/to/output
 ```
 
-Meldet am Ende alle Konsolenfehler — nützlicher Nebeneffekt beim Prüfen von Umbauten.
+Reports all console errors at the end — a useful side effect when checking a rework.
 
 ## `verify-offline-sync.mjs`
 
-Prüft den wichtigsten Weg der App gegen den fertigen Docker-Stapel: offline eintragen,
-zweites Gerät anmelden, Abgleich, Löschung propagieren.
+Checks the most important path of the app against the finished Docker stack: record
+offline, sign in a second device, sync, propagate a deletion.
 
 ```bash
 INVITE=$(grep '^HOUSEHOLD_SECRET=' .env | cut -d= -f2) \
@@ -38,54 +37,51 @@ BASE=http://127.0.0.1:8090 \
 node tools/verify-offline-sync.mjs
 ```
 
-Läuft bewusst gegen den Docker-Stapel und nicht gegen den Entwicklungsserver — nur so
-werden nginx, der Service Worker und der echte API-Container mitgeprüft.
-
 ## `build-who-tables.py`
 
-Wandelt die WHO-Wachstumstabellen (xlsx) in kompaktes JSON um. Nur nötig, wenn die WHO
-neue Tabellen veröffentlicht.
+Converts the WHO "expanded tables" (xlsx) into the compact JSON under
+`web/src/data/who/`. Only L, M and S are kept per anchor point — every percentile can be
+computed exactly from those.
 
-```bash
-# Vier Dateien von who.int herunterladen (URLs im Skriptkopf), dann:
-python3 tools/build-who-tables.py <ordner-mit-xlsx> web/src/data/who
-```
+## `build-world-map.mjs`
+
+Turns Natural Earth country borders into a single SVG path at build time, so the app
+contacts no map service at runtime.
 
 ## `build-icons.py`
 
-Erzeugt die Symbole der App nach `web/public/`.
+Generates the app icons into `web/public/`.
 
 ```bash
 python3 tools/build-icons.py
 ```
 
-Die Dateien standen von Anfang an im Manifest und in der `index.html`, existierten aber
-nie — nginx lieferte für jede von ihnen die `index.html` aus, mit Status 200, sodass
-nichts danach aussah. Auf dem Startbildschirm blieb ein Platzhalter, und die
-Benachrichtigungen hatten kein Bild.
+The files were listed in the manifest and in `index.html` from day one but never
+existed — nginx served `index.html` for each of them with status 200, so nothing looked
+wrong. The home screen kept a placeholder, and notifications had no image.
 
-Gezeichnet wird auf 1024 px und heruntergerechnet; das glättet die Kanten besser als
-eine Zeichnung direkt in Zielgröße. Das maskierbare Symbol hält den sicheren Bereich
-ein: Android beschneidet frei, verlässlich sichtbar ist nur der mittlere Kreis.
+Drawn at 1024 px and scaled down; that smooths the edges better than drawing at the
+target size. The maskable icon respects the safe zone: Android crops freely, and only
+the central circle is reliably visible.
 
 ## `check-ios.mjs`
 
-Prüft die App in **WebKit** — der Maschine, die auch auf dem iPhone läuft.
+Runs the app in **WebKit** — the engine that also runs on the iPhone.
 
 ```bash
 node tools/check-ios.mjs
 ```
 
-Anlass waren drei Fehler hintereinander, die es nur auf dem iPhone gab und die in
-Chromium sauber aussahen: tote Navigationspunkte, ein Blatt, das zu drei Vierteln unter
-dem Bildschirm lag, und ein Wochenfoto, das seinen Kreis nicht füllte. Jedes Mal hieß es
-raten, weil hier keine zweite Maschine lief.
+Prompted by three bugs in a row that only existed on the iPhone and looked perfectly
+fine in Chromium: dead navigation items, a sheet sitting three quarters below the
+screen, and a weekly photo that did not fill its circle. Each time it meant guessing,
+because no second engine ran here.
 
-Läuft gegen den **Entwicklungsserver**, nicht gegen den Docker-Stapel: Das
-Sitzungs-Cookie ist dort `Secure`, und WebKit lehnt solche Cookies über HTTP ab.
-Chromium macht bei localhost eine Ausnahme — genau deshalb fiel das lange nicht auf.
+Runs against the **development server**, not the Docker stack: the session cookie is
+`Secure` there, and WebKit refuses such cookies over HTTP. Chromium makes an exception
+for localhost — which is exactly why this went unnoticed for so long.
 
-Einmalig nötig, damit WebKit startet:
+One-time setup so WebKit starts:
 
 ```bash
 npx playwright install webkit

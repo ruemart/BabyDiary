@@ -1,19 +1,18 @@
--- Die CHECK-Bedingung auf `type` fällt weg.
+-- The CHECK constraint on `type` goes away.
 --
--- Sie hat nie einen Fehler verhindert, aber schon einen verursacht: In Migration 006
--- musste die ganze Tabelle neu gebaut werden, weil drei neue Eintragsarten dazukamen
--- und die Aufzählung noch auf dem Stand von 001 stand. Davor lief das als 500er, den
--- das Gerät endlos wiederholte.
+-- It never prevented a fault but has already caused one: in migration 006 the whole
+-- table had to be rebuilt because three new entry types were added while the
+-- enumeration was still at the state of 001. Before that it surfaced as a 500 the
+-- device retried forever.
 --
--- Der Grund, warum sie nichts beiträgt: Jeder Eintrag durchläuft vor dem Schreiben
--- `entrySchema` (Zod), und `applyChanges` hat genau einen Aufrufer — die Sync-Route,
--- die ausschließlich geprüfte Einträge weitergibt. Die Bedingung dupliziert also eine
--- Prüfung, die bereits an der einzigen Eingangstür stattfindet, und verlangt für jede
--- neue Art einen Tabellen-Neubau auf einer Datenbank mit echten Daten.
+-- Why it contributes nothing: every entry passes `entrySchema` (Zod) before being
+-- written, and `applyChanges` has exactly one caller — the sync route, which only ever
+-- passes validated entries on. So the constraint duplicates a check already performed
+-- at the only entrance, and demands a table rebuild on a database holding real data for
+-- every new type.
 --
--- Der Wächter-Test in db.test.ts, der jede Art aus ENTRY_TYPES einmal schreibt,
--- bleibt bestehen. Die Bedingung auf `diaper` bleibt ebenfalls: drei Werte, die sich
--- absehbar nicht ändern.
+-- The guard test in db.test.ts, which writes every type from ENTRY_TYPES once, stays.
+-- The constraint on `diaper` stays too: three values that are not going to change.
 
 CREATE TABLE entries_new (
   id              TEXT PRIMARY KEY,
@@ -61,6 +60,6 @@ CREATE INDEX idx_entries_week ON entries (child_id, life_week)
   WHERE type = 'photo' AND deleted = 0;
 CREATE INDEX idx_entries_supply ON entries (child_id, supply_category, started_at)
   WHERE type = 'supply' AND deleted = 0;
--- Offene Zeiträume: das "Läuft gerade" auf dem Startbildschirm fragt genau das ab.
+-- Open periods: "Currently running" on the home screen queries exactly this.
 CREATE INDEX idx_entries_open ON entries (child_id, type)
   WHERE ended_at IS NULL AND deleted = 0;

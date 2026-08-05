@@ -1,7 +1,6 @@
--- Eine Mahlzeit, die vollständig wieder ausgespuckt wurde.
+-- A feed that was brought back up completely.
 --
--- Das Ereignis bleibt bestehen — sie hat getrunken, der Zeitpunkt zählt für den
--- Rhythmus und für "wann war die letzte Flasche". Nur die Milliliter dürfen nicht in
--- die Tagesmenge eingehen, sonst zeigt die Auswertung eine Aufnahme, die nie im Kind
--- angekommen ist.
+-- The event remains — she did drink, and the moment counts towards the rhythm and
+-- towards "when was the last bottle". Only the millilitres must stay out of the daily
+-- total; otherwise the charts show an intake that never made it into the child.
 ALTER TABLE entries ADD COLUMN spat_up INTEGER NOT NULL DEFAULT 0;

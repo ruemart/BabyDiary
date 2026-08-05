@@ -1,11 +1,11 @@
--- Land des Haushalts: steuert, welche Vorsorge- und Impftermine der Zeitstrahl zeigt.
+-- The household's country: drives which check-ups and vaccinations the timeline shows.
 --
--- Gehört zum Kind und nicht zum Gerät: Beide Eltern leben im selben Land, und die
--- Wahl soll sich auf dem zweiten Telefon nicht wiederholen.
+-- Belongs to the child, not the device: both parents live in the same country, and the
+-- choice should not have to be repeated on the second phone.
 --
--- Vorgabe "none" statt "de": Wer aktualisiert, hat die deutschen Termine bisher
--- gesehen — deshalb setzt die Migration bestehende Haushalte ausdrücklich auf "de".
--- Für NEUE Haushalte ist "none" richtig, weil wir ihr Land nicht kennen und
--- fremde Impftermine anzuzeigen schlimmer wäre als gar keine.
+-- Default "none" rather than "de": anyone upgrading has been seeing the German dates so
+-- far — which is why this migration explicitly sets existing households to "de". For NEW
+-- households "none" is right, because we do not know their country and showing another
+-- country's vaccination dates would be worse than showing none.
 ALTER TABLE child ADD COLUMN region TEXT NOT NULL DEFAULT 'none';
 UPDATE child SET region = 'de';

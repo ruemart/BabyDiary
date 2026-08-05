@@ -1,8 +1,8 @@
--- Push-Anmeldungen, eine Zeile je Gerät.
+-- Push subscriptions, one row per device.
 --
--- Die Einstellungen hängen bewusst AM GERÄT, nicht am Haushalt: Wer nachts ohnehin
--- wach ist, will die Erinnerung auch nachts; wer daneben schläft, ganz sicher nicht.
--- Eine gemeinsame Einstellung würde zwangsläufig einen von beiden falsch bedienen.
+-- The settings deliberately hang off THE DEVICE, not the household: someone awake at
+-- night anyway wants the reminder at night; someone sleeping next to them certainly does
+-- not. A shared setting would inevitably serve one of the two badly.
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   endpoint          TEXT PRIMARY KEY,
   p256dh            TEXT NOT NULL,
