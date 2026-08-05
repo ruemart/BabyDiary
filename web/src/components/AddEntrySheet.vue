@@ -25,7 +25,17 @@ import CmField from "./CmField.vue";
  * danach in den Verlauf, nicht in den Erfassungsweg.
  */
 const open = defineModel<boolean>("open", { required: true });
-const props = defineProps<{ entry?: LocalEntry | null }>();
+const props = defineProps<{
+  entry?: LocalEntry | null;
+  /**
+   * Vorbelegter Zeitpunkt beim Neuanlegen, als lokale ISO-Zeichenkette ohne Zone.
+   *
+   * Der Verlauf zeigt einen bestimmten Tag. Wer dort "Nachtragen" tippt, meint fast
+   * immer genau diesen Tag — ihn erneut auswählen zu müssen wäre eine Rückfrage nach
+   * etwas, das schon auf dem Bildschirm steht.
+   */
+  defaultAt?: string | null;
+}>();
 
 const data = useData();
 const confirmWithUndo = useUndo();
@@ -195,7 +205,9 @@ watch(open, (isOpen) => {
   }
 
   type.value = "feed";
-  at.value = lastBackdatedAt ?? new Date();
+  // Der angezeigte Tag hat Vorrang vor dem zuletzt gemerkten Zeitpunkt: Er steht
+  // sichtbar auf dem Bildschirm, das Gemerkte nicht.
+  at.value = props.defaultAt ? new Date(props.defaultAt) : (lastBackdatedAt ?? new Date());
   endAt.value = new Date(at.value.getTime() + 30 * 60_000);
   amountMl.value = data.suggestedAmountMl;
   diaper.value = "wet";

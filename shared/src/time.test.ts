@@ -9,6 +9,8 @@ import {
   localDayKey,
   minutesIntoLocalDay,
   relativeSince,
+  startOfWeek,
+  weekdayIndex,
 } from "./time.ts";
 
 const TZ = "Europe/Berlin";
@@ -65,6 +67,36 @@ describe("Kalenderarithmetik", () => {
     expect(addDays("2026-10-24", 2)).toBe("2026-10-26");
     expect(addDays("2026-12-30", 3)).toBe("2027-01-02");
     expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+});
+
+describe("Kalenderwochen", () => {
+  it("zählt den Montag als ersten Tag der Woche", () => {
+    // 3. August 2026 ist ein Montag.
+    expect(weekdayIndex("2026-08-03")).toBe(0);
+    expect(weekdayIndex("2026-08-05")).toBe(2);
+    // Der Sonntag ist das ENDE der Woche, nicht ihr Anfang.
+    expect(weekdayIndex("2026-08-09")).toBe(6);
+  });
+
+  it("findet den Wochenanfang von jedem Tag der Woche aus", () => {
+    for (const tag of ["2026-08-03", "2026-08-05", "2026-08-09"]) {
+      expect(startOfWeek(tag)).toBe("2026-08-03");
+    }
+    // Der Sonntag gehört noch zur Vorwoche.
+    expect(startOfWeek("2026-08-02")).toBe("2026-07-27");
+  });
+
+  it("bleibt über die Sommerzeitumstellung hinweg richtig", () => {
+    // In der Nacht zum 25.10.2026 wird die Uhr zurückgestellt.
+    expect(startOfWeek("2026-10-25")).toBe("2026-10-19");
+    expect(weekdayIndex("2026-10-26")).toBe(0);
+  });
+
+  it("trägt den Jahreswechsel mit", () => {
+    // 1. Januar 2027 ist ein Freitag.
+    expect(weekdayIndex("2027-01-01")).toBe(4);
+    expect(startOfWeek("2027-01-01")).toBe("2026-12-28");
   });
 });
 

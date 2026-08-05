@@ -111,6 +111,24 @@ export function addMonths(date: string, months: number): string {
   return fromAnchor(target.getTime());
 }
 
+/* ── Kalenderwochen ─────────────────────────────────────────────────────────── */
+
+/**
+ * Wochentag als 0 = Montag … 6 = Sonntag.
+ *
+ * Nicht `getDay()` (0 = Sonntag): Hier fängt die Woche am Montag an, wie überall in
+ * Deutschland. Ein rohes `getDay()` würde den Sonntag an den Wochenanfang setzen und
+ * die Wochenauswahl im Verlauf um einen Tag verschieben.
+ */
+export function weekdayIndex(date: string): number {
+  return (new Date(anchor(date)).getUTCDay() + 6) % 7;
+}
+
+/** Montag der Woche, in der `date` liegt. */
+export function startOfWeek(date: string): string {
+  return addDays(date, -weekdayIndex(date));
+}
+
 /* ── Lebensalter ────────────────────────────────────────────────────────────── */
 
 /** Vollendete Lebenstage am Zeitpunkt `at`. Geburtstag = Tag 0. */

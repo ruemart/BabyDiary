@@ -1,13 +1,114 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { localDateLabel, localDayKey, localTimeLabel } from "@babymonitor/shared";
+import { computed, ref, watch } from "vue";
+import {
+  addDays,
+  calendarDateLabel,
+  localDayKey,
+  localTimeLabel,
+  startOfWeek,
+  weekdayIndex,
+} from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";
 import { numberWithinDay } from "../utils/dayOrdinals.ts";
+import { availableWeeks, buildWeek, dayAfterWeekChange } from "../utils/historyWeeks.ts";
 
 const data = useData();
 const addOpen = ref(false);
+
+/**
+ * Ein Tag auf einmal, wählbar über Woche und Wochentag.
+ *
+ * Vorher stand hier alles untereinander. Das funktioniert vier Wochen lang und wird
+ * danach zusehends unbrauchbar: "Was war letzten Mittwoch" beantwortet sich nur noch
+ * durch Scrollen. Die Wochenleiste zeigt außerdem die Zahlen aller sieben Tage, ohne
+ * dass man einen einzigen öffnen muss.
+ */
+const today = computed(() => localDayKey(new Date(), data.timezone));
+const selectedDay = ref(today.value);
+const weekStart = computed(() => startOfWeek(selectedDay.value));
+
+const weeks = computed(() => availableWeeks(data.entries, data.timezone, today.value));
+
+const week = computed(() =>
+  buildWeek(data.byTimeDesc, data.timezone, weekStart.value, today.value),
+);
+
+const day = computed(
+  () => week.value.days.find((d) => d.key === selectedDay.value) ?? week.value.days[0]!,
+);
+
+const ordinals = computed(() => numberWithinDay(day.value.entries));
+
+/**
+ * Beim Wochenwechsel den Wochentag behalten — so lassen sich Wochen vergleichen.
+ * Steht der Tag in der Zukunft, wird auf heute geklemmt.
+ */
+function goToWeek(start: string) {
+  selectedDay.value = dayAfterWeekChange(start, weekdayIndex(selectedDay.value), today.value);
+}
+
+function shiftWeek(by: number) {
+  const target = weeks.value[weeks.value.indexOf(weekStart.value) + by];
+  if (target) goToWeek(target);
+}
+
+const hasNewer = computed(() => weeks.value.indexOf(weekStart.value) > 0);
+const hasOlder = computed(
+  () => weeks.value.indexOf(weekStart.value) < weeks.value.length - 1,
+);
+
+/** "3. Aug – 9. Aug 2026" — die Spanne, nicht die Kalenderwochennummer. Die kennt niemand auswendig. */
+function weekLabel(start: string): string {
+  const from = calendarDateLabel(start).replace(/ \d{4}$/, "");
+  return `${from} – ${calendarDateLabel(addDays(start, 6))}`;
+}
+
+const WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const WEEKDAY_LONG = [
+  "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
+];
+
+/** Überschrift des gewählten Tages: "Mittwoch, 5. Aug 2026" — plus "heute", wenn er es ist. */
+const dayTitle = computed(() => {
+  const label = `${WEEKDAY_LONG[day.value.weekday]}, ${calendarDateLabel(day.value.key)}`;
+  return day.value.key === today.value ? `${label} · heute` : label;
+});
+
+/** Die Zahlen des Tages in Worten — die Leiste zeigt sie knapp, hier stehen sie ausgeschrieben. */
+const dayFacts = computed(() => {
+  const d = day.value;
+  const facts: string[] = [];
+  if (d.totalMl > 0) facts.push(`${d.totalMl} ml`);
+  if (d.feeds > 0) facts.push(d.feeds === 1 ? "1 Flasche" : `${d.feeds} Flaschen`);
+  if (d.diapers > 0) facts.push(d.diapers === 1 ? "1 Windel" : `${d.diapers} Windeln`);
+  if (d.sleepMinutes > 0) facts.push(`${hoursAndMinutes(d.sleepMinutes)} Schlaf`);
+  return facts;
+});
+
+function hoursAndMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (!h) return `${m} Min`;
+  return m ? `${h} Std ${m} Min` : `${h} Std`;
+}
+
+/** Für die Vorlesehilfe: Die Leiste ist sonst nur eine Zahlenwand. */
+function tabLabel(d: { weekday: number; key: string; totalMl: number; diapers: number }): string {
+  const parts = [`${WEEKDAY_LONG[d.weekday]}, ${calendarDateLabel(d.key)}`];
+  if (d.totalMl > 0) parts.push(`${d.totalMl} Milliliter`);
+  if (d.diapers > 0) parts.push(`${d.diapers} Windeln`);
+  if (d.totalMl === 0 && d.diapers === 0) parts.push("nichts eingetragen");
+  return parts.join(", ");
+}
+
+/**
+ * Nach einem Neustart über Mitternacht hinweg stünde sonst der gestrige Tag gewählt da.
+ */
+watch(today, (now, before) => {
+  if (selectedDay.value === before) selectedDay.value = now;
+});
 
 /**
  * Änderungsblatt. Hierüber lässt sich unter anderem die Zeit einer Windel korrigieren:
@@ -42,25 +143,6 @@ const DIAPER_LABEL: Record<string, string> = {
   soiled: "voll",
   both: "voll",
 };
-
-/** Nach lokalem Kalendertag gruppieren — nicht nach UTC, sonst rutschen Nachteinträge. */
-const days = computed(() => {
-  const groups = new Map<string, LocalEntry[]>();
-  for (const entry of data.byTimeDesc) {
-    const key = localDayKey(entry.startedAt, data.timezone);
-    const list = groups.get(key) ?? [];
-    list.push(entry);
-    groups.set(key, list);
-  }
-  return [...groups.entries()].map(([key, entries]) => ({
-    key,
-    label: localDateLabel(`${key}T12:00:00Z`, data.timezone),
-    entries,
-    ordinals: numberWithinDay(entries),
-    // Ausgespucktes zählt nicht zur Tagessumme.
-    totalMl: entries.reduce((sum, e) => sum + (e.spatUp ? 0 : (e.amountMl ?? 0)), 0),
-  }));
-});
 
 function describe(entry: LocalEntry): string {
   switch (entry.type) {
@@ -118,6 +200,16 @@ async function remove(entry: LocalEntry) {
   <div class="history">
     <header class="history__head">
       <h1>Verlauf</h1>
+      <!-- Nur sichtbar, wenn man wirklich weg ist. Ein Knopf, der immer dasteht und
+           meistens nichts tut, ist schlimmer als keiner. -->
+      <button
+        v-if="weekStart !== startOfWeek(today)"
+        class="history__now"
+        type="button"
+        @click="selectedDay = today"
+      >
+        Heute
+      </button>
       <button class="history__add" type="button" @click="addOpen = true">Nachtragen</button>
     </header>
 
@@ -136,17 +228,82 @@ async function remove(entry: LocalEntry) {
       <p class="warning__reason">{{ data.invalidEntries[0]!.reason }}</p>
     </div>
 
-    <p v-if="days.length === 0" class="empty">
-      Noch nichts eingetragen. Über „Nachtragen“ lassen sich auch vergangene Tage ergänzen.
-    </p>
+    <!-- Wochenwahl. Die Spanne statt der Kalenderwochennummer: "3.–9. Aug" kann man
+         einordnen, "KW 32" muss man nachschlagen. -->
+    <div class="weekbar">
+      <button
+        class="weekbar__step"
+        type="button"
+        :disabled="!hasOlder"
+        aria-label="Vorige Woche"
+        @click="shiftWeek(1)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
 
-    <section v-for="day in days" :key="day.key" class="day">
+      <label class="weekbar__pick">
+        <span class="weekbar__label">{{ weekLabel(weekStart) }}</span>
+        <select :value="weekStart" aria-label="Woche wählen" @change="goToWeek(($event.target as HTMLSelectElement).value)">
+          <option v-for="w in weeks" :key="w" :value="w">{{ weekLabel(w) }}</option>
+        </select>
+      </label>
+
+      <button
+        class="weekbar__step"
+        type="button"
+        :disabled="!hasNewer"
+        aria-label="Nächste Woche"
+        @click="shiftWeek(-1)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tagesleiste: sieben feste Spalten, auch die leeren. Eine Lücke ist eine
+         Aussage; würde man sie weglassen, verschöben sich die Wochentage. -->
+    <div class="dayrow" role="tablist" aria-label="Wochentag">
+      <button
+        v-for="d in week.days"
+        :key="d.key"
+        class="dayrow__tab"
+        :class="{
+          'dayrow__tab--on': d.key === selectedDay,
+          'dayrow__tab--today': d.key === today,
+          'dayrow__tab--future': d.isFuture,
+        }"
+        type="button"
+        role="tab"
+        :aria-selected="d.key === selectedDay"
+        :aria-label="tabLabel(d)"
+        :disabled="d.isFuture"
+        @click="selectedDay = d.key"
+      >
+        <span class="dayrow__wd">{{ WEEKDAY_SHORT[d.weekday] }}</span>
+        <span class="dayrow__num bm-tabular">{{ d.dayOfMonth }}</span>
+        <span class="dayrow__ml bm-tabular">{{ d.totalMl > 0 ? d.totalMl : "·" }}</span>
+        <span class="dayrow__dp bm-tabular">{{ d.diapers > 0 ? `${d.diapers}×` : "·" }}</span>
+      </button>
+    </div>
+
+    <section class="day">
       <div class="day__head">
-        <h2>{{ day.label }}</h2>
-        <span v-if="day.totalMl > 0" class="day__total bm-tabular">{{ day.totalMl }} ml</span>
+        <h2>{{ dayTitle }}</h2>
       </div>
+      <p v-if="dayFacts.length" class="day__facts">{{ dayFacts.join(" · ") }}</p>
 
-      <ul class="entries">
+      <p v-if="day.entries.length === 0" class="empty">
+        {{
+          day.key === today
+            ? "Heute noch nichts eingetragen."
+            : "An diesem Tag wurde nichts eingetragen."
+        }}
+      </p>
+
+      <ul v-else class="entries">
         <li v-for="entry in day.entries" :key="entry.id" class="entry">
           <!-- Die ganze Zeile ist die Schaltfläche zum Ändern; nur das Löschkreuz
                daneben liegt außerhalb. -->
@@ -157,8 +314,8 @@ async function remove(entry: LocalEntry) {
             <span class="entry__dot" :class="`entry__dot--${entry.type}`" aria-hidden="true" />
             <span class="entry__body">
               <span class="entry__type">
-                <span v-if="day.ordinals.has(entry.id)" class="entry__ordinal bm-tabular"
-                  >{{ day.ordinals.get(entry.id) }}.</span
+                <span v-if="ordinals.has(entry.id)" class="entry__ordinal bm-tabular"
+                  >{{ ordinals.get(entry.id) }}.</span
                 >
                 {{ TYPE_LABEL[entry.type] }}
               </span>
@@ -181,7 +338,7 @@ async function remove(entry: LocalEntry) {
       </ul>
     </section>
 
-    <AddEntrySheet v-model:open="addOpen" />
+    <AddEntrySheet v-model:open="addOpen" :default-at="day.key === today ? null : `${day.key}T12:00:00`" />
     <AddEntrySheet v-model:open="editOpen" :entry="editing" />
   </div>
 </template>
@@ -191,10 +348,11 @@ async function remove(entry: LocalEntry) {
   padding: 1.5rem 1rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.9rem;
 }
 
 .history__head {
+  margin-bottom: 0.3rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -203,6 +361,19 @@ async function remove(entry: LocalEntry) {
 
 .history__head h1 {
   font-size: 1.75rem;
+  margin-inline-end: auto;
+}
+
+.history__now {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .history__add {
@@ -252,20 +423,157 @@ async function remove(entry: LocalEntry) {
   line-height: 1.5;
 }
 
+/* ── Wochenwahl ──────────────────────────────────────────────────────────── */
+
+.weekbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weekbar__step {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 50%;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  cursor: pointer;
+}
+
+.weekbar__step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.weekbar__step svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+/* Die Beschriftung liegt sichtbar darunter, das echte <select> unsichtbar darüber.
+   So bleibt die Systemauswahl mit ihrer gewohnten Bedienung erhalten, ohne dass ihr
+   Standardaussehen die Leiste bestimmt. */
+.weekbar__pick {
+  position: relative;
+  flex: 1;
+  min-height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 62.5rem;
+  background: var(--bm-surface);
+  border: 1px solid var(--bm-hairline);
+}
+
+.weekbar__label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.weekbar__pick select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ── Tagesleiste ─────────────────────────────────────────────────────────── */
+
+.dayrow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.dayrow__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.4rem 0.1rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dayrow__tab--today .dayrow__num {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.dayrow__tab--on {
+  background: var(--bm-feed);
+  color: #2a2028;
+}
+
+.dayrow__tab--future {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.dayrow__wd {
+  font-size: 0.7rem;
+  color: var(--bm-ink-soft);
+}
+
+.dayrow__tab--on .dayrow__wd {
+  color: #2a2028;
+}
+
+.dayrow__num {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Die beiden Zahlen tragen ihre Bedeutung über dieselben Farben wie die Punkte in
+   der Liste — ausgeschrieben stehen sie unter der Überschrift. */
+.dayrow__ml,
+.dayrow__dp {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.dayrow__ml {
+  color: color-mix(in srgb, var(--bm-feed) 80%, var(--bm-ink));
+}
+
+.dayrow__dp {
+  color: color-mix(in srgb, var(--bm-diaper) 65%, var(--bm-ink));
+}
+
+.dayrow__tab--on .dayrow__ml,
+.dayrow__tab--on .dayrow__dp {
+  color: color-mix(in srgb, #2a2028 65%, transparent);
+}
+
+/* ── Tag ─────────────────────────────────────────────────────────────────── */
+
 .day__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.15rem;
 }
 
 .day__head h2 {
   font-size: 1.05rem;
 }
 
-.day__total {
+.day__facts {
+  margin: 0 0 0.6rem;
   color: var(--bm-ink-soft);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
