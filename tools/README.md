@@ -50,3 +50,20 @@ neue Tabellen veröffentlicht.
 # Vier Dateien von who.int herunterladen (URLs im Skriptkopf), dann:
 python3 tools/build-who-tables.py <ordner-mit-xlsx> web/src/data/who
 ```
+
+## `build-icons.py`
+
+Erzeugt die Symbole der App nach `web/public/`.
+
+```bash
+python3 tools/build-icons.py
+```
+
+Die Dateien standen von Anfang an im Manifest und in der `index.html`, existierten aber
+nie — nginx lieferte für jede von ihnen die `index.html` aus, mit Status 200, sodass
+nichts danach aussah. Auf dem Startbildschirm blieb ein Platzhalter, und die
+Benachrichtigungen hatten kein Bild.
+
+Gezeichnet wird auf 1024 px und heruntergerechnet; das glättet die Kanten besser als
+eine Zeichnung direkt in Zielgröße. Das maskierbare Symbol hält den sicheren Bereich
+ein: Android beschneidet frei, verlässlich sichtbar ist nur der mittlere Kreis.

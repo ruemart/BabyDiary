@@ -187,7 +187,7 @@ npm run build --workspace=web
 ```
 
 `tools/` enthält einen Generator für realistische Testdaten, einen
-Bildschirmfoto-Durchlauf und die Offline-Abgleich-Prüfung — siehe
+Bildschirmfoto-Durchlauf, die Offline-Abgleich-Prüfung und den Symbol-Generator — siehe
 [tools/README.md](tools/README.md).
 
 ---
