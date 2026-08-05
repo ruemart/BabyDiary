@@ -65,6 +65,15 @@ export const entrySchema = z
      * die nie im Kind angekommen ist.
      */
     spatUp: z.boolean().default(false),
+    /**
+     * Vitamin D zu dieser Mahlzeit gegeben.
+     *
+     * Die tägliche Prophylaxe hat keinen eigenen Anlass — sie hängt an einer Mahlzeit.
+     * Deshalb ein Kennzeichen am Eintrag statt eines eigenen Typs: So wird sie dort
+     * erfasst, wo sie im Alltag stattfindet, und die App kann sagen, ob es heute schon
+     * passiert ist.
+     */
+    vitaminD: z.boolean().default(false),
     /** diaper */
     diaper: z.enum(DIAPER_KINDS).nullable().default(null),
 

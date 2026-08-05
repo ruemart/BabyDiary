@@ -114,6 +114,7 @@ export const useData = defineStore("data", () => {
       endedAt: null,
       amountMl: null,
       spatUp: false,
+      vitaminD: false,
       diaper: null,
       weightG: null,
       lengthMm: null,

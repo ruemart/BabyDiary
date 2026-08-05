@@ -8,6 +8,7 @@ import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import SpatUpToggle from "./SpatUpToggle.vue";
+import VitaminDToggle from "./VitaminDToggle.vue";
 import CmField from "./CmField.vue";
 
 /**
@@ -96,6 +97,7 @@ const headMm = ref<number | null>(null);
 const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
+const vitaminD = ref(false);
 const temperatureDc = ref<number | null>(null);
 
 /**
@@ -161,6 +163,7 @@ watch(open, (isOpen) => {
     label.value = existing.label ?? "";
     note.value = existing.note ?? "";
     spatUp.value = existing.spatUp === true;
+    vitaminD.value = existing.vitaminD === true;
     temperatureDc.value = existing.temperatureDc;
     hasEnd.value = existing.endedAt !== null;
     place.value =
@@ -185,6 +188,7 @@ watch(open, (isOpen) => {
   label.value = "";
   note.value = "";
   spatUp.value = false;
+  vitaminD.value = false;
   temperatureDc.value = null;
   hasEnd.value = false;
   place.value = null;
@@ -235,6 +239,7 @@ function fields() {
   return {
     amountMl: type.value === "feed" ? amountMl.value : null,
     spatUp: type.value === "feed" ? spatUp.value : false,
+    vitaminD: type.value === "feed" ? vitaminD.value : false,
     diaper: type.value === "diaper" ? diaper.value : null,
     endedAt:
       PERIOD_TYPES.has(type.value) && hasEnd.value ? endAt.value.toISOString() : null,
@@ -309,6 +314,8 @@ async function save() {
         <span class="field__label">Menge</span>
         <AmountStepper v-model="amountMl" />
         <SpatUpToggle v-model="spatUp" />
+        <VitaminDToggle v-model="vitaminD" />
+      <VitaminDToggle v-model="vitaminD" />
       </div>
 
       <template v-else-if="type === 'diaper'">

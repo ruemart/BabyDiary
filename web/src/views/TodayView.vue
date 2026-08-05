@@ -12,6 +12,7 @@ import { useAlerts, ALERT_DISCLAIMER } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
 import { useDailyIntake, INTAKE_NOTE } from "../composables/useDailyIntake.ts";
 import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
+import { useVitaminD } from "../composables/useVitaminD.ts";
 import { ageInDays, localDayKey } from "@babymonitor/shared";
 import { onMounted } from "vue";
 
@@ -28,6 +29,21 @@ const { alerts } = useAlerts(
 );
 
 const intake = useDailyIntake(() => data.entries, () => data.timezone);
+
+const vitaminD = useVitaminD(() => data.entries, () => data.timezone, () => now.value);
+
+/**
+ * Vitamin D nachträglich an der letzten heutigen Mahlzeit setzen — oder wieder
+ * aufheben. Damit muss niemand in den Verlauf, nur weil das Häkchen beim Eintragen
+ * vergessen wurde.
+ */
+async function toggleVitaminD() {
+  const targetId = vitaminD.value.entryId ?? vitaminD.value.latestFeedId;
+  if (!targetId) return;
+  const entry = data.entries.find((e) => e.id === targetId);
+  if (!entry) return;
+  await data.update({ ...entry, vitaminD: !entry.vitaminD });
+}
 
 /** Alles, was gerade läuft — Schlaf, Krankheit, Urlaub. Mehrere gleichzeitig möglich. */
 const openPeriods = useOpenPeriods(() => data.entries, () => now.value);
@@ -175,6 +191,45 @@ async function startSleep() {
         Heute bis {{ todayWeather.tmax }} °C · {{ todayWeather.label }}
       </div>
 
+    </section>
+
+    <!-- Vitamin D: eigene Karte, nicht eine Zeile unter vielen. Die tägliche Gabe
+         wird genau deshalb vergessen, weil sie so klein ist — und am Abend weiß
+         niemand mehr sicher, ob sie nun passiert ist. -->
+    <section
+      class="vitamin"
+      :class="{ 'vitamin--done': vitaminD.given, 'vitamin--urgent': vitaminD.urgent }"
+      aria-label="Vitamin D"
+    >
+      <span class="vitamin__mark" aria-hidden="true">
+        <svg v-if="vitaminD.given" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v4.5" stroke-linecap="round" />
+          <path d="M12 16h.01" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="vitamin__text">
+        <span class="vitamin__label">
+          {{ vitaminD.given ? `Vitamin D gegeben · ${vitaminD.atLabel}` : "Vitamin D heute noch offen" }}
+        </span>
+        <span v-if="!vitaminD.given && !vitaminD.latestFeedId" class="vitamin__hint">
+          Beim nächsten Fläschchen mit ankreuzen.
+        </span>
+        <span v-else-if="!vitaminD.given" class="vitamin__hint">
+          {{ vitaminD.urgent ? "Der Tag wird knapp." : "Beim Fläschchen ankreuzen oder hier eintragen." }}
+        </span>
+      </span>
+      <button
+        v-if="vitaminD.latestFeedId || vitaminD.entryId"
+        class="vitamin__action"
+        type="button"
+        @click="toggleVitaminD"
+      >
+        {{ vitaminD.given ? "Rückgängig" : "Erledigt" }}
+      </button>
     </section>
 
     <!-- Was gerade läuft. Ein Tap beendet es zum jetzigen Zeitpunkt — ohne dass
@@ -487,6 +542,84 @@ async function startSleep() {
 
 .diaper:active {
   transform: scale(0.97);
+}
+
+.vitamin {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 1.25rem;
+  background: var(--bm-surface);
+  box-shadow: var(--bm-shadow-card);
+}
+
+.vitamin--done {
+  border-color: color-mix(in srgb, var(--bm-diaper) 45%, transparent);
+  background: var(--bm-diaper-soft);
+}
+
+/* Erst am Abend deutlicher. Ein vergessener Tag ist kein Notfall — die App
+   erinnert, sie mahnt nicht. */
+.vitamin--urgent {
+  border-color: color-mix(in srgb, var(--bm-feed) 65%, transparent);
+  background: var(--bm-feed-soft);
+}
+
+.vitamin__mark {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink-soft);
+}
+
+.vitamin--done .vitamin__mark {
+  background: var(--bm-diaper);
+  color: #fff;
+}
+
+.vitamin--urgent .vitamin__mark {
+  color: var(--bm-ink);
+}
+
+.vitamin__mark svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.vitamin__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vitamin__label {
+  font-weight: 600;
+}
+
+.vitamin__hint {
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
+}
+
+.vitamin__action {
+  flex: none;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
 .running {

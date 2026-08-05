@@ -63,7 +63,13 @@ const days = computed(() => {
 function describe(entry: LocalEntry): string {
   switch (entry.type) {
     case "feed":
-      return entry.spatUp ? `${entry.amountMl} ml · ausgespuckt` : `${entry.amountMl} ml`;
+      return [
+        `${entry.amountMl} ml`,
+        entry.spatUp ? "ausgespuckt" : null,
+        entry.vitaminD ? "Vitamin D" : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
     case "diaper":
       return DIAPER_LABEL[entry.diaper ?? "empty"] ?? "";
     case "sleep":

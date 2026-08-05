@@ -66,6 +66,18 @@ dialog.sheet:not([open]) {
   display: none;
 }
 
+/**
+ * Offen: eine Spalte aus festem Kopf, scrollendem Inhalt und festem Fuß.
+ *
+ * Vorher scrollte das ganze Blatt am Stück — bei einem längeren Formular lag der
+ * Speichern-Knopf damit unterhalb des Bildschirms, und man musste erst suchen, um
+ * abzuschließen. Jetzt scrollt nur der Inhalt, der Knopf bleibt stehen.
+ */
+dialog.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
 .sheet {
   /* Am unteren Rand verankert, volle Breite, nach oben abgerundet. */
   margin: 0 0 0 auto;
@@ -74,13 +86,14 @@ dialog.sheet:not([open]) {
   width: 100%;
   max-width: 40rem;
   max-height: 90dvh;
-  padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  padding: 0.75rem 0 0;
   border: none;
   border-radius: 1.75rem 1.75rem 0 0;
   background: var(--bm-surface);
   color: var(--bm-ink);
   box-shadow: var(--bm-shadow-lift);
-  overflow-y: auto;
+  /* Der Inhalt scrollt, nicht das Blatt. */
+  overflow: hidden;
 }
 
 .sheet::backdrop {
@@ -100,6 +113,7 @@ dialog.sheet:not([open]) {
 }
 
 .sheet__grip {
+  flex: none;
   width: 2.25rem;
   height: 0.25rem;
   margin: 0 auto 0.75rem;
@@ -108,10 +122,11 @@ dialog.sheet:not([open]) {
 }
 
 .sheet__head {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  padding: 0 1.25rem 1rem;
 }
 
 .sheet__head h2 {
@@ -135,7 +150,24 @@ dialog.sheet:not([open]) {
   height: 1.1rem;
 }
 
+.sheet__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 1.25rem;
+  /* Etwas Luft, damit das letzte Feld nicht am Fuß klebt. */
+  padding-bottom: 1rem;
+}
+
+/**
+ * Der Fuß bleibt stehen. Die Trennlinie und die leicht abgesetzte Fläche machen
+ * sichtbar, dass darüber noch etwas weitergeht — sonst wirkt ein abgeschnittenes
+ * Formular wie ein vollständiges.
+ */
 .sheet__actions:not(:empty) {
-  margin-top: 1.5rem;
+  flex: none;
+  padding: 0.875rem 1.25rem calc(0.875rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--bm-hairline);
+  background: var(--bm-surface);
 }
 </style>

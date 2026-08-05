@@ -25,6 +25,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     endedAt: null,
     amountMl: 120,
     spatUp: false,
+    vitaminD: false,
     milestoneKey: null,
     temperatureDc: null,
     latitude: null,

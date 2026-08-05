@@ -6,6 +6,7 @@ import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import SpatUpToggle from "./SpatUpToggle.vue";
+import VitaminDToggle from "./VitaminDToggle.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -16,6 +17,7 @@ const amount = ref(0);
 const at = ref(new Date());
 const note = ref("");
 const spatUp = ref(false);
+const vitaminD = ref(false);
 
 /**
  * Beim Öffnen frisch vorbelegen: Menge auf den Median der letzten sieben Mahlzeiten,
@@ -27,12 +29,14 @@ watch(open, (isOpen) => {
   at.value = new Date();
   note.value = "";
   spatUp.value = false;
+  vitaminD.value = false;
 });
 
 async function save() {
   const entry = data.draft("feed", at.value, {
     amountMl: amount.value,
     spatUp: spatUp.value,
+    vitaminD: vitaminD.value,
     note: note.value.trim() || null,
   });
   await data.add(entry);
@@ -52,6 +56,7 @@ async function save() {
       <TimeField v-model="at" />
 
       <SpatUpToggle v-model="spatUp" />
+      <VitaminDToggle v-model="vitaminD" />
 
       <label class="note">
         <span class="note__label">Notiz (optional)</span>
