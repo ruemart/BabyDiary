@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useData } from "../stores/data.ts";
 import { useTotals } from "../composables/useTotals.ts";
+import { useI18n } from "vue-i18n";
 
 const data = useData();
 const { totals, records, byPerson } = useTotals(
@@ -16,7 +17,7 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
 <template>
   <div class="totals">
     <header class="head">
-      <h1>Zahlen</h1>
+      <h1>{{ $t("totals.title") }}</h1>
       <p class="head__sub">
         <template v-if="totals.ageDays !== null">
           {{ totals.ageDays }} Tage mit {{ data.child?.name }} ·
@@ -26,53 +27,53 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
     </header>
 
     <p v-if="!hasData" class="empty">
-      Sobald ihr ein paar Tage eingetragen habt, sammeln sich hier die Zahlen.
+      {{ $t("totals.empty") }}
     </p>
 
     <template v-else>
-      <section class="grid" aria-label="Insgesamt">
+      <section class="grid" :aria-label="$t('totals.overall')">
         <div class="stat stat--wide">
-          <p class="stat__value bm-tabular">{{ totals.totalLiters }}<span class="stat__unit">Liter</span></p>
+          <p class="stat__value bm-tabular">{{ totals.totalLiters }}<span class="stat__unit">{{ $t("totals.liters") }}</span></p>
           <p class="stat__label">insgesamt getrunken</p>
         </div>
         <div class="stat">
           <p class="stat__value bm-tabular">{{ totals.feeds }}</p>
-          <p class="stat__label">Fläschchen</p>
+          <p class="stat__label">{{ $t("totals.bottles") }}</p>
         </div>
         <div class="stat">
           <p class="stat__value bm-tabular">{{ totals.diapers }}</p>
-          <p class="stat__label">Windeln</p>
+          <p class="stat__label">{{ $t("totals.diapers") }}</p>
         </div>
         <div class="stat">
           <p class="stat__value bm-tabular">{{ totals.sleepHours }}<span class="stat__unit">Std</span></p>
-          <p class="stat__label">Schlaf erfasst</p>
+          <p class="stat__label">{{ $t("totals.sleepRecorded") }}</p>
         </div>
         <div class="stat">
           <p class="stat__value bm-tabular">{{ totals.photos }}</p>
-          <p class="stat__label">Wochenfotos</p>
+          <p class="stat__label">{{ $t("totals.weekPhotos") }}</p>
         </div>
         <div class="stat">
           <p class="stat__value bm-tabular">{{ totals.baths }}</p>
-          <p class="stat__label">Badetage</p>
+          <p class="stat__label">{{ $t("totals.bathDays") }}</p>
         </div>
       </section>
 
       <section class="card">
-        <h2 class="card__title">Im Schnitt pro Tag</h2>
+        <h2 class="card__title">{{ $t("totals.avgPerDay") }}</h2>
         <ul class="rows">
-          <li><span>Trinkmenge</span><span class="bm-tabular">{{ totals.avgMlPerDay }} ml</span></li>
-          <li><span>Mahlzeiten</span><span class="bm-tabular">{{ totals.avgFeedsPerDay }}</span></li>
-          <li><span>Windeln</span><span class="bm-tabular">{{ totals.avgDiapersPerDay }}</span></li>
-          <li><span>Menge je Mahlzeit</span><span class="bm-tabular">{{ totals.avgMlPerFeed }} ml</span></li>
+          <li><span>{{ $t("totals.intake") }}</span><span class="bm-tabular">{{ totals.avgMlPerDay }} ml</span></li>
+          <li><span>{{ $t("totals.feeds") }}</span><span class="bm-tabular">{{ totals.avgFeedsPerDay }}</span></li>
+          <li><span>{{ $t("totals.diapers") }}</span><span class="bm-tabular">{{ totals.avgDiapersPerDay }}</span></li>
+          <li><span>{{ $t("totals.perFeed") }}</span><span class="bm-tabular">{{ totals.avgMlPerFeed }} ml</span></li>
         </ul>
       </section>
 
       <section v-if="records.length" class="card">
-        <h2 class="card__title">Rekorde</h2>
+        <h2 class="card__title">{{ $t("totals.records") }}</h2>
         <ul class="rows rows--records">
-          <li v-for="record in records" :key="record.label">
+          <li v-for="record in records" :key="record.labelKey">
             <span>
-              {{ record.label }}
+              {{ $t(record.labelKey) }}
               <span v-if="record.detail" class="rows__detail">{{ record.detail }}</span>
             </span>
             <span class="bm-tabular rows__value">{{ record.value }}</span>
@@ -81,7 +82,7 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
       </section>
 
       <section v-if="byPerson.length > 1" class="card">
-        <h2 class="card__title">Wer trägt ein</h2>
+        <h2 class="card__title">{{ $t("totals.whoRecords") }}</h2>
         <ul class="rows">
           <li v-for="[name, count] in byPerson" :key="name">
             <span>{{ name }}</span>
@@ -92,10 +93,9 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
       </section>
 
       <section v-if="totals.milestones > 0" class="card">
-        <h2 class="card__title">Meilensteine</h2>
+        <h2 class="card__title">{{ $t("milestones.title") }}</h2>
         <p class="card__lead">
-          {{ totals.milestones }}
-          {{ totals.milestones === 1 ? "Schritt" : "Schritte" }} abgehakt.
+          {{ $t("totals.milestonesDone", { n: totals.milestones }, totals.milestones) }}
         </p>
       </section>
     </template>

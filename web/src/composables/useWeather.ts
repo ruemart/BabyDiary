@@ -34,9 +34,9 @@ export function useWeather() {
 /** Einordnung für die Anzeige. Schwellen bewusst grob — es geht um Kontext, nicht um Messtechnik. */
 export function describeTemperature(tmax: number | null | undefined): string | null {
   if (tmax === null || tmax === undefined) return null;
-  if (tmax >= 30) return "sehr heiß";
-  if (tmax >= 25) return "heiß";
-  if (tmax >= 18) return "mild";
-  if (tmax >= 8) return "kühl";
-  return "kalt";
+  if (tmax >= 30) return "weather.veryHot";
+  if (tmax >= 25) return "weather.hot";
+  if (tmax >= 18) return "weather.mild";
+  if (tmax >= 8) return "weather.cool";
+  return "weather.cold";
 }

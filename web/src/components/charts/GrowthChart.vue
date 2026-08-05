@@ -137,7 +137,7 @@ const options = computed<ChartOptions<"line">>(() => ({
       <Line :data="chartData" :options="options" />
     </div>
     <p class="caption">
-      Graue Linien: WHO-Perzentile P3, P15, P50 (durchgezogen), P85 und P97.
+      {{ $t("charts.growthLegend") }}
     </p>
   </div>
 </template>

@@ -87,11 +87,11 @@ router.onError((error, to) => {
   const marker = `bm.reload:${to.fullPath}`;
   const last = Number(sessionStorage.getItem(marker) ?? 0);
   if (Date.now() - last < 15_000) {
-    console.error("Neu laden hat nicht geholfen:", to.fullPath, error);
+    console.error("Reloading did not help:", to.fullPath, error);
     return;
   }
   sessionStorage.setItem(marker, String(Date.now()));
 
-  console.warn("Veraltete Fassung erkannt, lade neu:", to.fullPath);
+  console.warn("Stale version detected, reloading:", to.fullPath);
   window.location.assign(to.fullPath);
 });

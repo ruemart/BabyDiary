@@ -124,11 +124,11 @@ defineExpose({ scrollToWeek });
   <div class="ribbon">
     <div class="ribbon__bar">
       <button class="ribbon__today" type="button" @click="scrollToWeek(currentWeek)">
-        Zu dieser Woche
+        {{ $t("weeks.toThisWeek") }}
       </button>
     </div>
 
-    <div ref="scroller" class="ribbon__scroll" tabindex="0" role="group" aria-label="Wochen">
+    <div ref="scroller" class="ribbon__scroll" tabindex="0" role="group" :aria-label="$t('weeks.ariaWeeks')">
       <div class="ribbon__track" :style="{ '--week-w': '4.25rem', '--period-rows': periodRows.length }">
         <!-- Sprung-Bänder liegen als durchgehende Fläche hinter den Zellen. -->
         <div class="bands" aria-hidden="true">

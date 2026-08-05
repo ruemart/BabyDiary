@@ -10,7 +10,7 @@ import type { LocalEntry } from "../db/local.ts";
  * nichts aussagen, an die man sich aber später gern erinnert.
  */
 
-export type Record_ = { label: string; value: string; detail?: string };
+export type Record_ = { labelKey: string; value: string; detail?: string };
 
 export function useTotals(
   entries: () => LocalEntry[],
@@ -71,7 +71,7 @@ export function useTotals(
       .sort((a, b) => (b.amountMl ?? 0) - (a.amountMl ?? 0))[0];
     if (biggest) {
       out.push({
-        label: "Größte Mahlzeit",
+        labelKey: "record.biggestFeed",
         value: `${biggest.amountMl} ml`,
         detail: localDayKey(biggest.startedAt, tz).split("-").reverse().join("."),
       });
@@ -87,7 +87,7 @@ export function useTotals(
         (Date.parse(longestSleep.endedAt!) - Date.parse(longestSleep.startedAt)) / 60_000,
       );
       out.push({
-        label: "Längster Schlaf",
+        labelKey: "record.longestSleep",
         value: `${Math.floor(minutes / 60)} Std ${minutes % 60} Min`,
         detail: localDayKey(longestSleep.startedAt, tz).split("-").reverse().join("."),
       });
@@ -110,7 +110,7 @@ export function useTotals(
     if (longestGap > 0) {
       const minutes = Math.round(longestGap / 60_000);
       out.push({
-        label: "Längste Pause",
+        labelKey: "record.longestGap",
         value: `${Math.floor(minutes / 60)} Std ${minutes % 60} Min`,
         detail: `ohne Mahlzeit · ab ${gapDay.split("-").reverse().join(".")}`,
       });
@@ -125,7 +125,7 @@ export function useTotals(
     const top = [...bestDay.entries()].sort((a, b) => b[1] - a[1])[0];
     if (top) {
       out.push({
-        label: "Stärkster Tag",
+        labelKey: "record.strongestDay",
         value: `${top[1]} ml`,
         detail: top[0].split("-").reverse().join("."),
       });

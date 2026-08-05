@@ -2,6 +2,9 @@
 import { reactive, watch } from "vue";
 import type { Child, Sex } from "@babymonitor/shared";
 import CmField from "./CmField.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 /**
  * Stammdaten des Kindes. Wird sowohl beim ersten Start als auch in den Einstellungen
@@ -18,9 +21,9 @@ watch(
   { deep: true },
 );
 
-const SEX_OPTIONS: { value: Sex; label: string }[] = [
-  { value: "female", label: "Mädchen" },
-  { value: "male", label: "Junge" },
+const SEX_OPTIONS: { value: Sex; key: string }[] = [
+  { value: "female", key: "child.girl" },
+  { value: "male", key: "child.boy" },
 ];
 
 /** Zahleneingabe: leeres Feld muss null werden, nicht 0. */
@@ -35,12 +38,12 @@ function toNumber(value: string): number | null {
 <template>
   <div class="form">
     <label class="field">
-      <span class="field__label">Name</span>
-      <input v-model="form.name" type="text" autocomplete="off" placeholder="Wie heißt sie oder er?" />
+      <span class="field__label">{{ $t("child.name") }}</span>
+      <input v-model="form.name" type="text" autocomplete="off" :placeholder="$t('child.namePlaceholder')" />
     </label>
 
     <fieldset class="field">
-      <legend class="field__label">Geschlecht</legend>
+      <legend class="field__label">{{ $t("child.sex") }}</legend>
       <div class="segmented">
         <button
           v-for="option in SEX_OPTIONS"
@@ -50,32 +53,31 @@ function toNumber(value: string): number | null {
           :class="{ 'segmented__item--active': form.sex === option.value }"
           @click="form.sex = option.value"
         >
-          {{ option.label }}
+          {{ $t(option.key) }}
         </button>
       </div>
       <!-- Ehrlich benennen, wofür das gebraucht wird — nicht als beiläufige Pflichtangabe. -->
       <p class="field__hint">
-        Bestimmt, welche WHO-Wachstumskurven für den Vergleich herangezogen werden.
+        {{ $t("child.sexHint") }}
       </p>
     </fieldset>
 
     <label class="field">
-      <span class="field__label">Geburtsdatum</span>
+      <span class="field__label">{{ $t("child.birthDate") }}</span>
       <input v-model="form.birthDate" type="date" />
     </label>
 
     <label class="field">
-      <span class="field__label">Errechneter Geburtstermin</span>
+      <span class="field__label">{{ $t("child.dueDate") }}</span>
       <input v-model="form.dueDate" type="date" />
       <p class="field__hint">
-        Die Entwicklungssprünge zählen ab diesem Datum, nicht ab der Geburt. Bei einem
-        Frühchen verschiebt sich der Zeitstrahl sonst um Wochen. Kann leer bleiben.
+        {{ $t("child.dueDateHint") }}
       </p>
     </label>
 
     <div class="row">
       <label class="field">
-        <span class="field__label">Geburtsgewicht</span>
+        <span class="field__label">{{ $t("child.birthWeight") }}</span>
         <span class="field__input-group">
           <input
             :value="form.birthWeightG ?? ''"
@@ -88,10 +90,10 @@ function toNumber(value: string): number | null {
         </span>
       </label>
 
-      <CmField v-model="form.birthLengthMm" label="Geburtsgröße" />
+      <CmField v-model="form.birthLengthMm" :label="$t('child.birthLength')" />
     </div>
 
-    <CmField v-model="form.birthHeadMm" label="Kopfumfang bei Geburt" />
+    <CmField v-model="form.birthHeadMm" :label="$t('child.birthHead')" />
   </div>
 </template>
 

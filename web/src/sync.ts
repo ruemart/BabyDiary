@@ -74,7 +74,7 @@ async function run(childId: string): Promise<SyncOutcome> {
 
   if (response.status === 401) return { state: "unauthorized", pulled: 0, pushed: 0, invalid: [] };
   if (!response.ok) {
-    console.warn("Sync abgelehnt", response.status, await response.text().catch(() => ""));
+    console.warn("Sync rejected", response.status, await response.text().catch(() => ""));
     return { state: "error", pulled: 0, pushed: 0, invalid: [] };
   }
 
@@ -97,7 +97,7 @@ async function run(childId: string): Promise<SyncOutcome> {
     // hilft nie, aber die Eingabe gehört dem Menschen, nicht dem Schema. Sie bleibt
     // sichtbar und korrigierbar — nur blockiert sie nicht länger alles dahinter.
     await dropFromOutbox(invalid.map((i) => i.id));
-    console.warn("Vom Server abgelehnt:", invalid);
+    console.warn("Rejected by the server:", invalid);
   }
 
   return {

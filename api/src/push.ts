@@ -22,6 +22,8 @@ export type PushSubscriptionRow = {
   auth: string;
   device_name: string;
   lead_minutes: number;
+  /** Sprache dieses Geräts für die Meldungstexte. */
+  locale: string;
   quiet_from_hour: number | null;
   quiet_to_hour: number | null;
   last_notified_for: string | null;
@@ -57,10 +59,10 @@ function ensureVapid(): void {
 export function createPushStore(db: Db) {
   const upsert = db.prepare(`
     INSERT INTO push_subscriptions (
-      endpoint, p256dh, auth, device_name, lead_minutes,
+      endpoint, p256dh, auth, device_name, lead_minutes, locale,
       quiet_from_hour, quiet_to_hour, created_at
     ) VALUES (
-      @endpoint, @p256dh, @auth, @device_name, @lead_minutes,
+      @endpoint, @p256dh, @auth, @device_name, @lead_minutes, @locale,
       @quiet_from_hour, @quiet_to_hour, @created_at
     )
     ON CONFLICT(endpoint) DO UPDATE SET
@@ -68,6 +70,7 @@ export function createPushStore(db: Db) {
       auth = excluded.auth,
       device_name = excluded.device_name,
       lead_minutes = excluded.lead_minutes,
+      locale = excluded.locale,
       quiet_from_hour = excluded.quiet_from_hour,
       quiet_to_hour = excluded.quiet_to_hour,
       failures = 0
@@ -198,6 +201,32 @@ export async function sendTo(
  * Als reine Funktion über den aktuellen Zeitpunkt gebaut, damit sie testbar ist,
  * ohne eine Stunde zu warten.
  */
+/**
+ * Meldungstexte des Servers.
+ *
+ * Absichtlich klein und hier statt in den Sprachdateien des Frontends: Der Server soll
+ * für zwei Sätze nicht dessen JSON laden müssen. Eine unbekannte Sprache fällt auf
+ * Englisch zurück.
+ */
+const PUSH_TEXTS: Record<string, Record<string, string>> = {
+  en: {
+    soon: "Bottle in about {minutes} min",
+    due: "A bottle would be due",
+    body: "Usually every {hours} h {minutes} min. She decides — this is only a reminder.",
+  },
+  de: {
+    soon: "Fläschchen in etwa {minutes} Min",
+    due: "Fläschchen wäre dran",
+    body: "Sonst alle {hours} Std {minutes} Min. Sie entscheidet — das hier ist nur eine Erinnerung.",
+  },
+};
+
+function text(locale: string, key: string, values: Record<string, string> = {}): string {
+  const table = PUSH_TEXTS[locale] ?? PUSH_TEXTS["en"]!;
+  const template = table[key] ?? PUSH_TEXTS["en"]![key]!;
+  return template.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? "");
+}
+
 export function dueNotifications(
   subs: PushSubscriptionRow[],
   next: NextFeed | null,
@@ -226,8 +255,14 @@ export function dueNotifications(
     result.push({
       sub,
       notification: {
-        title: minutesAway > 0 ? `Fläschchen in etwa ${minutesAway} Min` : "Fläschchen wäre dran",
-        body: `Sonst alle ${Math.floor(next.typicalGapMinutes / 60)} Std ${next.typicalGapMinutes % 60} Min. Sie entscheidet — das hier ist nur eine Erinnerung.`,
+        title:
+          minutesAway > 0
+            ? text(sub.locale, "soon", { minutes: String(minutesAway) })
+            : text(sub.locale, "due"),
+        body: text(sub.locale, "body", {
+          hours: String(Math.floor(next.typicalGapMinutes / 60)),
+          minutes: String(next.typicalGapMinutes % 60),
+        }),
         tag: "next-feed",
         url: "/",
       },

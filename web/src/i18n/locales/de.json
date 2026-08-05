@@ -56,12 +56,68 @@
       "title": "Seit {hours} Stunden keine nasse Windel"
     }
   },
+  "area": {
+    "koerper": "Körper",
+    "motorik": "Bewegung",
+    "sozial": "Miteinander",
+    "sprache": "Sprache"
+  },
+  "away": {
+    "days": "in {n} Tagen",
+    "now": "jetzt",
+    "weeks": "in 1 Woche | in {n} Wochen"
+  },
   "boot": {
     "failed": "Beim Start ist etwas schiefgelaufen.",
     "reload": "Neu laden",
     "reset": "Lokale Daten zurücksetzen",
     "resetHint": "Zurücksetzen löscht nur die Kopie auf diesem Gerät. Alle Einträge bleiben auf dem Server und den anderen Geräten erhalten.",
     "slow": "Das dauert länger als gewohnt."
+  },
+  "charts": {
+    "avgFeeds": "Ø Mahlzeiten",
+    "avgPerDay": "Ø pro Tag",
+    "dailyVolume": "Trinkmenge pro Tag",
+    "diaperHeatmapCaption": "Windeln der letzten {days} Tage nach Stunde",
+    "diapersByHour": "Windeln nach Stunde",
+    "empty": "Sobald ein paar Mahlzeiten eingetragen sind, entstehen hier die Auswertungen.",
+    "growth": "Wachstum",
+    "growthLegend": "Graue Linien: WHO-Perzentile P3, P15, P50 (durchgezogen), P85 und P97.",
+    "length": "Länge",
+    "lessThanLastWeek": "{n} % weniger als letzte Woche",
+    "lighter": "leichter oder gleich schwer",
+    "moreThanLastWeek": "{n} % mehr als letzte Woche",
+    "needsWeight": "Braucht einen Gewichtseintrag",
+    "noMeasurements": "Noch keine Messwerte. Über „Verlauf → Nachtragen“ lassen sich Gewicht und Länge eintragen — etwa die Werte von der letzten Vorsorgeuntersuchung.",
+    "perDay": "pro Tag",
+    "perKg": "Je Kilogramm",
+    "percentile": "Aktuell auf Perzentil {n} — {n} von 100 gleichaltrigen Kindern sind {comparison}.",
+    "percentileNote": "Entscheidend ist nicht der einzelne Wert, sondern ob die Kurve ihrem Band folgt. Ein Kind auf Perzentil 20 ist gesund, solange es auf Perzentil 20 bleibt.",
+    "rhythmLead": "Ein Punkt je Mahlzeit, die Größe steht für die Menge. Mitternacht liegt oben und unten — so wird das nächtliche Band sichtbar, das mit den Monaten dünner wird.",
+    "sameAsLastWeek": "etwa gleich wie letzte Woche",
+    "shorter": "kleiner oder gleich groß",
+    "showsGrowth": "Zeigt, ob die Menge mitwächst",
+    "tiles": "Kennzahlen",
+    "title": "Kurven",
+    "weight": "Gewicht",
+    "whenDrinking": "Wann getrunken wird"
+  },
+  "child": {
+    "birthDate": "Geburtsdatum",
+    "birthHead": "Kopfumfang bei Geburt",
+    "birthLength": "Geburtsgröße",
+    "birthWeight": "Geburtsgewicht",
+    "boy": "Junge",
+    "dueDate": "Errechneter Geburtstermin",
+    "dueDateHint": "Die Entwicklungssprünge zählen ab diesem Datum, nicht ab der Geburt. Bei einem Frühchen verschiebt sich der Zeitstrahl sonst um Wochen. Kann leer bleiben.",
+    "girl": "Mädchen",
+    "name": "Name",
+    "namePlaceholder": "Wie heißt sie oder er?",
+    "sex": "Geschlecht",
+    "sexHint": "Bestimmt, welche WHO-Wachstumskurven für den Vergleich herangezogen werden."
+  },
+  "cm": {
+    "placeholder": "z. B. 52"
   },
   "common": {
     "cancel": "Abbrechen",
@@ -253,6 +309,21 @@
     "wave": "Winkt oder zeigt auf Dinge",
     "who": " (WHO)"
   },
+  "milestones": {
+    "changeDate": "Datum ändern",
+    "check": "Abhaken",
+    "done": "Kann sie schon",
+    "doneAt": "Woche {week} · {date}",
+    "due": "Könnte jetzt dran sein",
+    "later": "Kommt später",
+    "note": "Die Zeitfenster sagen nicht, wann etwas passieren soll — sie zeigen, in welcher Spanne gesunde Kinder diesen Schritt machen, und die ist erstaunlich breit. Sechs davon (frei sitzen, mit Halt stehen, krabbeln, an der Hand laufen, frei stehen, frei laufen) stammen aus der WHO Motor Development Study, die übrigen sind übliche Erfahrungswerte.",
+    "since": "Seit wann?",
+    "sinceLabel": "seit {when}",
+    "title": "Meilensteine",
+    "uncheck": "Haken entfernen",
+    "usualIn": "Üblich in {window}",
+    "window": "Woche {from}–{to}"
+  },
   "nav": {
     "charts": "Kurven",
     "main": "Hauptnavigation",
@@ -279,6 +350,21 @@
       "action": "Hinzufügen",
       "text": "Foto für Woche {week} fehlt noch"
     }
+  },
+  "pin": {
+    "checkup": "Untersuchung",
+    "milestone": "Meilenstein",
+    "vaccination": "Impfung"
+  },
+  "push": {
+    "denied": "Benachrichtigungen wurden im Browser abgelehnt. Das lässt sich nur in den Browser-Einstellungen wieder ändern.",
+    "noKeys": "Auf dem Server sind keine Schlüssel hinterlegt."
+  },
+  "record": {
+    "biggestFeed": "Größte Mahlzeit",
+    "longestGap": "Längste Pause",
+    "longestSleep": "Längster Schlaf",
+    "strongestDay": "Stärkster Tag"
   },
   "region": {
     "label": "Land",
@@ -374,6 +460,42 @@
     "less": "{step} {unit} weniger",
     "more": "{step} {unit} mehr"
   },
+  "supply": {
+    "at": "bei {shop}",
+    "category": "Kategorie",
+    "changed": "Gewechselt",
+    "convert": "Doch ein Wechsel? Als neuen Stand anlegen",
+    "correct": "Angaben korrigieren",
+    "diaperSize": "Größe",
+    "diapers": "Windeln",
+    "earlier": "Frühere Stände ({n})",
+    "explainEdit": "Korrigiert nur diesen Eintrag — für einen echten Wechsel gehört ein neuer Stand angelegt, sonst geht der bisherige verloren.",
+    "explainNew": "Wird als neuer Stand gespeichert. Der bisherige bleibt als Historie erhalten.",
+    "formula": "Milchnahrung",
+    "formulaHint": "Marke möglichst nicht ohne Grund wechseln.",
+    "formulaSize": "Stufe (Pre, 1, 2 …)",
+    "lead": "Damit man es im Laden nicht aus dem Kopf können muss.",
+    "nothingYet": "Noch nichts hinterlegt.",
+    "other": "Sonstiges",
+    "otherSize": "Größe oder Menge",
+    "photo": "Foto der Verpackung",
+    "photoAlt": "Foto der Verpackung",
+    "photoHint": "Hilft im Regal — die Packungen einer Marke sehen sich sehr ähnlich.",
+    "photoOther": "Anderes Foto",
+    "photoRemove": "Entfernen",
+    "photoReuse": "Bisheriges übernehmen",
+    "photoTake": "Foto aufnehmen",
+    "photoUploading": "Wird geladen …",
+    "photoZoom": "Foto vergrößern",
+    "product": "Marke oder Produkt",
+    "record": "Eintragen",
+    "shop": "Wo gekauft",
+    "shopPlaceholder": "z. B. dm, Rossmann, Apotheke",
+    "since": "Seit wann",
+    "title": "Was wir kaufen",
+    "titleEdit": "Eintrag ändern",
+    "titleNew": "{category} eintragen"
+  },
   "sync": {
     "error": "Abgleich gestört",
     "offline": "offline",
@@ -438,9 +560,49 @@
       "wet": "Feucht"
     }
   },
+  "totals": {
+    "avgPerDay": "Im Schnitt pro Tag",
+    "bathDays": "Badetage",
+    "bottles": "Fläschchen",
+    "diapers": "Windeln",
+    "empty": "Sobald ihr ein paar Tage eingetragen habt, sammeln sich hier die Zahlen.",
+    "feeds": "Mahlzeiten",
+    "intake": "Trinkmenge",
+    "liters": "Liter",
+    "milestonesDone": "{n} Schritt abgehakt. | {n} Schritte abgehakt.",
+    "overall": "Insgesamt",
+    "perFeed": "Menge je Mahlzeit",
+    "records": "Rekorde",
+    "sleepRecorded": "Schlaf erfasst",
+    "title": "Zahlen",
+    "weekPhotos": "Wochenfotos",
+    "whoRecords": "Wer trägt ein"
+  },
+  "travel": {
+    "away": "Unterwegs",
+    "home": "Zuhause",
+    "mapAria": "Karte der bisherigen Reisen",
+    "none": "Noch keine Reise eingetragen.",
+    "note": "Reisen entstehen aus den Urlaubs-Einträgen: unter „Verlauf → Nachtragen“ eine Abwesenheit anlegen und dort einen Ort auswählen. Der zählt dann auch für das Wetter dieser Tage.",
+    "one": "Ein Ort, an dem sie schon war.",
+    "startingPoint": "Ausgangspunkt",
+    "title": "Reisekarte",
+    "toWeek": "Zur Woche",
+    "trip": "Reise"
+  },
+  "undo": {
+    "tapToUndo": "Tippen zum Rückgängigmachen"
+  },
   "vaccine": {
     "dependsOnBrand": "je nach Impfstoff",
     "from": "ab {date}"
+  },
+  "weather": {
+    "cold": "kalt",
+    "cool": "kühl",
+    "hot": "heiß",
+    "mild": "mild",
+    "veryHot": "sehr heiß"
   },
   "weekday": {
     "long": {
@@ -461,5 +623,17 @@
       "5": "Sa",
       "6": "So"
     }
+  },
+  "weeks": {
+    "addPhoto": "Foto für Woche {week} hinzufügen",
+    "ariaWeeks": "Wochen",
+    "checkInList": "In der Liste abhaken",
+    "lead": "Jede Woche ein Foto — der Zeitstrahl wird damit zum Album.",
+    "nothingThisWeek": "In dieser Woche steht nichts an.",
+    "otherPhoto": "Anderes Foto",
+    "removePhoto": "Entfernen",
+    "title": "Wochenband",
+    "toThisWeek": "Zu dieser Woche",
+    "upcoming": "Demnächst"
   }
 }

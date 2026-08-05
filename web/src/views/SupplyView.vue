@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { lifeWeek as calcLifeWeek, localDayKey, type SupplyCategory } from "@babymonitor/shared";
+import { useI18n } from "vue-i18n";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import SheetDialog from "../components/SheetDialog.vue";
@@ -19,17 +20,18 @@ import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
  * beiläufig passieren, und wenn doch etwas nicht bekommt, will man wissen, was und
  * ab wann.
  */
+const { t } = useI18n();
 const data = useData();
 
-const CATEGORIES: { value: SupplyCategory; label: string; hint: string; sizeLabel: string }[] = [
+const CATEGORIES: { value: SupplyCategory; key: string; hintKey: string; sizeKey: string }[] = [
   {
     value: "formula",
-    label: "Milchnahrung",
-    hint: "Marke möglichst nicht ohne Grund wechseln.",
-    sizeLabel: "Stufe (Pre, 1, 2 …)",
+    key: "supply.formula",
+    hintKey: "supply.formulaHint",
+    sizeKey: "supply.formulaSize",
   },
-  { value: "diaper", label: "Windeln", hint: "", sizeLabel: "Größe" },
-  { value: "other", label: "Sonstiges", hint: "", sizeLabel: "Größe oder Menge" },
+  { value: "diaper", key: "supply.diapers", hintKey: "", sizeKey: "supply.diaperSize" },
+  { value: "other", key: "supply.other", hintKey: "", sizeKey: "supply.otherSize" },
 ];
 
 const supplies = computed(() =>
@@ -70,7 +72,7 @@ function history(category: SupplyCategory): SupplyPeriod<LocalEntry>[] {
 function since(period: SupplyPeriod<LocalEntry>): string {
   const parts = [period.rangeLabel, period.durationLabel].filter(Boolean);
   if (data.child) {
-    parts.push(`Woche ${calcLifeWeek(data.child.birthDate, period.entry.startedAt, data.timezone)}`);
+    parts.push(t("common.weekN", { n: calcLifeWeek(data.child.birthDate, period.entry.startedAt, data.timezone) }));
   }
   return parts.join(" · ");
 }
@@ -249,12 +251,12 @@ async function remove() {
 <template>
   <div class="supply">
     <header class="head">
-      <h1>Was wir kaufen</h1>
-      <p class="head__sub">Damit man es im Laden nicht aus dem Kopf können muss.</p>
+      <h1>{{ $t("supply.title") }}</h1>
+      <p class="head__sub">{{ $t("supply.lead") }}</p>
     </header>
 
     <section v-for="cat in CATEGORIES" :key="cat.value" class="card">
-      <h2 class="card__title">{{ cat.label }}</h2>
+      <h2 class="card__title">{{ $t(cat.key) }}</h2>
 
       <template v-if="periods(cat.value).length">
         <!-- Der aktuelle Stand ist reine Anzeige. Ihn anzutippen hat früher den
@@ -287,17 +289,17 @@ async function remove() {
 
         <div class="deeds">
           <button class="deeds__main" type="button" @click="startNew(cat.value)">
-            Gewechselt
+            {{ $t("supply.changed") }}
           </button>
           <button class="deeds__minor" type="button" @click="startEdit(current(cat.value)!)">
-            Angaben korrigieren
+            {{ $t("supply.correct") }}
           </button>
         </div>
 
         <!-- Zugeklappt: Was gerade gekauft wird, ist die Frage im Laden. Die Historie
              braucht man selten — aber dann genau. -->
         <details v-if="history(cat.value).length" class="history">
-          <summary>Frühere Stände ({{ history(cat.value).length }})</summary>
+          <summary>{{ $t("supply.earlier", { n: history(cat.value).length }) }}</summary>
           <ul>
             <li v-for="old in history(cat.value)" :key="old.entry.id">
               <button type="button" @click="startEdit(old.entry)">
@@ -319,11 +321,11 @@ async function remove() {
 
       <template v-else>
         <p class="card__empty">
-          Noch nichts hinterlegt.<span v-if="cat.hint"> {{ cat.hint }}</span>
+          {{ $t("supply.nothingYet") }}<span v-if="cat.hintKey"> {{ $t(cat.hintKey) }}</span>
         </p>
         <div class="deeds">
           <button class="deeds__main" type="button" @click="startNew(cat.value)">
-            Eintragen
+            {{ $t("supply.record") }}
           </button>
         </div>
       </template>
@@ -331,27 +333,26 @@ async function remove() {
 
     <SheetDialog
       v-model:open="sheetOpen"
-      :title="editing ? 'Eintrag ändern' : `${categoryMeta.label} eintragen`"
+      :title="editing ? $t('supply.titleEdit') : $t('supply.titleNew', { category: $t(categoryMeta.key) })"
     >
       <div class="form">
         <!-- Sagt vor dem Tippen, was der Knopf am Ende tut. Genau diese Unterscheidung
              ist vorher untergegangen. -->
         <p class="explain">
           <template v-if="editing">
-            Korrigiert nur diesen Eintrag — für einen echten Wechsel gehört ein neuer
-            Stand angelegt, sonst geht der bisherige verloren.
+            {{ $t("supply.explainEdit") }}
           </template>
           <template v-else>
-            Wird als neuer Stand gespeichert. Der bisherige bleibt als Historie erhalten.
+            {{ $t("supply.explainNew") }}
           </template>
         </p>
 
         <button v-if="editing" class="convert" type="button" @click="convertToChange">
-          Doch ein Wechsel? Als neuen Stand anlegen
+          {{ $t("supply.convert") }}
         </button>
 
         <div v-if="!editing" class="field">
-          <span class="field__label">Kategorie</span>
+          <span class="field__label">{{ $t("supply.category") }}</span>
           <div class="segmented">
             <button
               v-for="cat in CATEGORIES"
@@ -361,29 +362,29 @@ async function remove() {
               :class="{ 'segmented__item--active': category === cat.value }"
               @click="category = cat.value"
             >
-              {{ cat.label }}
+              {{ $t(cat.key) }}
             </button>
           </div>
         </div>
 
         <label class="field">
-          <span class="field__label">Marke oder Produkt</span>
+          <span class="field__label">{{ $t("supply.product") }}</span>
           <input v-model="product" type="text" placeholder="z. B. Aptamil Pronutra" />
         </label>
 
         <label class="field">
-          <span class="field__label">{{ categoryMeta.sizeLabel }}</span>
+          <span class="field__label">{{ $t(categoryMeta.sizeKey) }}</span>
           <input v-model="size" type="text" placeholder="z. B. Größe 3" />
         </label>
 
         <div class="field">
-          <span class="field__label">Foto der Verpackung</span>
+          <span class="field__label">{{ $t("supply.photo") }}</span>
           <div class="photo">
             <button
               v-if="previewSrc"
               class="photo__preview"
               type="button"
-              aria-label="Foto vergrößern"
+              :aria-label="$t('supply.photoZoom')"
               @click="zoomed = previewSrc"
             >
               <img :src="previewSrc" alt="" />
@@ -394,7 +395,7 @@ async function remove() {
                    wählen, etwa das vom letzten Einkauf. -->
               <label class="photo__pick">
                 <input type="file" accept="image/*" @change="pickPhoto" />
-                <span>{{ photoBusy ? "Wird geladen …" : previewSrc ? "Anderes Foto" : "Foto aufnehmen" }}</span>
+                <span>{{ photoBusy ? $t("supply.photoUploading") : previewSrc ? $t("supply.photoOther") : $t("supply.photoTake") }}</span>
               </label>
               <button
                 v-if="!previewSrc && previousMediaId"
@@ -402,28 +403,28 @@ async function remove() {
                 type="button"
                 @click="reusePreviousPhoto"
               >
-                Bisheriges übernehmen
+                {{ $t("supply.photoReuse") }}
               </button>
               <button v-if="previewSrc" class="photo__drop" type="button" @click="dropPhoto">
-                Entfernen
+                {{ $t("supply.photoRemove") }}
               </button>
             </div>
           </div>
-          <p class="field__hint">Hilft im Regal — die Packungen einer Marke sehen sich sehr ähnlich.</p>
+          <p class="field__hint">{{ $t("supply.photoHint") }}</p>
         </div>
 
         <label class="field">
-          <span class="field__label">Wo gekauft</span>
-          <input v-model="shop" type="text" placeholder="z. B. dm, Rossmann, Apotheke" />
+          <span class="field__label">{{ $t("supply.shop") }}</span>
+          <input v-model="shop" type="text" :placeholder="$t('supply.shopPlaceholder')" />
         </label>
 
         <div class="field">
-          <span class="field__label">Seit wann</span>
+          <span class="field__label">{{ $t("supply.since") }}</span>
           <TimeField v-model="at" />
         </div>
 
         <label class="field">
-          <span class="field__label">Notiz (optional)</span>
+          <span class="field__label">{{ $t("common.noteLabel") }}</span>
           <textarea v-model="note" rows="2" placeholder="z. B. verträgt sie gut" />
         </label>
       </div>
@@ -431,17 +432,17 @@ async function remove() {
       <template #actions>
         <div class="actions">
           <button class="save" type="button" :disabled="!canSave" @click="save">
-            Speichern
+            {{ $t("common.save") }}
           </button>
-          <button v-if="editing" class="remove" type="button" @click="remove">Löschen</button>
+          <button v-if="editing" class="remove" type="button" @click="remove">{{ $t("common.delete") }}</button>
         </div>
       </template>
     </SheetDialog>
 
     <!-- Großansicht. Ein Bild von 3 rem beantwortet die Frage im Laden nicht. -->
     <div v-if="zoomed" class="zoom" role="dialog" aria-label="Foto" @click="zoomed = null">
-      <img :src="zoomed" alt="Foto der Verpackung" />
-      <button class="zoom__close" type="button" aria-label="Schließen">
+      <img :src="zoomed" :alt="$t('supply.photoAlt')" />
+      <button class="zoom__close" type="button" :aria-label="$t('common.close')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
         </svg>

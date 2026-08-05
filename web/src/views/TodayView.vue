@@ -73,7 +73,10 @@ const todayWeather = computed(() => {
   const today = localDayKey(new Date(), data.timezone);
   const entry = byDay.value.get(today);
   if (!entry?.tmax) return null;
-  return { tmax: Math.round(entry.tmax), label: describeTemperature(entry.tmax) };
+  // describeTemperature liefert einen Schlüssel, keinen Text — die Einordnung ist
+  // eine Formulierung und gehört in die Sprachdateien.
+  const key = describeTemperature(entry.tmax);
+  return { tmax: Math.round(entry.tmax), label: key ? t(key) : "" };
 });
 
 /**

@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { calendarDateLabel, lifeWeek as calcLifeWeek, localDayKey } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
-import { AREA_LABEL, MILESTONES, MILESTONE_NOTE, type Milestone } from "../data/milestones.ts";
+import { MILESTONES, type Milestone } from "../data/milestones.ts";
 import SheetDialog from "../components/SheetDialog.vue";
 import TimeField from "../components/TimeField.vue";
 import { useI18n } from "vue-i18n";
@@ -100,27 +100,27 @@ async function undo() {
 }
 
 function windowLabel(m: Milestone): string {
-  return `Woche ${m.fromWeek}–${m.toWeek}`;
+  return t("milestones.window", { from: m.fromWeek, to: m.toWeek });
 }
 
 function doneLabel(row: Row): string {
   if (!row.done || !data.child) return "";
   const day = localDayKey(row.done.startedAt, data.timezone);
-  return `Woche ${row.doneWeek} · ${calendarDateLabel(day)}`;
+  return t("milestones.doneAt", { week: row.doneWeek, date: calendarDateLabel(day) });
 }
 </script>
 
 <template>
   <div class="milestones">
     <header class="head">
-      <h1>Meilensteine</h1>
+      <h1>{{ $t("milestones.title") }}</h1>
       <p class="head__sub">
         {{ doneCount }} von {{ rows.length }} abgehakt
       </p>
     </header>
 
     <section v-if="dueRows.length" class="group">
-      <h2 class="group__title">Könnte jetzt dran sein</h2>
+      <h2 class="group__title">{{ $t("milestones.due") }}</h2>
       <ul class="list">
         <li v-for="row in dueRows" :key="row.key">
           <button class="item" type="button" @click="open(row)">
@@ -128,7 +128,7 @@ function doneLabel(row: Row): string {
             <span class="item__body">
               <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
               <span class="item__meta">
-                {{ AREA_LABEL[row.area] }} · {{ windowLabel(row) }}
+                {{ $t(`area.${row.area}`) }} · {{ windowLabel(row) }}
                 <span v-if="row.source === 'who'" class="item__who">WHO</span>
               </span>
               <span v-if="row.hint" class="item__hint">{{ row.hint }}</span>
@@ -139,7 +139,7 @@ function doneLabel(row: Row): string {
     </section>
 
     <section v-if="doneRows.length" class="group">
-      <h2 class="group__title">Kann sie schon</h2>
+      <h2 class="group__title">{{ $t("milestones.done") }}</h2>
       <ul class="list">
         <li v-for="row in doneRows" :key="row.key">
           <button class="item item--done" type="button" @click="open(row)">
@@ -150,7 +150,7 @@ function doneLabel(row: Row): string {
             </span>
             <span class="item__body">
               <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
-              <span class="item__meta">seit {{ doneLabel(row) }}</span>
+              <span class="item__meta">{{ $t("milestones.sinceLabel", { when: doneLabel(row) }) }}</span>
             </span>
           </button>
         </li>
@@ -158,7 +158,7 @@ function doneLabel(row: Row): string {
     </section>
 
     <section v-if="upcomingRows.length" class="group">
-      <h2 class="group__title">Kommt später</h2>
+      <h2 class="group__title">{{ $t("milestones.later") }}</h2>
       <ul class="list">
         <li v-for="row in upcomingRows" :key="row.key">
           <button class="item item--future" type="button" @click="open(row)">
@@ -166,7 +166,7 @@ function doneLabel(row: Row): string {
             <span class="item__body">
               <span class="item__label">{{ $t(`milestone.${row.key}`) }}</span>
               <span class="item__meta">
-                {{ AREA_LABEL[row.area] }} · {{ windowLabel(row) }}
+                {{ $t(`area.${row.area}`) }} · {{ windowLabel(row) }}
                 <span v-if="row.source === 'who'" class="item__who">WHO</span>
               </span>
             </span>
@@ -175,22 +175,22 @@ function doneLabel(row: Row): string {
       </ul>
     </section>
 
-    <p class="note">{{ MILESTONE_NOTE }}</p>
+    <p class="note">{{ $t("milestones.note") }}</p>
 
     <SheetDialog v-model:open="sheetOpen" :title="selected ? $t(`milestone.${selected.key}`) : $t('entry.milestone')">
       <div class="ms-sheet">
         <p v-if="selected" class="ms-sheet__window">
-          Üblich in {{ windowLabel(selected) }}<span v-if="selected.source === 'who'"> (WHO)</span>
+          {{ $t("milestones.usualIn", { window: windowLabel(selected) }) }}<span v-if="selected.source === 'who'">{{ $t("milestone.who") }}</span>
         </p>
         <p v-if="selected?.hint" class="ms-sheet__hint">{{ selected.hint }}</p>
-        <p class="ms-sheet__label">Seit wann?</p>
+        <p class="ms-sheet__label">{{ $t("milestones.since") }}</p>
         <TimeField v-model="at" />
       </div>
 
       <template #actions>
         <div class="ms-sheet__actions">
           <button class="save" type="button" @click="save">
-            {{ selected && achieved.get(selected.key) ? "Datum ändern" : "Abhaken" }}
+            {{ selected && achieved.get(selected.key) ? $t("milestones.changeDate") : $t("milestones.check") }}
           </button>
           <button
             v-if="selected && achieved.get(selected.key)"
@@ -198,7 +198,7 @@ function doneLabel(row: Row): string {
             type="button"
             @click="undo"
           >
-            Haken entfernen
+            {{ $t("milestones.uncheck") }}
           </button>
         </div>
       </template>

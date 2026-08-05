@@ -344,6 +344,8 @@ export async function buildApp(
     endpoint: z.string().url().max(1000),
     keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(200) }),
     leadMinutes: z.number().int().min(0).max(120).default(10),
+    /** Sprache dieses Geräts — bestimmt die Sprache der Meldung. */
+    locale: z.string().max(8).default("en"),
     /** Ruhezeit als Stundenpaar in Lokalzeit; null heißt rund um die Uhr. */
     quietFromHour: z.number().int().min(0).max(23).nullable().default(22),
     quietToHour: z.number().int().min(0).max(23).nullable().default(6),
@@ -361,6 +363,7 @@ export async function buildApp(
       auth: d.keys.auth,
       device_name: req.session!.name,
       lead_minutes: d.leadMinutes,
+      locale: d.locale,
       quiet_from_hour: d.quietFromHour,
       quiet_to_hour: d.quietToHour,
     });

@@ -6,11 +6,11 @@ import { useData } from "../stores/data.ts";
 import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 
-import { regionByCode } from "../data/regions/index.ts";
+import { regionByCode, regionNote } from "../data/regions/index.ts";
 import WeekRibbon from "../components/WeekRibbon.vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const data = useData();
 const region = computed(() => regionByCode(data.child?.region));
@@ -97,25 +97,25 @@ async function removePhoto() {
  * eine Art dazu, fällt die Lücke sofort auf.
  */
 const PIN_KIND_LABEL: Record<TimelinePin["kind"], string> = {
-  checkup: "Untersuchung",
-  vaccination: "Impfung",
-  milestone: "Meilenstein",
+  checkup: "pin.checkup",
+  vaccination: "pin.vaccination",
+  milestone: "pin.milestone",
 };
 
 function daysAwayLabel(days: number): string {
-  if (days <= 0) return "jetzt";
-  if (days < 7) return `in ${days} Tagen`;
+  if (days <= 0) return t("away.now");
+  if (days < 7) return t("away.days", { n: days });
   const weeks = Math.round(days / 7);
-  return weeks === 1 ? "in 1 Woche" : `in ${weeks} Wochen`;
+  return t("away.weeks", { n: weeks }, weeks);
 }
 </script>
 
 <template>
   <div class="weeks">
     <header class="weeks__head">
-      <h1>Wochenband</h1>
+      <h1>{{ $t("weeks.title") }}</h1>
       <p class="weeks__sub">
-        Jede Woche ein Foto — der Zeitstrahl wird damit zum Album.
+        {{ $t("weeks.lead") }}
       </p>
     </header>
 
@@ -142,9 +142,9 @@ function daysAwayLabel(days: number): string {
     />
 
     <!-- Detail zur angetippten Woche -->
-    <section class="detail" :aria-label="`Woche ${selectedWeek}`">
+    <section class="detail" :aria-label="$t('common.weekN', { n: selectedWeek })">
       <div class="detail__head">
-        <h2>Woche {{ selectedWeek }}</h2>
+        <h2>{{ $t("common.weekN", { n: selectedWeek }) }}</h2>
         <span class="detail__date">ab {{ selectedDateLabel }}</span>
       </div>
 
@@ -155,10 +155,10 @@ function daysAwayLabel(days: number): string {
         <!-- Ein Foto ist kein endgültiger Zustand: Das erste ist selten das beste. -->
         <div class="photo-actions">
           <button class="photo-action" type="button" :disabled="busy" @click="requestPhoto(selectedWeek)">
-            {{ busy ? "Lädt …" : "Anderes Foto" }}
+            {{ busy ? $t("photo.loading") : $t("weeks.otherPhoto") }}
           </button>
           <button class="photo-action photo-action--remove" type="button" @click="removePhoto">
-            Entfernen
+            {{ $t("weeks.removePhoto") }}
           </button>
         </div>
       </template>
@@ -169,13 +169,13 @@ function daysAwayLabel(days: number): string {
         :disabled="busy"
         @click="requestPhoto(selectedWeek)"
       >
-        {{ busy ? "Lädt …" : `Foto für Woche ${selectedWeek} hinzufügen` }}
+        {{ busy ? $t("photo.loading") : $t("weeks.addPhoto", { week: selectedWeek }) }}
       </button>
 
       <ul v-if="periodsInWeek.length" class="periods-list">
         <li v-for="period in periodsInWeek" :key="period.id">
           <span class="periods-list__kind" :class="`periods-list__kind--${period.kind}`">
-            {{ period.kind === "illness" ? "Krank" : "Unterwegs" }}
+            {{ period.kind === "illness" ? $t("period.ill") : $t("period.away") }}
           </span>
           <span>
             {{ period.label }}
@@ -190,26 +190,26 @@ function daysAwayLabel(days: number): string {
       <ul v-if="selectedPins.length" class="pins">
         <li v-for="pin in selectedPins" :key="pin.id" class="pins__item">
           <span class="pins__kind" :class="`pins__kind--${pin.kind}`">
-            {{ PIN_KIND_LABEL[pin.kind] }}
+            {{ $t(PIN_KIND_LABEL[pin.kind]) }}
           </span>
           <div class="pins__body">
             <p class="pins__label">{{ pin.label }}</p>
             <p class="pins__when">{{ pin.when }}</p>
             <p v-if="pin.detail" class="pins__detail">{{ pin.detail }}</p>
             <RouterLink v-if="pin.kind === 'milestone'" to="/meilensteine" class="pins__link">
-              In der Liste abhaken
+              {{ $t("weeks.checkInList") }}
             </RouterLink>
           </div>
         </li>
       </ul>
       <p v-else-if="!selectedPhoto && !periodsInWeek.length" class="detail__empty">
-        In dieser Woche steht nichts an.
+        {{ $t("weeks.nothingThisWeek") }}
       </p>
     </section>
 
     <!-- Ausblick -->
     <section v-if="nextItems.length" class="upcoming">
-      <h2 class="upcoming__title">Demnächst</h2>
+      <h2 class="upcoming__title">{{ $t("weeks.upcoming") }}</h2>
       <ul>
         <li v-for="item in nextItems" :key="item.id" class="upcoming__item">
           <span class="upcoming__when">{{ daysAwayLabel(item.daysAway) }}</span>
@@ -230,7 +230,7 @@ function daysAwayLabel(days: number): string {
       <p>{{ $t("leap.disclaimer") }}</p>
       <!-- Der Hinweis kommt aus der Länderdatei, weil er von Land zu Land anders
            lautet — die deutschen Fristen etwa hängen an der Kassenleistung. -->
-      <p v-if="region.checkupNote">{{ region.checkupNote }}</p>
+      <p v-if="regionNote(region.checkupNote, locale)">{{ regionNote(region.checkupNote, locale) }}</p>
       <p v-if="!region.verified && region.code !== 'none'">{{ $t("region.unverified") }}</p>
       <p>{{ $t("region.medicalNote") }}</p>
     </footer>

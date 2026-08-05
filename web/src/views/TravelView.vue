@@ -8,6 +8,9 @@ import {
 } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import { WORLD_PATH, WORLD_VIEWBOX, projectToMap } from "../data/world.ts";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 /**
  * Reisekarte: wo wir mit ihr schon waren.
@@ -46,8 +49,8 @@ const trips = computed<Trip[]>(() => {
     const p = projectToMap(child.latitude, child.longitude);
     result.push({
       id: "home",
-      label: child.placeName ?? "Zuhause",
-      kind: "Zuhause",
+      label: child.placeName ?? t("travel.home"),
+      kind: t("travel.home"),
       x: p.x,
       y: p.y,
       week: 0,
@@ -63,8 +66,8 @@ const trips = computed<Trip[]>(() => {
     const p = projectToMap(entry.latitude, entry.longitude);
     result.push({
       id: entry.id,
-      label: entry.placeName ?? entry.label ?? "Unterwegs",
-      kind: entry.label ?? "Reise",
+      label: entry.placeName ?? entry.label ?? t("travel.away"),
+      kind: entry.label ?? t("travel.trip"),
       x: p.x,
       y: p.y,
       week: calcLifeWeek(child.birthDate, entry.startedAt, data.timezone),
@@ -147,7 +150,7 @@ const routeLine = computed(() => {
 const selectedTrip = computed(() => trips.value.find((t) => t.id === selected.value) ?? null);
 
 function periodLabel(trip: Trip): string {
-  if (trip.isHome) return "Ausgangspunkt";
+  if (trip.isHome) return t("travel.startingPoint");
   const from = calendarDateLabel(trip.from);
   return trip.to && trip.to !== trip.from ? `${from} – ${calendarDateLabel(trip.to)}` : from;
 }
@@ -160,20 +163,20 @@ function jumpToWeek(week: number) {
 <template>
   <div class="travel">
     <header class="head">
-      <h1>Reisekarte</h1>
+      <h1>{{ $t("travel.title") }}</h1>
       <p class="head__sub">
         {{
           journeys.length === 0
-            ? "Noch keine Reise eingetragen."
+            ? $t("travel.none")
             : journeys.length === 1
-              ? "Ein Ort, an dem sie schon war."
+              ? $t("travel.one")
               : `${journeys.length} Orte, an denen sie schon war.`
         }}
       </p>
     </header>
 
     <div class="map-card">
-      <svg :viewBox="viewBox" class="map" role="img" aria-label="Karte der bisherigen Reisen">
+      <svg :viewBox="viewBox" class="map" role="img" :aria-label="$t('travel.mapAria')">
         <path :d="WORLD_PATH" class="map__land" />
         <path v-if="routeLine" :d="routeLine" class="map__route" />
         <g v-for="trip in trips" :key="trip.id">
@@ -190,9 +193,7 @@ function jumpToWeek(week: number) {
     </div>
 
     <p v-if="journeys.length === 0" class="empty">
-      Reisen entstehen aus den Urlaubs-Einträgen: unter „Verlauf → Nachtragen“ eine
-      Abwesenheit anlegen und dort einen Ort auswählen. Der zählt dann auch für das
-      Wetter dieser Tage.
+      {{ $t("travel.note") }}
     </p>
 
     <ul v-else class="list">
@@ -217,7 +218,7 @@ function jumpToWeek(week: number) {
             type="button"
             @click.stop="jumpToWeek(trip.week)"
           >
-            Zur Woche
+            {{ $t("travel.toWeek") }}
           </button>
         </button>
       </li>

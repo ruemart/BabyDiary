@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 /**
  * Längenangabe in Zentimetern.
@@ -52,7 +55,7 @@ const asText = computed({
         type="text"
         inputmode="decimal"
         autocomplete="off"
-        placeholder="z. B. 52"
+        :placeholder="$t('cm.placeholder')"
       />
       <span class="cm__unit">cm</span>
     </span>

@@ -1,5 +1,6 @@
 import { useToast } from "sit-onyx";
 import { useData } from "../stores/data.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Bestätigung mit Rückgängig-Möglichkeit.
@@ -13,13 +14,15 @@ import { useData } from "../stores/data.ts";
  * Ein 20-Pixel-Ziel trifft man im Dunkeln nicht.
  */
 export function useUndo() {
+  const { t } = useI18n();
+
   const toast = useToast();
   const data = useData();
 
   return function confirmWithUndo(headline: string, entryId: string): void {
     toast.show({
       headline,
-      description: "Tippen zum Rückgängigmachen",
+      description: t("undo.tapToUndo"),
       color: "success",
       clickable: true,
       // 4 s statt der üblichen 6: Wer drei Windeln hintereinander einträgt, stapelt

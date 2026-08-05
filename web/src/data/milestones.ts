@@ -203,19 +203,6 @@ export const MILESTONES: Milestone[] = [
   },
 ];
 
-export const AREA_LABEL: Record<MilestoneArea, string> = {
-  sozial: "Miteinander",
-  motorik: "Bewegung",
-  sprache: "Sprache",
-  koerper: "Körper",
-};
 
-export const MILESTONE_NOTE =
-  "Die Zeitfenster sagen nicht, wann etwas passieren soll — sie zeigen, in welcher " +
-  "Spanne gesunde Kinder diesen Schritt machen, und die ist erstaunlich breit. Sechs " +
-  "davon (frei sitzen, mit Halt stehen, krabbeln, an der Hand laufen, frei stehen, " +
-  "frei laufen) stammen aus der WHO Motor Development Study, die übrigen sind " +
-  "verbreitete Orientierungswerte. Bei Sorgen ist die U-Untersuchung der richtige " +
-  "Ort, nicht diese Liste.";
 
 export const MILESTONES_BY_KEY = new Map(MILESTONES.map((m) => [m.key, m]));

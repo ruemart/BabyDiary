@@ -1,4 +1,6 @@
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { currentLocale } from "../i18n/index.ts";
 
 /**
  * Benachrichtigungen für dieses Gerät.
@@ -38,6 +40,8 @@ export const DEFAULT_SETTINGS: PushSettings = {
 };
 
 export function usePushNotifications() {
+  const { t } = useI18n();
+
   const state = ref<PushState>("off");
   const busy = ref(false);
   const settings = ref<PushSettings>(readSettings());
@@ -101,7 +105,7 @@ export function usePushNotifications() {
     busy.value = true;
     try {
       const key = await serverKey();
-      if (!key) return "Auf dem Server sind keine Schlüssel hinterlegt.";
+      if (!key) return t("push.noKeys");
 
       // Die Abfrage MUSS aus einer direkten Nutzeraktion kommen — sonst lehnen
       // iOS und Safari sie ohne Rückfrage ab.
@@ -109,7 +113,7 @@ export function usePushNotifications() {
       if (permission !== "granted") {
         state.value = permission === "denied" ? "denied" : "off";
         return permission === "denied"
-          ? "Benachrichtigungen wurden im Browser abgelehnt. Das lässt sich nur in den Browser-Einstellungen wieder ändern."
+          ? t("push.denied")
           : null;
       }
 
@@ -123,7 +127,9 @@ export function usePushNotifications() {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ ...subscription.toJSON(), ...settings.value }),
+        // locale mitgeben: Die Meldung formuliert der Server, und er muss wissen,
+        // in welcher Sprache dieses Gerät sie lesen will.
+        body: JSON.stringify({ ...subscription.toJSON(), ...settings.value, locale: currentLocale() }),
       });
       if (!res.ok) return "Die Anmeldung konnte nicht gespeichert werden.";
 
@@ -169,7 +175,7 @@ export function usePushNotifications() {
       method: "POST",
       headers: { "content-type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ ...subscription.toJSON(), ...next }),
+      body: JSON.stringify({ ...subscription.toJSON(), ...next, locale: currentLocale() }),
     }).catch(() => {});
   }
 

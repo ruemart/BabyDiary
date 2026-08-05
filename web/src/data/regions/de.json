@@ -9,7 +9,10 @@
     "vaccinations": "STIKO-Impfkalender 2026 (Epid. Bull. 4/2026), Robert Koch-Institut",
     "url": "https://www.rki.de/DE/Themen/Infektionskrankheiten/Impfen/Staendige-Impfkommission/Empfehlungen-der-STIKO/Empfehlungen/Impfkalender.html"
   },
-  "checkupNote": "Die Zeitfenster sind verbindlich — wird eine Untersuchung zu spät wahrgenommen, zahlt die Krankenkasse sie eventuell nicht.",
+  "checkupNote": {
+    "de": "Die Zeitfenster sind verbindlich — wird eine Untersuchung zu spät wahrgenommen, zahlt die Krankenkasse sie eventuell nicht.",
+    "en": "The time windows are binding — if a check-up is taken too late, the health insurer may not cover it."
+  },
   "checkups": [
     {
       "id": "U1",

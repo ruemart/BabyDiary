@@ -56,12 +56,68 @@
       "title": "No wet nappy for {hours} hours"
     }
   },
+  "area": {
+    "koerper": "Body",
+    "motorik": "Movement",
+    "sozial": "Together",
+    "sprache": "Speech"
+  },
+  "away": {
+    "days": "in {n} days",
+    "now": "now",
+    "weeks": "in 1 week | in {n} weeks"
+  },
   "boot": {
     "failed": "Something went wrong while starting.",
     "reload": "Reload",
     "reset": "Reset local data",
     "resetHint": "Resetting only clears the copy on this device. All entries stay on the server and on the other devices.",
     "slow": "This is taking longer than usual."
+  },
+  "charts": {
+    "avgFeeds": "Avg feeds",
+    "avgPerDay": "Avg per day",
+    "dailyVolume": "Daily intake",
+    "diaperHeatmapCaption": "Nappies of the last {days} days by hour",
+    "diapersByHour": "Nappies by hour",
+    "empty": "As soon as a few feeds are recorded, the charts appear here.",
+    "growth": "Growth",
+    "growthLegend": "Grey lines: WHO percentiles P3, P15, P50 (solid), P85 and P97.",
+    "length": "Length",
+    "lessThanLastWeek": "{n} % less than last week",
+    "lighter": "lighter or the same weight",
+    "moreThanLastWeek": "{n} % more than last week",
+    "needsWeight": "Needs a weight entry",
+    "noMeasurements": "No measurements yet. Under “History → Add entry” you can record weight and length — for example the values from the last check-up.",
+    "perDay": "per day",
+    "perKg": "Per kilogram",
+    "percentile": "Currently on percentile {n} — {n} of 100 children the same age are {comparison}.",
+    "percentileNote": "What matters is not the single value but whether the curve follows its band. A child on percentile 20 is healthy as long as they stay on percentile 20.",
+    "rhythmLead": "One dot per feed, the size stands for the amount. Midnight is at the top and the bottom — that makes the night-time band visible, which thins out over the months.",
+    "sameAsLastWeek": "about the same as last week",
+    "shorter": "shorter or the same height",
+    "showsGrowth": "Shows whether intake keeps up",
+    "tiles": "Key figures",
+    "title": "Charts",
+    "weight": "Weight",
+    "whenDrinking": "When she drinks"
+  },
+  "child": {
+    "birthDate": "Date of birth",
+    "birthHead": "Head circumference at birth",
+    "birthLength": "Length at birth",
+    "birthWeight": "Weight at birth",
+    "boy": "Boy",
+    "dueDate": "Due date",
+    "dueDateHint": "The developmental leaps count from this date, not from birth. For a premature baby the timeline would otherwise be off by weeks. May be left empty.",
+    "girl": "Girl",
+    "name": "Name",
+    "namePlaceholder": "What is their name?",
+    "sex": "Sex",
+    "sexHint": "Determines which WHO growth charts are used for comparison."
+  },
+  "cm": {
+    "placeholder": "e.g. 52"
   },
   "common": {
     "cancel": "Cancel",
@@ -253,6 +309,21 @@
     "wave": "Waves or points at things",
     "who": " (WHO)"
   },
+  "milestones": {
+    "changeDate": "Change date",
+    "check": "Tick off",
+    "done": "She can already",
+    "doneAt": "Week {week} · {date}",
+    "due": "Could be due now",
+    "later": "Later on",
+    "note": "The windows do not say when something should happen — they show the range in which healthy children take this step, and it is remarkably wide. Six of them (sitting alone, standing with support, crawling, walking with help, standing alone, walking alone) come from the WHO Motor Development Study; the rest are common experience.",
+    "since": "Since when?",
+    "sinceLabel": "since {when}",
+    "title": "Milestones",
+    "uncheck": "Remove tick",
+    "usualIn": "Usually in {window}",
+    "window": "week {from}–{to}"
+  },
   "nav": {
     "charts": "Charts",
     "main": "Main navigation",
@@ -279,6 +350,21 @@
       "action": "Add",
       "text": "Photo for week {week} still missing"
     }
+  },
+  "pin": {
+    "checkup": "Check-up",
+    "milestone": "Milestone",
+    "vaccination": "Vaccination"
+  },
+  "push": {
+    "denied": "Notifications are blocked in the browser. That can only be changed in the browser settings.",
+    "noKeys": "No keys are configured on the server."
+  },
+  "record": {
+    "biggestFeed": "Biggest feed",
+    "longestGap": "Longest gap",
+    "longestSleep": "Longest sleep",
+    "strongestDay": "Biggest day"
   },
   "region": {
     "label": "Country",
@@ -374,6 +460,42 @@
     "less": "{step} {unit} less",
     "more": "{step} {unit} more"
   },
+  "supply": {
+    "at": "at {shop}",
+    "category": "Category",
+    "changed": "Switched",
+    "convert": "Actually a switch? Save as a new one",
+    "correct": "Correct the details",
+    "diaperSize": "Size",
+    "diapers": "Nappies",
+    "earlier": "Earlier ones ({n})",
+    "explainEdit": "This only corrects this entry — a real switch needs a new one, otherwise the previous is lost.",
+    "explainNew": "Saved as a new entry. The previous one stays as history.",
+    "formula": "Formula",
+    "formulaHint": "Try not to switch brands without a reason.",
+    "formulaSize": "Stage (Pre, 1, 2 …)",
+    "lead": "So you do not have to keep it in your head at the shop.",
+    "nothingYet": "Nothing recorded yet.",
+    "other": "Other",
+    "otherSize": "Size or amount",
+    "photo": "Photo of the packaging",
+    "photoAlt": "Photo of the packaging",
+    "photoHint": "Helps at the shelf — packs of one brand look very much alike.",
+    "photoOther": "Another photo",
+    "photoRemove": "Remove",
+    "photoReuse": "Reuse the previous one",
+    "photoTake": "Take a photo",
+    "photoUploading": "Uploading …",
+    "photoZoom": "Enlarge photo",
+    "product": "Brand or product",
+    "record": "Record",
+    "shop": "Where bought",
+    "shopPlaceholder": "e.g. Boots, Tesco, pharmacy",
+    "since": "Since when",
+    "title": "What we buy",
+    "titleEdit": "Edit entry",
+    "titleNew": "Record {category}"
+  },
   "sync": {
     "error": "sync problem",
     "offline": "offline",
@@ -438,9 +560,49 @@
       "wet": "Wet"
     }
   },
+  "totals": {
+    "avgPerDay": "On an average day",
+    "bathDays": "bath days",
+    "bottles": "bottles",
+    "diapers": "nappies",
+    "empty": "Once you have recorded a few days, the numbers gather here.",
+    "feeds": "Feeds",
+    "intake": "Intake",
+    "liters": "litres",
+    "milestonesDone": "{n} step ticked off. | {n} steps ticked off.",
+    "overall": "Overall",
+    "perFeed": "Amount per feed",
+    "records": "Records",
+    "sleepRecorded": "sleep recorded",
+    "title": "Numbers",
+    "weekPhotos": "weekly photos",
+    "whoRecords": "Who records"
+  },
+  "travel": {
+    "away": "Away",
+    "home": "Home",
+    "mapAria": "Map of the trips so far",
+    "none": "No trip recorded yet.",
+    "note": "Trips come from the away entries: under “History → Add entry” create an away period and pick a place. That place also drives the weather for those days.",
+    "one": "One place she has been.",
+    "startingPoint": "Starting point",
+    "title": "Travel map",
+    "toWeek": "To the week",
+    "trip": "Trip"
+  },
+  "undo": {
+    "tapToUndo": "Tap to undo"
+  },
   "vaccine": {
     "dependsOnBrand": "depends on the brand",
     "from": "from {date}"
+  },
+  "weather": {
+    "cold": "cold",
+    "cool": "cool",
+    "hot": "hot",
+    "mild": "mild",
+    "veryHot": "very hot"
   },
   "weekday": {
     "long": {
@@ -461,5 +623,17 @@
       "5": "Sat",
       "6": "Sun"
     }
+  },
+  "weeks": {
+    "addPhoto": "Add a photo for week {week}",
+    "ariaWeeks": "Weeks",
+    "checkInList": "Tick it off in the list",
+    "lead": "One photo per week — which turns the timeline into an album.",
+    "nothingThisWeek": "Nothing due this week.",
+    "otherPhoto": "Another photo",
+    "removePhoto": "Remove",
+    "title": "Week ribbon",
+    "toThisWeek": "To this week",
+    "upcoming": "Coming up"
   }
 }

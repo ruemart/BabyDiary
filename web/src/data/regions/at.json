@@ -9,7 +9,10 @@
     "vaccinations": "Österreichischer Impfplan / Gratis-Kinderimpfkonzept",
     "url": "https://www.sozialministerium.gv.at/Themen/Gesundheit/Impfen/Impfplan-Österreich.html"
   },
-  "checkupNote": "Die Untersuchungen sind an Fristen gebunden; verspätete Termine können den Anspruch auf Leistungen berühren.",
+  "checkupNote": {
+    "de": "Die Untersuchungen sind an Fristen gebunden; verspätete Termine können den Anspruch auf Leistungen berühren.",
+    "en": "The examinations are tied to deadlines; late appointments can affect entitlement to benefits."
+  },
   "checkups": [
     {
       "id": "MKP1",

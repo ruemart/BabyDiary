@@ -33,7 +33,7 @@ const LEGEND = [
     <div class="heatmap__scroll">
       <table>
         <caption class="visually-hidden">
-          Windeln der letzten 14 Tage nach Stunde
+          {{ $t("charts.diaperHeatmapCaption", { days: rows.length }) }}
         </caption>
         <thead>
           <tr>

@@ -51,7 +51,12 @@ export type Region = {
   /** Wie die Untersuchungen im Land heißen — "U-Untersuchungen", "NHS reviews" … */
   checkupsLabel: string;
   sources: { checkups?: string; vaccinations?: string; url?: string };
-  checkupNote?: string;
+  /**
+   * Hinweis zu den Fristen. Entweder ein Text oder nach Sprachcode aufgeschlüsselt —
+   * für Länder, deren Regeln sich nicht in einem Satz übersetzen lassen. Wer eine
+   * Sprache nicht führt, bekommt die erste vorhandene.
+   */
+  checkupNote?: string | Record<string, string>;
   checkups: RegionCheckup[];
   vaccinations: RegionVaccination[];
 };
@@ -64,6 +69,16 @@ export type Region = {
 export const REGIONS: Region[] = [de, at, ch, gb, us, none] as Region[];
 
 export const DEFAULT_REGION = "none";
+
+/** Den Hinweis in der gewünschten Sprache holen, mit Rückfall auf das Vorhandene. */
+export function regionNote(
+  note: string | Record<string, string> | undefined,
+  locale: string,
+): string {
+  if (!note) return "";
+  if (typeof note === "string") return note;
+  return note[locale] ?? note["en"] ?? Object.values(note)[0] ?? "";
+}
 
 export function regionByCode(code: string | null | undefined): Region {
   return REGIONS.find((r) => r.code === code) ?? REGIONS.find((r) => r.code === DEFAULT_REGION)!;

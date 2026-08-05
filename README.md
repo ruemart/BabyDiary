@@ -66,6 +66,10 @@ Adding a language means adding one JSON file — no code changes:
    half-finished file is still usable.
 3. Register it in `web/src/i18n/index.ts` (two lines: the import and the `LOCALES` entry).
 
+A test in CI compares the language files against each other — same keys, no empty
+strings, same placeholders, same number of plural forms. All of those go wrong easily
+while translating and nobody spots them in a 700-line JSON file.
+
 Dates, times and number formats follow the selected language automatically. Times use
 whatever the language uses — `22:08` in German, `10:08 PM` in US English.
 
@@ -81,9 +85,17 @@ Some of the reference data is **specific to Germany** and is labelled as such in
 Everything else is not country-specific: the WHO growth standards are international,
 and the developmental leap weeks come from a model that is used well beyond Germany.
 
-If you are elsewhere, turn the German schedules off in Settings so the timeline does
-not show appointments that do not apply to you. Contributions with other countries'
-schedules are very welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Each country lives in one JSON file under `web/src/data/regions/`. Shipped with the
+project: **Germany, Austria, Switzerland, United Kingdom, United States** and **None**.
+You pick one during `./install.sh` and can change it any time in Settings — the choice
+belongs to the child record, so it syncs to both phones.
+
+> **Only the German file is verified.** It was transcribed from the Robert Koch
+> Institute's original and proofread. Every other file was gathered from public sources
+> and is explicitly **not** signed off — it carries `verified: false`, and the app says
+> so right where the dates are shown. If you check one against your country's official
+> schedule, flip that flag and send a pull request. New countries are very welcome —
+> see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

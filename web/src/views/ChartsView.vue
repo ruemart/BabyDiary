@@ -56,7 +56,7 @@ const currentPercentile = computed(() => {
 
 /** Der Vergleichssatz muss zur Messgröße passen — bei Länge ist "schwer" schlicht falsch. */
 const percentileComparison = computed(() =>
-  growthMeasure.value === "weight" ? "leichter oder gleich schwer" : "kleiner oder gleich groß",
+  growthMeasure.value === "weight" ? t("charts.lighter") : t("charts.shorter"),
 );
 
 const maxAgeDays = computed(() =>
@@ -66,27 +66,29 @@ const maxAgeDays = computed(() =>
 const trendText = computed(() => {
   const trend = summary.value.trendPercent;
   if (trend === null) return null;
-  if (Math.abs(trend) < 3) return "etwa gleich wie letzte Woche";
-  return trend > 0 ? `${trend} % mehr als letzte Woche` : `${Math.abs(trend)} % weniger als letzte Woche`;
+  if (Math.abs(trend) < 3) return t("charts.sameAsLastWeek");
+  return trend > 0
+    ? t("charts.moreThanLastWeek", { n: trend })
+    : t("charts.lessThanLastWeek", { n: Math.abs(trend) });
 });
 </script>
 
 <template>
   <div class="charts">
     <header class="charts__head">
-      <h1>Kurven</h1>
+      <h1>{{ $t("charts.title") }}</h1>
       <p class="charts__sub">Die letzten {{ DAYS }} Tage</p>
     </header>
 
     <p v-if="!hasFeeds" class="empty">
-      Sobald ein paar Mahlzeiten eingetragen sind, entstehen hier die Auswertungen.
+      {{ $t("charts.empty") }}
     </p>
 
     <template v-else>
       <!-- Kennzahlen als Kacheln: Für eine einzelne Zahl ist ein Diagramm der Umweg. -->
-      <section class="tiles" aria-label="Kennzahlen">
+      <section class="tiles" :aria-label="$t('charts.tiles')">
         <div class="tile">
-          <p class="tile__label">Ø pro Tag</p>
+          <p class="tile__label">{{ $t("charts.avgPerDay") }}</p>
           <p class="tile__value bm-tabular">
             {{ summary.avgMl ?? "–" }}<span class="tile__unit">ml</span>
           </p>
@@ -94,50 +96,49 @@ const trendText = computed(() => {
         </div>
 
         <div class="tile">
-          <p class="tile__label">Ø Mahlzeiten</p>
+          <p class="tile__label">{{ $t("charts.avgFeeds") }}</p>
           <p class="tile__value bm-tabular">
-            {{ summary.avgFeeds ?? "–" }}<span class="tile__unit">pro Tag</span>
+            {{ summary.avgFeeds ?? "–" }}<span class="tile__unit">{{ $t("charts.perDay") }}</span>
           </p>
         </div>
 
         <div class="tile">
-          <p class="tile__label">Je Kilogramm</p>
+          <p class="tile__label">{{ $t("charts.perKg") }}</p>
           <p class="tile__value bm-tabular">
             {{ summary.mlPerKg ?? "–" }}<span class="tile__unit">ml/kg</span>
           </p>
           <p class="tile__meta">
             {{
               summary.mlPerKg === null
-                ? "Braucht einen Gewichtseintrag"
-                : "Zeigt, ob die Menge mitwächst"
+                ? $t("charts.needsWeight")
+                : $t("charts.showsGrowth")
             }}
           </p>
         </div>
       </section>
 
       <section class="card">
-        <h2 class="card__title">Trinkmenge pro Tag</h2>
+        <h2 class="card__title">{{ $t("charts.dailyVolume") }}</h2>
         <DailyVolumeChart :series="dailyTotals" />
       </section>
 
       <section class="card">
-        <h2 class="card__title">Wann getrunken wird</h2>
+        <h2 class="card__title">{{ $t("charts.whenDrinking") }}</h2>
         <p class="card__lead">
-          Ein Punkt je Mahlzeit, die Größe steht für die Menge. Mitternacht liegt oben
-          und unten — so wird das nächtliche Band sichtbar, das mit den Monaten dünner wird.
+          {{ $t("charts.rhythmLead") }}
         </p>
         <RhythmChart :points="rhythm" :days="DAYS" />
       </section>
 
       <section class="card">
-        <h2 class="card__title">Windeln nach Stunde</h2>
+        <h2 class="card__title">{{ $t("charts.diapersByHour") }}</h2>
         <DiaperHeatmap :rows="diaperGrid" />
       </section>
     </template>
 
     <section v-if="data.child" class="card">
       <div class="growth__head">
-        <h2 class="card__title">Wachstum</h2>
+        <h2 class="card__title">{{ $t("charts.growth") }}</h2>
         <div class="toggle" role="group" aria-label="Messgröße">
           <button
             type="button"
@@ -145,7 +146,7 @@ const trendText = computed(() => {
             class="toggle__item"
             @click="growthMeasure = 'weight'"
           >
-            Gewicht
+            {{ $t("charts.weight") }}
           </button>
           <button
             type="button"
@@ -153,21 +154,18 @@ const trendText = computed(() => {
             class="toggle__item"
             @click="growthMeasure = 'length'"
           >
-            Länge
+            {{ $t("charts.length") }}
           </button>
         </div>
       </div>
 
       <p v-if="growthPoints.length === 0" class="card__lead">
-        Noch keine Messwerte. Über „Verlauf → Nachtragen“ lassen sich Gewicht und Länge
-        eintragen — etwa die Werte von der letzten U-Untersuchung.
+        {{ $t("charts.noMeasurements") }}
       </p>
 
       <template v-else>
         <p v-if="currentPercentile !== null" class="growth__percentile">
-          Aktuell auf <strong>Perzentil {{ currentPercentile }}</strong> —
-          {{ currentPercentile }} von 100 gleichaltrigen Kindern sind
-          {{ percentileComparison }}.
+          {{ $t("charts.percentile", { n: currentPercentile, comparison: percentileComparison }) }}
         </p>
         <GrowthChart
           :measure="growthMeasure"
@@ -176,8 +174,7 @@ const trendText = computed(() => {
           :max-age-days="maxAgeDays"
         />
         <p class="card__note">
-          Entscheidend ist nicht der einzelne Wert, sondern ob die Kurve ihrem Band folgt.
-          Ein Kind auf Perzentil 20 ist gesund, solange es auf Perzentil 20 bleibt.
+          {{ $t("charts.percentileNote") }}
         </p>
       </template>
     </section>
