@@ -72,7 +72,7 @@ function weekLabel(start: string): string {
   return `${shortDateLabel(start)} – ${calendarDateLabel(addDays(start, 6))}`;
 }
 
-/** Wochentagsnamen aus den Sprachdateien, Montag = 0 (siehe `weekdayIndex`). */
+/** Weekday names from the language files, Monday = 0 (see `weekdayIndex`). */
 const weekdayShort = (i: number) => t(`weekday.short.${i}`);
 const weekdayLong = (i: number) => t(`weekday.long.${i}`);
 
@@ -543,7 +543,7 @@ async function remove(entry: LocalEntry) {
   color: color-mix(in srgb, #2a2028 65%, transparent);
 }
 
-/* ── Tag ─────────────────────────────────────────────────────────────────── */
+/* ── Day ─────────────────────────────────────────────────────────────────── */
 
 .day__head {
   display: flex;

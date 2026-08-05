@@ -36,7 +36,7 @@ const chartData = computed<ChartData<"scatter">>(() => ({
         (ctx.raw as { spatUp?: boolean } | undefined)?.spatUp
           ? colors.value.feed
           : colors.value.surface,
-      // 2 px Ring in Flächenfarbe: überlappende Punkte bleiben einzeln erkennbar.
+      // A 2 px ring in the surface colour: overlapping dots stay individually visible.
       borderWidth: 2,
       pointRadius: (ctx) => {
         const ml = (ctx.raw as { ml: number } | undefined)?.ml ?? 0;

@@ -10,11 +10,11 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 /**
- * Abhakliste statt Freitext.
+ * A checklist instead of free text.
  *
- * Dieselben Einträge, die im Wochenband als Erwartung erscheinen, stehen hier zum
- * Abhaken. Es gibt nur EINE Liste — man soll nicht wissen müssen, welche Meilensteine
- * es gibt, um sie eintragen zu können.
+ * The same entries that appear as expectations on the week ribbon are here to be ticked
+ * off. There is only ONE list — you should not have to know which milestones exist in
+ * order to record them.
  */
 const data = useData();
 
@@ -22,7 +22,7 @@ const sheetOpen = ref(false);
 const selected = ref<Milestone | null>(null);
 const at = ref(new Date());
 
-/** Erreichte Meilensteine, nach Schlüssel. */
+/** Milestones reached, by key. */
 const achieved = computed(() => {
   const map = new Map<string, { id: string; startedAt: string }>();
   for (const e of data.entries) {
@@ -37,7 +37,7 @@ const currentWeek = computed(() => data.currentWeek);
 
 type Row = Milestone & {
   done: { id: string; startedAt: string } | undefined;
-  /** Woche, in der es tatsächlich passiert ist. */
+  /** The week it actually happened in. */
   doneWeek: number | null;
   status: "done" | "due" | "upcoming";
 };
@@ -60,7 +60,7 @@ const rows = computed<Row[]>(() =>
 
 const doneCount = computed(() => rows.value.filter((r) => r.status === "done").length);
 
-/** Was jetzt dran sein könnte — steht oben, der Rest darunter. */
+/** What could be due now — sits at the top, the rest below. */
 const dueRows = computed(() => rows.value.filter((r) => r.status === "due"));
 const doneRows = computed(() =>
   rows.value.filter((r) => r.status === "done").sort((a, b) => (a.doneWeek ?? 0) - (b.doneWeek ?? 0)),

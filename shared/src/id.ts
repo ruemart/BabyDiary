@@ -1,16 +1,16 @@
 /**
- * UUIDv7 — zeitsortierte Ids, auf dem Client erzeugt.
+ * UUIDv7 — time-sortable ids, generated on the client.
  *
- * Auf dem Client erzeugt, damit ein Eintrag offline sofort seine endgültige Id hat und
- * beim späteren Sync keine Id-Umschreibung nötig ist. Version 7 statt 4, weil die
- * ersten 48 Bit der Zeitstempel sind: Ids sortieren sich damit chronologisch, was
- * B-Tree-Indizes in SQLite freundlich stimmt und die Outbox-Reihenfolge stabil hält.
+ * Generated on the client so an entry has its final id immediately while offline and no
+ * id rewriting is needed when it syncs later. Version 7 rather than 4 because the first
+ * 48 bits are the timestamp: ids therefore sort chronologically, which keeps SQLite's
+ * B-tree indexes happy and the outbox order stable.
  */
 export function uuidv7(now: number = Date.now()): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
 
-  // 48-Bit-Zeitstempel, big endian. Division statt Bit-Shift, weil >>> bei 32 Bit abschneidet.
+  // 48-bit timestamp, big endian. Division rather than a bit shift, because >>> truncates at 32 bits.
   bytes[0] = Math.floor(now / 2 ** 40) & 0xff;
   bytes[1] = Math.floor(now / 2 ** 32) & 0xff;
   bytes[2] = Math.floor(now / 2 ** 24) & 0xff;

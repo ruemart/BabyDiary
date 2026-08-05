@@ -17,7 +17,7 @@ import type { LocalEntry } from "../db/local.ts";
  */
 
 export type DaySummary = {
-  /** "YYYY-MM-DD" in lokaler Zeit. */
+  /** "YYYY-MM-DD" in local time. */
   key: string;
   /** 0 = Montag … 6 = Sonntag. */
   weekday: number;
@@ -36,7 +36,7 @@ export type DaySummary = {
 };
 
 export type HistoryWeek = {
-  /** Montag der Woche. */
+  /** The Monday of the week. */
   start: string;
   days: DaySummary[];
 };
@@ -67,7 +67,7 @@ export function buildWeek(
   const days: DaySummary[] = [];
   for (let i = 0; i < WEEK_LENGTH; i++) {
     const key = addDays(weekStart, i);
-    // Aufsteigend, unabhängig davon, wie der Aufrufer sortiert hat.
+    // Ascending, regardless of how the caller sorted them.
     const dayEntries = (byDay.get(key) ?? []).sort((a, b) =>
       a.startedAt.localeCompare(b.startedAt),
     );

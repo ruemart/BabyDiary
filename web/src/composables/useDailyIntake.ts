@@ -27,7 +27,7 @@ export type IntakeStatus = {
   todayMl: number;
   /** A rough guide for a whole day, if a weight is known. */
   orientationMl: number | null;
-  /** Übliche Tagesmenge dieses Kindes, aus den letzten vollständigen Tagen. */
+  /** This child's usual daily amount, from the last complete days. */
   usualMl: number | null;
   /** Friendly confirmation — or null when there is (yet) nothing to confirm. */
   praise: string | null;

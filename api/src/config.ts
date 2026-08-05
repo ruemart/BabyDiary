@@ -20,7 +20,7 @@ export const config = {
   databasePath: process.env["DATABASE_PATH"] ?? join(dataDir, "babymonitor.db"),
   mediaDir: process.env["MEDIA_DIR"] ?? join(dataDir, "media"),
 
-  /** Wer diesen Wert im Einladungs-Link kennt, darf ein Gerät registrieren. */
+  /** Anyone who knows this value in the invite link may register a device. */
   householdSecret: required("HOUSEHOLD_SECRET"),
   /** Signs the session cookie. Changing it signs out every device. */
   cookieSecret: required("COOKIE_SECRET"),

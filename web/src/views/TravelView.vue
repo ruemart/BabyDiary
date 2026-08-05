@@ -13,14 +13,13 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 /**
- * Reisekarte: wo wir mit ihr schon waren.
+ * Travel map: where we have been with her.
  *
- * Speist sich aus den Abwesenheits-Einträgen, die ohnehin schon einen Ort haben —
- * kein zweites Erfassen. Der Wohnort kommt als Ausgangspunkt dazu.
+ * Fed from the away entries, which already carry a location — no second data entry. The
+ * home location is added as the starting point.
  *
- * Die Karte ist eine eingebaute SVG-Datei, kein Kartendienst: Sie funktioniert
- * offline, verrät keine Standorte nach außen, und es gibt keine Kachel-Adresse,
- * die in drei Jahren tot ist.
+ * The map is a built-in SVG, not a map service: it works offline, gives no locations
+ * away, and there is no tile address that will be dead in three years.
  */
 const data = useData();
 const router = useRouter();
@@ -83,11 +82,11 @@ const trips = computed<Trip[]>(() => {
 const journeys = computed(() => trips.value.filter((t) => !t.isHome));
 
 /**
- * Ausschnitt so wählen, dass alle Orte hineinpassen.
+ * Choose the viewport so all places fit in.
  *
- * Eine ganze Weltkarte mit drei Punkten in Süddeutschland wäre unlesbar. Die
- * Mindestspanne verhindert umgekehrt, dass ein einzelner Ort auf Straßenniveau
- * gezoomt wird, wo dann gar nichts mehr zu erkennen ist.
+ * A whole world map with three dots in southern Germany would be unreadable. Conversely,
+ * the minimum span stops a single place from being zoomed to street level, where nothing
+ * is recognisable any more.
  */
 const viewBox = computed(() => {
   const points = trips.value;
@@ -110,7 +109,7 @@ const viewBox = computed(() => {
   y0 -= padY;
   y1 += padY;
 
-  // Seitenverhältnis der Anzeige halten, sonst verzerrt der Ausschnitt die Karte.
+  // Keep the aspect ratio of the display, otherwise the viewport distorts the map.
   const targetRatio = 4 / 3;
   const width = x1 - x0;
   const height = y1 - y0;
@@ -130,18 +129,18 @@ const viewBox = computed(() => {
 });
 
 /**
- * Punktgröße gegen den Zoom rechnen.
+ * Compute the dot size against the zoom.
  *
- * Der Ausschnitt wird an die besuchten Orte angepasst, also skaliert alles darin mit.
- * Ohne Gegenrechnung wird aus einem Punkt bei einem einzelnen Reiseziel ein Fleck,
- * der halb Norddeutschland verdeckt.
+ * The viewport is fitted to the places visited, so everything inside scales with it.
+ * Without compensating, a single destination turns one dot into a blob covering half of
+ * northern Germany.
  */
 const dotRadius = computed(() => {
   const width = Number(viewBox.value.split(" ")[2]);
   return Math.max(1.2, (width / WORLD_VIEWBOX.width) * 6);
 });
 
-/** Verbindungslinie in Reihenfolge der Reisen — der zurückgelegte Weg. */
+/** A connecting line in trip order — the distance covered. */
 const routeLine = computed(() => {
   if (trips.value.length < 2) return "";
   return trips.value.map((t, i) => `${i === 0 ? "M" : "L"}${t.x} ${t.y}`).join("");
@@ -270,7 +269,7 @@ function jumpToWeek(week: number) {
   vector-effect: non-scaling-stroke;
 }
 
-/* Der zurückgelegte Weg in Reihenfolge der Reisen. */
+/* The distance covered, in trip order. */
 .map__route {
   fill: none;
   stroke: var(--bm-photo);

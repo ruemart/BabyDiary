@@ -7,11 +7,11 @@ import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
 /**
- * Eigener Service Worker statt des erzeugten.
+ * Our own service worker instead of the generated one.
  *
- * Der Grund ist einzig die Push-Behandlung: Ein automatisch erzeugter Worker kann
- * keinen `push`-Empfänger enthalten. Alles andere — Vorabspeichern, Aktualisierung,
- * Bildzwischenspeicher — bleibt inhaltlich, wie es war.
+ * The only reason is push handling: an automatically generated worker cannot contain a
+ * `push` listener. Everything else — precaching, updating, the image cache — stays as it
+ * was in substance.
  */
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -23,8 +23,8 @@ clientsClaim();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Bilder sind unveränderlich (die Id steckt im Dateinamen), also dauerhaft behalten —
-// dann ist die Galerie auch offline vollständig.
+// Images are immutable (the id is in the file name), so keep them permanently — that
+// way the gallery is complete offline too.
 registerRoute(
   ({ url }) => url.pathname.startsWith("/api/media/"),
   new CacheFirst({
@@ -51,15 +51,14 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      // Gleiches `tag` ersetzt eine ältere Meldung, statt sie zu stapeln: Zwei
-      // Erinnerungen an dieselbe Flasche untereinander wären nur Lärm.
+      // The same `tag` replaces an older message instead of stacking it: two reminders
+      // about the same bottle underneath each other would just be noise.
       tag: payload.tag ?? "babymonitor",
       renotify: false,
       icon: "/icon-192.png",
       badge: "/icon-192.png",
-      // Keine Vibration und kein `requireInteraction`: Das hier ist eine
-      // Erinnerung, kein Alarm — und nachts liegt das Telefon neben zwei Menschen,
-      // die jede Minute Schlaf brauchen.
+      // No vibration and no `requireInteraction`: this is a reminder, not an alarm —
+      // and at night the phone lies next to two people who need every minute of sleep.
       silent: false,
       data: { url: payload.url ?? "/" },
     }),
@@ -76,7 +75,7 @@ self.addEventListener("notificationclick", (event) => {
         type: "window",
         includeUncontrolled: true,
       });
-      // Ein bereits offenes Fenster nach vorn holen, statt ein zweites zu öffnen.
+      // Bring an already open window to the front instead of opening a second one.
       for (const client of windows) {
         if ("focus" in client) {
           await client.focus();

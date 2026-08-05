@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 /**
- * Stammdaten des Kindes. Wird sowohl beim ersten Start als auch in den Einstellungen
- * benutzt — dieselben Felder, damit später nichts anders heißt als beim Einrichten.
+ * The child's details. Used both on first start and in Settings — the same fields, so
+ * nothing is named differently later than it was during setup.
  */
 const props = defineProps<{ modelValue: Partial<Child> }>();
 const emit = defineEmits<{ "update:modelValue": [Partial<Child>] }>();

@@ -1,21 +1,20 @@
 import type { Db } from "./db.ts";
 
 /**
- * Tagestemperaturen von Open-Meteo.
+ * Daily temperatures from Open-Meteo.
  *
- * Open-Meteo, weil es ohne Anmeldung, ohne Schlüssel und ohne Nutzungsbedingungen
- * auskommt, die man in einer Familien-App nicht lesen will. Es gehen ausschließlich
- * Koordinaten hinaus — keine Daten über das Kind.
+ * Open-Meteo because it needs no sign-up, no key and no terms of use that nobody wants
+ * to read in a family app. Only coordinates go out — no data about the child.
  *
- * Einmal täglich geholt und in der Datenbank behalten: Der Dienst liefert nur ein
- * begrenztes Fenster in die Vergangenheit, unsere eigene Historie wächst dadurch mit.
+ * Fetched once a day and kept in the database: the service only offers a limited window
+ * into the past, so our own history grows along with it.
  */
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive";
 const GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
-/** So weit zurück liefert die Vorhersage-Schnittstelle Vergangenheit. */
+/** This far back the forecast endpoint still returns the past. */
 const PAST_DAYS = 92;
 
 export type WeatherRow = { day: string; tmax_dc: number | null; tmin_dc: number | null };
@@ -47,7 +46,7 @@ export function createWeatherStore(db: Db) {
       }));
     },
 
-    /** Wann zuletzt geholt wurde — Grundlage für "höchstens einmal pro Stunde". */
+    /** When it was last fetched — the basis for "at most once an hour". */
     lastFetchedAt(): string | null {
       return lastFetch.get()?.fetched_at ?? null;
     },
@@ -74,11 +73,11 @@ export async function fetchDailyTemperatures(
   latitude: number,
   longitude: number,
   timezone: string,
-  /** Optionaler Zeitraum — für Urlaube, die außerhalb des rollenden Fensters liegen. */
+  /** An optional period — for holidays that fall outside the rolling window. */
   range?: { from: string; to: string },
 ): Promise<{ day: string; tmax: number | null; tmin: number | null }[]> {
-  // Für Zeiträume, die älter sind als das rollende Fenster der Vorhersage, das
-  // Archiv befragen. Sonst käme für einen Urlaub im letzten Jahr schlicht nichts.
+  // For periods older than the forecast's rolling window, query the archive. Otherwise
+  // a holiday last year would simply return nothing.
   const useArchive =
     !!range && daysAgo(range.to) > PAST_DAYS - 5;
 
@@ -86,7 +85,7 @@ export async function fetchDailyTemperatures(
   url.searchParams.set("latitude", String(latitude));
   url.searchParams.set("longitude", String(longitude));
   url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min");
-  // Die Zone mitgeben, damit die Tagesgrenzen des Dienstes zu unseren passen.
+  // Pass the zone along so the service's day boundaries match ours.
   url.searchParams.set("timezone", timezone);
 
   if (range) {
@@ -123,7 +122,7 @@ function daysAgo(day: string): number {
 
 export type Place = { name: string; latitude: number; longitude: number; admin?: string };
 
-/** Ortssuche, damit niemand Koordinaten heraussuchen muss. */
+/** Place search, so nobody has to look up coordinates. */
 export async function searchPlaces(query: string): Promise<Place[]> {
   const url = new URL(GEOCODE_URL);
   url.searchParams.set("name", query);

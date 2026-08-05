@@ -8,11 +8,10 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 /**
- * Einladungsbildschirm — der einzige Anmeldevorgang, den es gibt.
+ * The invite screen — the only sign-in there is.
  *
- * Der Link enthält das Haushalts-Token (`/start?t=…`). Wer ihn einmal öffnet und seinen
- * Namen wählt, bekommt ein Cookie mit einem Jahr Laufzeit. Danach kommt hier nie wieder
- * jemand vorbei.
+ * The link carries the household token (`/start?t=…`). Open it once, choose your name,
+ * and you get a cookie valid for a year. After that nobody comes past here again.
  */
 const route = useRoute();
 const router = useRouter();
@@ -52,7 +51,7 @@ async function join() {
 
   await data.setDeviceName(name.value.trim());
   await router.replace("/");
-  // Neu laden, damit die App den Startvorgang mit gültiger Sitzung durchläuft.
+  // Reload so the app runs its boot sequence with a valid session.
   location.reload();
 }
 </script>

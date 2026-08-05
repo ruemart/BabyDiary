@@ -20,7 +20,7 @@ const push = createPushStore(db);
 
 const app = Fastify({
   logger: { level: process.env["LOG_LEVEL"] ?? "info" },
-  // Hinter dem Tunnel steht die echte Client-IP in X-Forwarded-For.
+  // Behind the tunnel the real client IP sits in X-Forwarded-For.
   trustProxy: true,
   bodyLimit: 8 * 1024 * 1024,
 });

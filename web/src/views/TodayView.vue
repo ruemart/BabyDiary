@@ -49,7 +49,7 @@ async function toggleVitaminD() {
   await data.update({ ...entry, vitaminD: !entry.vitaminD });
 }
 
-/** Alles, was gerade läuft — Schlaf, Krankheit, Urlaub. Mehrere gleichzeitig möglich. */
+/** Everything currently running — sleep, illness, being away. Several at once possible. */
 const openPeriods = useOpenPeriods(() => data.entries, () => now.value);
 
 async function endPeriod(id: string) {
@@ -67,7 +67,7 @@ async function logBath() {
 const { byDay, load: loadWeather } = useWeather();
 onMounted(() => void loadWeather());
 
-/** Wetter von heute — erklärt oft, warum sie mehr oder weniger trinkt. */
+/** Today's weather — often explains why she drinks more or less. */
 const todayWeather = computed(() => {
   const today = localDayKey(new Date(), data.timezone);
   const entry = byDay.value.get(today);
@@ -110,7 +110,7 @@ const sleepSince = computed(() =>
   data.activeSleep ? elapsedSinceLabel(data.activeSleep.startedAt, now.value) : null,
 );
 
-/** "both" gibt es in alten Einträgen noch — es zählt wie "voll". */
+/** "both" still exists in older entries — it counts as "soiled". */
 const DIAPER_KEY: Record<string, string> = {
   empty: "diaper.empty",
   wet: "diaper.wet",
@@ -356,7 +356,7 @@ async function startSleep() {
 .status__value {
   margin: 0.15rem 0 0;
   font-family: var(--bm-font-display);
-  /* Groß genug, um es aus einem Meter Entfernung im Halbdunkeln zu lesen. */
+  /* Big enough to read from a metre away in half darkness. */
   font-size: clamp(1.9rem, 8vw, 2.6rem);
   font-weight: 600;
   line-height: 1.05;
@@ -764,7 +764,7 @@ async function startSleep() {
   border-color: transparent;
 }
 
-/* ── Fußzeile ─────────────────────────────────────────────────────────────── */
+/* ── Footer ───────────────────────────────────────────────────────────────── */
 
 .history-link {
   display: flex;

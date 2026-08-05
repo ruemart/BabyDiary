@@ -6,23 +6,23 @@ export type DiaperDecision =
   | { action: "correct"; id: string };
 
 /**
- * Zeitfenster, in dem ein zweiter Windel-Tap nicht als zweite Windel gilt.
+ * The window in which a second nappy tap does not count as a second nappy.
  *
- * Zwei echte Wickel innerhalb von zwei Minuten kommen nicht vor; ein zweiter Tap im
- * Halbschlaf dagegen ständig.
+ * Two real changes within two minutes do not happen; a second tap while half asleep
+ * happens constantly.
  */
 export const DIAPER_GUARD_MS = 2 * 60 * 1000;
 
 /**
- * Entscheidet, was ein Windel-Tap bedeutet.
+ * Decides what a nappy tap means.
  *
- * Innerhalb des Zeitfensters wird unterschieden:
- *  - GLEICHE Art nochmal -> Versehen, kein zweiter Eintrag.
- *  - ANDERE Art          -> Korrektur, der bestehende Eintrag wird geändert.
+ * Within the window it distinguishes:
+ *  - the SAME kind again -> a slip, no second entry.
+ *  - a DIFFERENT kind    -> a correction, the existing entry is changed.
  *
- * Als reine Funktion herausgezogen, weil die Unterscheidung subtil ist und still
- * falsch sein kann: Ein Schutz, der versehentlich echte Einträge verschluckt, fällt
- * im Alltag erst auf, wenn die Auswertung schon Lücken hat.
+ * Pulled out as a pure function because the distinction is subtle and can be silently
+ * wrong: a guard that accidentally swallows real entries only shows up in everyday use
+ * once the charts already have holes in them.
  */
 export function classifyDiaperTap(
   recent: { id: string; startedAt: string; diaper: string | null } | undefined,

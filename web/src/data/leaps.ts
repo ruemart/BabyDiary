@@ -1,30 +1,28 @@
 /**
- * Entwicklungssprünge nach dem Modell "Oje, ich wachse!".
+ * Developmental leaps after the "The Wonder Weeks" model.
  *
- * ZUM URHEBERRECHT: Die Sprungwochen selbst sind Zahlen und frei verwendbar. Die Texte
- * auf ojeichwachse.de sind es nicht — die Beschreibungen hier sind vollständig eigene
- * Formulierungen.
+ * ON COPYRIGHT: the leap weeks themselves are numbers and freely usable. The texts on
+ * the publisher's site are not — the descriptions here are entirely our own wording.
  *
- * ZUR EINORDNUNG: Das Modell ist unter Eltern verbreitet, wissenschaftlich aber
- * umstritten. Die Originalstudie beruhte auf einer sehr kleinen Stichprobe, und
- * Replikationsversuche konnten die festen Zeitpunkte nicht bestätigen. Deshalb ist der
- * Ton hier bewusst "was Eltern häufig berichten" und nicht "das passiert jetzt" — und
- * `LEAP_DISCLAIMER` steht sichtbar an der Ansicht.
+ * ON HOW TO READ IT: the model is widespread among parents but scientifically contested.
+ * The original study rested on a very small sample, and replication attempts could not
+ * confirm the fixed timings. So the tone here is deliberately "what parents often
+ * report" and not "this is happening now" — and the disclaimer sits visibly on the view.
  *
- * ZUR ZÄHLUNG: Alle Wochen zählen ab dem ERRECHNETEN GEBURTSTERMIN, nicht ab dem
- * Geburtsdatum. Bei einem Frühchen verschiebt das den gesamten Zeitstrahl um Wochen.
+ * ON COUNTING: all weeks count from the DUE DATE, not from the date of birth. For a
+ * premature baby that shifts the entire timeline by weeks.
  */
 
 export type Leap = {
   number: number;
-  /** Sprungwoche, gezählt ab errechnetem Termin. */
+  /** Leap week, counted from the due date. */
   week: number;
-  /** Ungefähres Fenster, in dem Eltern die unruhige Phase berichten. */
+  /** The rough window in which parents report the unsettled phase. */
   fussyFrom: number;
   fussyTo: number;
   /**
-   * Titel, Beschreibung und neue Fähigkeiten stehen in den Sprachdateien unter
-   * `leap.<number>.*`. Hier bleiben nur die Zahlen — die sind sprachunabhängig.
+   * Title, description and new skills live in the language files under
+   * `leap.<number>.*`. Only the numbers stay here — those are language-independent.
    */
 };
 

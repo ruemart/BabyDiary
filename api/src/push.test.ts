@@ -31,50 +31,50 @@ const next = (dueAt: string) => ({
   dueAt: Date.parse(dueAt),
 });
 
-describe("Ruhezeit", () => {
-  it("schweigt über Mitternacht hinweg", () => {
-    // 22–6 Uhr lokal. Im Sommer ist Berlin UTC+2.
+describe("Quiet hours", () => {
+  it("stays silent across midnight", () => {
+    // 22:00–06:00 local. In summer Berlin is UTC+2.
     expect(isQuietHour(sub(), new Date("2026-08-05T21:00:00Z"), TZ)).toBe(true); // 23:00
     expect(isQuietHour(sub(), new Date("2026-08-05T01:00:00Z"), TZ)).toBe(true); // 03:00
     expect(isQuietHour(sub(), new Date("2026-08-05T10:00:00Z"), TZ)).toBe(false); // 12:00
   });
 
-  it("schweigt nie, wenn keine Ruhezeit gesetzt ist", () => {
+  it("never stays silent when no quiet hours are set", () => {
     const always = sub({ quiet_from_hour: null, quiet_to_hour: null });
     expect(isQuietHour(always, new Date("2026-08-05T01:00:00Z"), TZ)).toBe(false);
   });
 });
 
-describe("Fällige Erinnerungen", () => {
+describe("Due reminders", () => {
   const due = "2026-08-05T12:00:00Z"; // 14:00 lokal, außerhalb der Ruhezeit
 
-  it("meldet sich zur Vorlaufzeit, nicht früher", () => {
+  it("speaks up at the lead time, not earlier", () => {
     // 20 minutes before, lead time is 10 -> nothing yet.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T11:40:00Z"), TZ)).toHaveLength(0);
     // 10 Minuten vorher -> jetzt.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T11:50:00Z"), TZ)).toHaveLength(1);
   });
 
-  it("erinnert nicht zweimal an dieselbe Mahlzeit", () => {
+  it("does not remind twice about the same feed", () => {
     // Otherwise the message would go out every minute while nothing is recorded.
     const alreadySent = sub({ last_notified_for: "f1" });
     expect(dueNotifications([alreadySent], next(due), new Date("2026-08-05T11:55:00Z"), TZ)).toHaveLength(0);
   });
 
-  it("gibt eine lange überfällige Erwartung auf", () => {
+  it("gives up on a long overdue expectation", () => {
     // Two hours after the expected moment: either a feed happened and was not recorded,
     // or the rhythm has shifted. Either way the reminder is worthless.
     expect(dueNotifications([sub()], next(due), new Date("2026-08-05T14:00:00Z"), TZ)).toHaveLength(0);
   });
 
-  it("schweigt in der Ruhezeit", () => {
+  it("stays silent during quiet hours", () => {
     const nightDue = "2026-08-05T01:00:00Z"; // 03:00 lokal
     expect(
       dueNotifications([sub()], next(nightDue), new Date("2026-08-05T00:55:00Z"), TZ),
     ).toHaveLength(0);
   });
 
-  it("meldet sich nachts, wenn das Gerät das so will", () => {
+  it("speaks up at night when the device wants it to", () => {
     const nightDue = "2026-08-05T01:00:00Z";
     const always = sub({ quiet_from_hour: null, quiet_to_hour: null });
     expect(
@@ -82,15 +82,15 @@ describe("Fällige Erinnerungen", () => {
     ).toHaveLength(1);
   });
 
-  it("bedient mehrere Geräte mit eigenen Einstellungen", () => {
+  it("serves several devices with their own settings", () => {
     const mama = sub({ endpoint: "https://push.example/mama", lead_minutes: 30 });
     const papa = sub({ endpoint: "https://push.example/papa", lead_minutes: 0 });
-    // 30 Minuten vorher: nur Mama.
+    // 30 minutes before: only Mama.
     const result = dueNotifications([mama, papa], next(due), new Date("2026-08-05T11:30:00Z"), TZ);
     expect(result.map((r) => r.sub.endpoint)).toEqual(["https://push.example/mama"]);
   });
 
-  it("tut nichts ohne belastbaren Rhythmus", () => {
+  it("does nothing without a reliable rhythm", () => {
     expect(dueNotifications([sub()], null, new Date(), TZ)).toHaveLength(0);
   });
 });

@@ -24,13 +24,13 @@ function flatten(tree: unknown, prefix = ""): string[] {
 const enKeys = flatten(en).sort();
 const deKeys = flatten(de).sort();
 
-describe("Sprachdateien", () => {
-  it("hat in jeder Sprache dieselben Schlüssel", () => {
+describe("Language files", () => {
+  it("has the same keys in every language", () => {
     expect(deKeys.filter((k) => !enKeys.includes(k))).toEqual([]);
     expect(enKeys.filter((k) => !deKeys.includes(k))).toEqual([]);
   });
 
-  it("hat nirgends einen leeren Text", () => {
+  it("has no empty text anywhere", () => {
     const empty = (tree: unknown, prefix = ""): string[] => {
       if (typeof tree === "string") return tree.trim() ? [] : [prefix];
       if (typeof tree !== "object" || tree === null) return [];
@@ -42,7 +42,7 @@ describe("Sprachdateien", () => {
     expect(empty(de)).toEqual([]);
   });
 
-  it("behält die Platzhalter jeder Übersetzung bei", () => {
+  it("keeps the placeholders of every translation", () => {
     // {name} is filled in by the code. Translating it away leaves a sentence with a
     // hole in it — and only the user notices.
     const placeholders = (text: string) =>
@@ -51,28 +51,28 @@ describe("Sprachdateien", () => {
     const value = (tree: unknown, path: string[]): unknown =>
       path.reduce<unknown>((node, k) => (node as Record<string, unknown>)?.[k], tree);
 
-    const abweichungen: string[] = [];
+    const mismatches: string[] = [];
     for (const key of enKeys) {
       const a = value(en, key.split("."));
       const b = value(de, key.split("."));
       if (typeof a !== "string" || typeof b !== "string") continue;
-      if (placeholders(a).join() !== placeholders(b).join()) abweichungen.push(key);
+      if (placeholders(a).join() !== placeholders(b).join()) mismatches.push(key);
     }
-    expect(abweichungen).toEqual([]);
+    expect(mismatches).toEqual([]);
   });
 
-  it("hat in beiden Sprachen gleich viele Pluralformen", () => {
+  it("has the same number of plural forms in both languages", () => {
     const forms = (text: string) => text.split("|").length;
     const value = (tree: unknown, path: string[]): unknown =>
       path.reduce<unknown>((node, k) => (node as Record<string, unknown>)?.[k], tree);
 
-    const abweichungen: string[] = [];
+    const mismatches: string[] = [];
     for (const key of enKeys) {
       const a = value(en, key.split("."));
       const b = value(de, key.split("."));
       if (typeof a !== "string" || typeof b !== "string") continue;
-      if (forms(a) !== forms(b)) abweichungen.push(key);
+      if (forms(a) !== forms(b)) mismatches.push(key);
     }
-    expect(abweichungen).toEqual([]);
+    expect(mismatches).toEqual([]);
   });
 });

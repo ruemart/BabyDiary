@@ -17,7 +17,7 @@ export type SupplyPeriod<T> = {
   isCurrent: boolean;
   /** „seit 17. Jul 2026" bzw. „2. Mai – 17. Jul 2026" */
   rangeLabel: string;
-  /** „3 Wochen" — wie lange dieser Stand galt bzw. schon gilt. */
+  /** "3 weeks" — how long this entry held, or has held so far. */
   durationLabel: string;
   days: number;
 };

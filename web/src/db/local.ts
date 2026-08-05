@@ -51,7 +51,7 @@ export const META_CURSOR = "syncCursor";
 export const META_CHILD_ID = "childId";
 export const META_DEVICE_NAME = "deviceName";
 
-/* ── Einträge ───────────────────────────────────────────────────────────────── */
+/* ── Entries ────────────────────────────────────────────────────────────────── */
 
 /**
  * Writes an entry locally and puts it in the outbox.
@@ -158,7 +158,7 @@ export async function saveLocalChild(child: Child): Promise<void> {
   await setMeta(META_CHILD_ID, child.id);
 }
 
-/** Alles löschen — für den Abmelde-Weg in den Einstellungen. */
+/** Delete everything — for the sign-out path in Settings. */
 export async function wipeLocal(): Promise<void> {
   await db.delete();
 }

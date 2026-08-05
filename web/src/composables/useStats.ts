@@ -15,7 +15,7 @@ export type DailyTotal = {
   label: string;
   totalMl: number;
   feeds: number;
-  /** Gleitendes 7-Tage-Mittel — glättet den Tag-zu-Tag-Zufall heraus. */
+  /** A rolling 7-day average — smooths out the day-to-day randomness. */
   rollingMl: number | null;
 };
 
@@ -147,7 +147,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     return {
       avgMl,
       avgFeeds,
-      /** Veränderung zur Vorwoche in Prozent — beantwortet "trinkt sie mehr oder weniger". */
+      /** Change against last week in percent — answers "is she drinking more or less". */
       trendPercent:
         avgMl !== null && avgPrevious !== null && avgPrevious > 0
           ? Math.round(((avgMl - avgPrevious) / avgPrevious) * 100)

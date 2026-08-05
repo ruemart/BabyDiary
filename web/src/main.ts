@@ -19,31 +19,31 @@ import { startAppearanceWatcher } from "./composables/useAppearance.ts";
 startAppearanceWatcher();
 
 /**
- * Auf eine neue Fassung reagieren, statt sie erst beim nächsten Kaltstart zu sehen.
+ * React to a new version instead of only seeing it on the next cold start.
  *
- * Der Service Worker übernimmt zwar sofort, aber die laufende Seite behält ihren
- * alten Modulbaum — inklusive der Verweise auf Dateien, die es nicht mehr gibt.
- * Deshalb hier einmal aktiv nachsehen und beim Wechsel neu laden.
+ * The service worker does take over immediately, but the running page keeps its old
+ * module graph — including references to files that no longer exist. So look actively
+ * once here and reload on the change.
  */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    // Nur neu laden, wenn schon einmal ein Service Worker aktiv war — sonst würde
-    // die allererste Installation die Seite unnötig neu starten.
+    // Only reload when a service worker was already active — otherwise the very first
+    // installation would restart the page for no reason.
     if (sessionStorage.getItem("bm.swReady")) location.reload();
   });
   void navigator.serviceWorker.ready.then(() => sessionStorage.setItem("bm.swReady", "1"));
 
-  // Beim Zurückholen der App nach einer neuen Fassung schauen.
+  // Check for a new version when the app comes back.
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) void navigator.serviceWorker.getRegistration().then((r) => r?.update());
   });
 }
 
 /**
- * Onyx bekommt dieselbe Sprache wie die App.
+ * Onyx gets the same language as the app.
  *
- * Sonst stünden fremde Bedienelemente mitten in der eigenen Oberfläche — ein deutsches
- * "Schließen" neben einem englischen "Close" fällt sofort unangenehm auf.
+ * Otherwise foreign controls would sit in the middle of our own interface — a German
+ * "Schließen" next to an English "Close" is immediately jarring.
  */
 const ONYX_LOCALES = { en: "en-US", de: "de-DE" } as const;
 

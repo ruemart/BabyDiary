@@ -2,11 +2,11 @@ import { useI18n } from "vue-i18n";
 import { elapsedSince, type Elapsed } from "@babymonitor/shared";
 
 /**
- * Verstrichene Zeit in Worte fassen — die Worte kommen aus den Sprachdateien.
+ * Put elapsed time into words — the words come from the language files.
  *
- * `elapsedSince` liefert bewusst nur Zahlen und eine Einheit; erst hier wird daraus
- * ein Satz. Damit steht keine einzige Formulierung im gemeinsamen Modul, das auch der
- * Server benutzt.
+ * `elapsedSince` deliberately returns only numbers and a unit; only here does that
+ * become a sentence. That way not a single phrasing sits in the shared module the server
+ * also uses.
  */
 export function useElapsed() {
   const { t } = useI18n();
@@ -27,13 +27,13 @@ export function useElapsed() {
   }
 
   return {
-    /** Aus einem Zeitstempel direkt: „vor 2 Std 15 Min". */
+    /** Straight from a timestamp: "2 h 15 min ago". */
     since: (iso: string, now?: Date) => format(elapsedSince(iso, now)),
     format,
   };
 }
 
-/** Eine Dauer in Minuten als „3 Std 20 Min" — ohne „vor". */
+/** A duration in minutes as "3 h 20 min" — without "ago". */
 export function useDuration() {
   const { t } = useI18n();
 

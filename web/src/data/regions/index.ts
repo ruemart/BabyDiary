@@ -47,7 +47,7 @@ export type Region = {
   englishName: string;
   /** Checked against the official source? Drives the note in the app. */
   verified: boolean;
-  /** Wie die Untersuchungen im Land heißen — "U-Untersuchungen", "NHS reviews" … */
+  /** What the country calls its check-ups — "U-Untersuchungen", "NHS reviews" … */
   checkupsLabel: string;
   sources: { checkups?: string; vaccinations?: string; url?: string };
   /**

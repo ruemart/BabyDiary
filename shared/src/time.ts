@@ -61,7 +61,7 @@ export function localDayKey(iso: string | Date, timeZone: string): string {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
 }
 
-/** Minuten seit lokaler Mitternacht (0…1439) — die y-Achse des Rhythmus-Diagramms. */
+/** Minutes since local midnight (0…1439) — the y-axis of the rhythm chart. */
 export function minutesIntoLocalDay(iso: string | Date, timeZone: string): number {
   const p = localParts(iso, timeZone);
   return p.hour * 60 + p.minute;
@@ -87,7 +87,7 @@ function fromAnchor(ms: number): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
 
-/** Ganze Kalendertage zwischen zwei "YYYY-MM-DD" (b − a). Immun gegen Zeitumstellung. */
+/** Whole calendar days between two "YYYY-MM-DD" (b − a). Immune to clock changes. */
 export function daysBetween(a: string, b: string): number {
   return Math.round((anchor(b) - anchor(a)) / 86_400_000);
 }
@@ -130,7 +130,7 @@ export function startOfWeek(date: string): string {
 
 /* ── Lebensalter ────────────────────────────────────────────────────────────── */
 
-/** Vollendete Lebenstage am Zeitpunkt `at`. Geburtstag = Tag 0. */
+/** Completed days of life at moment `at`. The birthday is day 0. */
 export function ageInDays(birthDate: string, at: string | Date, timeZone: string): number {
   return daysBetween(birthDate, localDayKey(at, timeZone));
 }
@@ -224,7 +224,7 @@ export function localTimeLabel(iso: string | Date, timeZone: string): string {
   }).format(typeof iso === "string" ? new Date(iso) : iso);
 }
 
-/** Wochentag und Tag, kurz: "Mo., 4. Aug." bzw. "Mon, Aug 4". */
+/** Weekday and day, short: "Mo., 4. Aug." or "Mon, Aug 4". */
 export function localDateLabel(iso: string | Date, timeZone: string): string {
   return new Intl.DateTimeFormat(displayLocale, {
     weekday: "short",

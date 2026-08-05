@@ -134,7 +134,7 @@ export function useTotals(
     return out;
   });
 
-  /** Wer trägt eigentlich mehr ein? Reine Spielerei — und trotzdem lustig. */
+  /** Who actually records more? Pure fun — and still fun. */
   const byPerson = computed(() => {
     const counts = new Map<string, number>();
     for (const e of entries()) counts.set(e.createdBy, (counts.get(e.createdBy) ?? 0) + 1);

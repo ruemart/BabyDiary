@@ -1,26 +1,26 @@
 /**
- * Die Meilenstein-Liste — Erwartung und Abhakliste in einem.
+ * The milestone list — expectation and checklist in one.
  *
- * EINE Liste, kein zweites Konzept: Dieselben Einträge erscheinen als Erwartung im
- * Wochenband ("erste echte Tränen: ab Woche 4") und als Abhakliste, in der man
- * festhält, wann es tatsächlich so weit war. Man soll nicht wissen müssen, welche
- * Meilensteine es gibt, um sie eintragen zu können.
+ * ONE list, not a second concept: the same entries appear as an expectation on the week
+ * ribbon ("first real tears: from week 4") and as a checklist where you record when it
+ * actually happened. You should not have to know which milestones exist in order to
+ * record them.
  *
- * ALLES IN LEBENSWOCHEN, weil die ganze App in Wochen rechnet und der Zeitstrahl
- * ebenfalls. `fromWeek`/`toWeek` ist die Spanne, in der gesunde Kinder diesen Schritt
- * machen — keine Soll-Vorgabe.
+ * EVERYTHING IN WEEKS OF LIFE, because the whole app counts in weeks and so does the
+ * timeline. `fromWeek`/`toWeek` is the span in which healthy children take this step —
+ * not a target.
  *
- * ZWEI QUALITÄTEN, sichtbar getrennt:
+ * TWO QUALITIES, visibly separated:
  *
- *  - `source: "who"` — die sechs groben motorischen Meilensteine der WHO Motor
- *    Development Study (Multicentre Growth Reference Study, 816 Kinder aus Ghana,
- *    Indien, Norwegen, Oman und den USA). Die Spanne ist das 1. bis 99. Perzentil,
- *    aus Monaten in Wochen umgerechnet.
+ *  - `source: "who"` — the six gross motor milestones of the WHO Motor Development
+ *    Study (Multicentre Growth Reference Study, 816 children from Ghana, India, Norway,
+ *    Oman and the USA). The span is the 1st to 99th percentile, converted from months
+ *    into weeks.
  *    https://www.who.int/tools/child-growth-standards/standards/motor-development-milestones
  *
- *  - `source: "typical"` — verbreitete Orientierungswerte aus der Elternliteratur,
- *    wie sie auch in Sprung-Kalendern stehen. Deutlich weicher belegt; sie stehen
- *    hier, weil Eltern sie erwarten, nicht weil sie normiert wären.
+ *  - `source: "typical"` — common orientation values from parenting literature, as they
+ *    also appear in leap calendars. Much more softly evidenced; they are here because
+ *    parents expect them, not because they are standardised.
  */
 
 export type MilestoneSource = "who" | "typical";
@@ -28,14 +28,14 @@ export type MilestoneArea = "sozial" | "motorik" | "sprache" | "koerper";
 
 export type Milestone = {
   key: string;
-  /** Beschriftung steht in den Sprachdateien unter `milestone.<key>`. */
+  /** The label lives in the language files under `milestone.<key>`. */
   area: MilestoneArea;
-  /** Lebenswoche, ab der es üblicherweise vorkommt. */
+  /** Week of life from which it usually occurs. */
   fromWeek: number;
-  /** Lebenswoche, bis zu der es üblicherweise eingetreten ist. */
+  /** Week of life by which it has usually happened. */
   toWeek: number;
   source: MilestoneSource;
-  /** Zusatzhinweis, falls vorhanden, unter `milestone.<key>.hint`. */
+  /** An extra note, if present, under `milestone.<key>.hint`. */
   hint?: boolean;
 };
 

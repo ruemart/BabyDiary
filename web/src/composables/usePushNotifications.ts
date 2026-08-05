@@ -23,7 +23,7 @@ export type PushState =
 
 export type PushSettings = {
   leadMinutes: number;
-  /** null bedeutet: rund um die Uhr benachrichtigen. */
+  /** null means: notify around the clock. */
   quietFromHour: number | null;
   quietToHour: number | null;
 };

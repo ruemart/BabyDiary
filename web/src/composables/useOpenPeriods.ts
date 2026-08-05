@@ -19,7 +19,7 @@ import { useI18n } from "vue-i18n";
 export type OpenPeriod = {
   id: string;
   type: EntryType;
-  /** Was dransteht, z. B. "Schlaf", "Erkältung", "Urlaub · Sylt". */
+  /** What it says, e.g. "Sleep", "Cold", "Holiday · Sylt". */
   title: string;
   /** "seit 2 Std 10 Min" */
   since: string;

@@ -4,15 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 /**
- * Baut aus den Wochenfotos ein MP4.
+ * Builds an MP4 from the weekly photos.
  *
- * MP4 statt GIF: Ein GIF aus 100 Fotos in brauchbarer Auflösung wird zweistellig
- * megabyteschwer und sieht durch die 256-Farben-Palette fleckig aus. Ein H.264-MP4 ist
- * um ein Vielfaches kleiner, schärfer, und jeder Messenger spielt es inline ab.
+ * MP4 rather than GIF: a GIF of 100 photos at a usable resolution runs into double-digit
+ * megabytes and looks blotchy because of the 256-colour palette. An H.264 MP4 is many
+ * times smaller, sharper, and every messenger plays it inline.
  *
- * Die Bilder werden auf ein Quadrat skaliert und beschnitten, weil Handyfotos zwischen
- * Hoch- und Querformat wechseln — ohne feste Zielgröße bricht ffmpeg beim ersten
- * Formatwechsel ab.
+ * The images are scaled and cropped to a square because phone photos alternate between
+ * portrait and landscape — without a fixed target size ffmpeg aborts at the first change
+ * of orientation.
  */
 export async function renderTimelapse(
   imagePaths: string[],
@@ -28,8 +28,8 @@ export async function renderTimelapse(
   const output = join(outDir, "zeitraffer.mp4");
 
   try {
-    // ffmpeg braucht eine lückenlose Nummernfolge. Kopieren statt symlinken, weil
-    // ffmpeg in manchen Builds Symlinks über Dateisystemgrenzen nicht auflöst.
+    // ffmpeg needs a gapless number sequence. Copying rather than symlinking, because
+    // in some builds ffmpeg does not resolve symlinks across file system boundaries.
     await Promise.all(
       imagePaths.map((src, i) => copyFile(src, join(work, `${String(i + 1).padStart(5, "0")}.jpg`))),
     );
@@ -43,7 +43,7 @@ export async function renderTimelapse(
       "-c:v", "libx264",
       "-preset", "medium",
       "-crf", "23",
-      // Ohne even-dimension-Garantie weigert sich libx264 bei ungeraden Größen.
+      // Without guaranteeing even dimensions, libx264 refuses odd sizes.
       "-movflags", "+faststart",
       output,
     ]);
@@ -59,7 +59,7 @@ function run(cmd: string, args: string[]): Promise<void> {
     const child = spawn(cmd, args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
     child.stderr.on("data", (chunk: Buffer) => {
-      // Nur das Ende behalten — ffmpeg schreibt sehr viel Fortschritt auf stderr.
+      // Keep only the tail — ffmpeg writes a great deal of progress to stderr.
       stderr = (stderr + chunk.toString()).slice(-4000);
     });
     child.on("error", (err) => reject(new Error(`${cmd} nicht startbar: ${err.message}`)));

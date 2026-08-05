@@ -4,12 +4,11 @@ import en from "./locales/en.json";
 import de from "./locales/de.json";
 
 /**
- * Sprachen der App.
+ * The app's languages.
  *
- * Englisch ist die Rückfallsprache: Fehlt ein Schlüssel in einer Übersetzung,
- * erscheint der englische Text statt eines rohen Schlüssels. Für jemanden, der eine
- * Sprache ergänzt, heißt das: Man kann mit einer halb fertigen Datei anfangen und die
- * App bleibt benutzbar.
+ * English is the fallback: if a key is missing from a translation, the English text
+ * appears instead of a raw key. For someone adding a language that means you can start
+ * with a half-finished file and the app stays usable.
  */
 export const LOCALES = [
   { code: "en", label: "English" },
@@ -26,11 +25,11 @@ function isSupported(code: string): code is LocaleCode {
 }
 
 /**
- * Beim ersten Start die Sprache des Geräts übernehmen, danach die gewählte.
+ * Take the device language on first start, the chosen one afterwards.
  *
- * Englisch ist die Vorgabe für alle, deren Sprache wir nicht haben — aber jemandem mit
- * deutschem Telefon zuerst eine englische App zu zeigen, obwohl es die deutsche gibt,
- * wäre eine unnötige Hürde am unpassendsten Moment.
+ * English is the default for everyone whose language we do not have — but showing
+ * someone with a German phone an English app first, when the German one exists, would be
+ * an unnecessary hurdle at the worst possible moment.
  */
 export function initialLocale(): LocaleCode {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -48,17 +47,17 @@ export const i18n = createI18n({
   locale: initialLocale(),
   fallbackLocale: FALLBACK,
   messages: { en, de },
-  // Eine fehlende Übersetzung ist beim Entwickeln ein Hinweis, im Betrieb nur Lärm.
+  // A missing translation is a hint while developing and just noise in production.
   missingWarn: import.meta.env.DEV,
   fallbackWarn: import.meta.env.DEV,
 });
 
 /**
- * Sprache wechseln — und zwar überall.
+ * Switch the language — everywhere.
  *
- * Drei Dinge hängen mit dran, die man leicht übersieht: die Datums- und Zeitformate im
- * gemeinsamen Modul, das `lang`-Attribut des Dokuments (Vorlesehilfen und die
- * Silbentrennung richten sich danach) und die gespeicherte Wahl.
+ * Three things hang off it that are easy to overlook: the date and time formats in the
+ * shared module, the document's `lang` attribute (screen readers and hyphenation follow
+ * it) and the stored choice.
  */
 export function setLocale(code: LocaleCode): void {
   i18n.global.locale.value = code;
@@ -71,5 +70,5 @@ export function currentLocale(): LocaleCode {
   return i18n.global.locale.value as LocaleCode;
 }
 
-/** Beim Start einmal anwenden, damit Dokument und Zeitformate mitziehen. */
+/** Apply once at startup so the document and the time formats follow along. */
 setLocale(i18n.global.locale.value as LocaleCode);

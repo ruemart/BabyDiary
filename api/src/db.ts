@@ -144,7 +144,7 @@ function normalizeInstant(iso: string): string {
 
 export type ApplyResult = {
   rev: number;
-  /** Vom Server überstimmt (LWW) — der andere Stand war neuer. */
+  /** Overruled by the server (LWW) — the other version was newer. */
   rejected: string[];
   /**
    * Failed at the database. Unlike `rejected`, retrying does not help here: it would

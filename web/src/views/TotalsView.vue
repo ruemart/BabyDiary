@@ -142,7 +142,7 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
   box-shadow: var(--bm-shadow-card);
 }
 
-/* Die Gesamtmenge ist die Zahl, die man herzeigt — die bekommt die ganze Breite. */
+/* The total is the number you show people — so it gets the full width. */
 .stat--wide {
   grid-column: 1 / -1;
   background: var(--bm-feed-soft);

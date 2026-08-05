@@ -32,7 +32,7 @@ const chartData = computed(() => ({
       // floating pills at 30 days on a phone screen.
       borderRadius: 4,
       borderSkipped: "bottom",
-      // 2 px Fläche zwischen benachbarten Balken.
+      // 2 px of space between neighbouring bars.
       categoryPercentage: 0.82,
       barPercentage: 0.94,
       order: 2,

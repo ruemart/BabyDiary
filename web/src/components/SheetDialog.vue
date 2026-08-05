@@ -102,7 +102,7 @@ dialog.sheet[open] {
 }
 
 .sheet {
-  /* Am unteren Rand verankert, volle Breite, nach oben abgerundet. */
+  /* Anchored at the bottom edge, full width, rounded at the top. */
   margin: 0 0 0 auto;
   margin-block-start: auto;
   inset-inline: 0;

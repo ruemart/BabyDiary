@@ -78,8 +78,8 @@ async function login(name = "Mama"): Promise<string> {
   return String(Array.isArray(setCookie) ? setCookie[0] : setCookie).split(";")[0]!;
 }
 
-describe("Einladung", () => {
-  it("setzt ein langlebiges Cookie", async () => {
+describe("Invitation", () => {
+  it("sets a long-lived cookie", async () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/session",
@@ -92,11 +92,11 @@ describe("Einladung", () => {
     const raw = String(res.headers["set-cookie"]);
     expect(raw).toContain("HttpOnly");
     expect(raw).toContain("SameSite=Lax");
-    // Ein Jahr — damit nachts nie ein Anmeldebildschirm dazwischenkommt.
+    // A year — so a sign-in screen never gets in the way at night.
     expect(raw).toMatch(/Max-Age=31536000/);
   });
 
-  it("weist ein falsches Token ab", async () => {
+  it("rejects a wrong token", async () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/session",
@@ -105,7 +105,7 @@ describe("Einladung", () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it("schützt den Sync", async () => {
+  it("protects the sync", async () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/sync",
@@ -117,8 +117,8 @@ describe("Einladung", () => {
   });
 });
 
-describe("Sync über HTTP", () => {
-  it("schiebt hoch und zieht in einem Durchgang", async () => {
+describe("Sync over HTTP", () => {
+  it("pushes and pulls in one round", async () => {
     const jar = await login();
 
     const push = await app.inject({
@@ -136,7 +136,7 @@ describe("Sync über HTTP", () => {
     expect(body.rejected).toEqual([]);
   });
 
-  it("stempelt createdBy aus dem Cookie, nicht aus dem Body", async () => {
+  it("stamps createdBy from the cookie, not from the body", async () => {
     const jar = await login("Papa");
 
     const res = await app.inject({
@@ -155,7 +155,7 @@ describe("Sync über HTTP", () => {
     expect(res.json<SyncResponse>().entries[0]!.createdBy).toBe("Papa");
   });
 
-  it("gibt einem zweiten Gerät die Änderungen des ersten", async () => {
+  it("gives a second device the first one's changes", async () => {
     const mama = await login("Mama");
     const papa = await login("Papa");
 
@@ -176,7 +176,7 @@ describe("Sync über HTTP", () => {
     expect(pull.json<SyncResponse>().entries.map((e) => e.id)).toEqual(["a"]);
   });
 
-  it("nimmt die gültigen Einträge an und meldet nur den fehlerhaften zurück", async () => {
+  it("accepts the valid entries and reports back only the faulty one", async () => {
     const jar = await login();
 
     const res = await app.inject({
@@ -188,7 +188,7 @@ describe("Sync über HTTP", () => {
         since: 0,
         changes: [
           entry({ id: "gut1" }),
-          // Kopfumfang weit außerhalb des Erlaubten — kann nie angenommen werden.
+          // Head circumference far out of range — can never be accepted.
           entry({ id: "kaputt", type: "growth", amountMl: null, headMm: 99999 }),
           entry({ id: "gut2" }),
         ],
@@ -208,7 +208,7 @@ describe("Sync über HTTP", () => {
     expect(body.invalid[0]!.reason).toMatch(/headMm/);
   });
 
-  it("übernimmt Einträge auch dann, wenn die Kind-Stammdaten fehlerhaft sind", async () => {
+  it("accepts entries even when the child details are faulty", async () => {
     const jar = await login();
 
     const res = await app.inject({
@@ -229,7 +229,7 @@ describe("Sync über HTTP", () => {
     expect(body.invalid.some((i) => i.id === "child")).toBe(true);
   });
 
-  it("weist einen unbrauchbaren Umschlag weiterhin ab", async () => {
+  it("still rejects an unusable envelope", async () => {
     const jar = await login();
     const res = await app.inject({
       method: "POST",
@@ -241,8 +241,8 @@ describe("Sync über HTTP", () => {
   });
 });
 
-describe("Medien", () => {
-  it("weist Pfad-Traversal in der Medien-Id ab", async () => {
+describe("Media", () => {
+  it("rejects path traversal in the media id", async () => {
     const jar = await login();
     const res = await app.inject({
       method: "GET",
@@ -252,7 +252,7 @@ describe("Medien", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("liefert 404 für eine wohlgeformte, aber unbekannte Id", async () => {
+  it("returns 404 for a well-formed but unknown id", async () => {
     const jar = await login();
     const res = await app.inject({
       method: "GET",
@@ -264,15 +264,15 @@ describe("Medien", () => {
 });
 
 describe("Health", () => {
-  it("antwortet ohne Cookie", async () => {
+  it("answers without a cookie", async () => {
     const res = await app.inject({ method: "GET", url: "/api/health" });
     expect(res.statusCode).toBe(200);
     expect(res.json().ok).toBe(true);
   });
 });
 
-describe("Zweites Gerät", () => {
-  it("bekommt Kind und Einträge, ohne die childId zu kennen", async () => {
+describe("A second device", () => {
+  it("gets the child and the entries without knowing the childId", async () => {
     const mama = await login("Mama");
 
     // Mama sets things up and records something.

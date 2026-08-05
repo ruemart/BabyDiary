@@ -1,10 +1,10 @@
 /**
- * Verkleinert ein Foto vor dem Hochladen.
+ * Shrinks a photo before uploading.
  *
- * Ein Handyfoto ist heute 4–8 MB groß. Bei einem Bild pro Woche über zwei Jahre wären
- * das rund 800 MB — auf dem Pi kein Problem, über eine Mobilfunkverbindung im
- * Wartezimmer aber sehr wohl, und in der Galerie später zäh. 1600 px lange Kante
- * reicht für Bildschirm und Zeitraffer-Video vollständig aus und landet bei ~300 KB.
+ * A phone photo today is 4–8 MB. At one image per week over two years that would be
+ * around 800 MB — no problem on the Pi, but very much one over a mobile connection in a
+ * waiting room, and sluggish in the gallery later. A 1600 px long edge is entirely
+ * enough for the screen and the time-lapse video and comes out at ~300 KB.
  */
 const MAX_EDGE = 1600;
 const QUALITY = 0.82;
@@ -23,7 +23,7 @@ export async function shrinkImage(file: File | Blob): Promise<Blob> {
   const context = canvas.getContext("2d");
   if (!context) {
     bitmap.close();
-    // Lieber das Original hochladen als den Nutzer mit einem Fehler abweisen.
+    // Better to upload the original than to turn the user away with an error.
     return file;
   }
 

@@ -52,7 +52,7 @@ export const useData = defineStore("data", () => {
   const lastFeed = computed(() => lastOf("feed"));
   const lastDiaper = computed(() => lastOf("diaper"));
 
-  /** Ein Schlaf ohne Ende läuft gerade. */
+  /** A sleep without an end is currently running. */
   const activeSleep = computed(() =>
     byTimeDesc.value.find((e) => e.type === "sleep" && e.endedAt === null),
   );
@@ -90,7 +90,7 @@ export const useData = defineStore("data", () => {
 
   const currentWeekHasPhoto = computed(() => photosByWeek.value.has(currentWeek.value));
 
-  /* ── Laden und Schreiben ──────────────────────────────────────────────────── */
+  /* ── Loading and writing ──────────────────────────────────────────────────── */
 
   async function load(): Promise<void> {
     const [rows, storedChild, name] = await Promise.all([
@@ -147,7 +147,7 @@ export const useData = defineStore("data", () => {
   }
 
   async function update(entry: Entry): Promise<void> {
-    // `editedAt` neu setzen: Es entscheidet beim Abgleich, welche Fassung gewinnt.
+    // Reset `editedAt`: it decides which version wins when syncing.
     await saveEntry({ ...entry, editedAt: new Date().toISOString() });
     await load();
     void pushSoon();
@@ -196,7 +196,7 @@ export const useData = defineStore("data", () => {
     await setMeta(META_DEVICE_NAME, name);
   }
 
-  /* ── Sync-Anstoß ──────────────────────────────────────────────────────────── */
+  /* ── Triggering a sync ────────────────────────────────────────────────────── */
 
   let timer: ReturnType<typeof setTimeout> | null = null;
 

@@ -27,7 +27,7 @@ import { useI18n } from "vue-i18n";
 
 export type Alert = {
   id: string;
-  /** `watch` = beobachten, `info` = Einordnung ohne Handlungsbedarf. */
+  /** `watch` = worth observing, `info` = context with nothing to do about it. */
   level: "watch" | "info";
   title: string;
   detail: string;
@@ -56,7 +56,7 @@ export function useAlerts(
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
   );
 
-  /** Typischer Abstand zwischen zwei Ereignissen, aus den letzten 20 gemessen. */
+  /** The typical gap between two events, measured from the last 20. */
   function medianGapHours(list: LocalEntry[]): number | null {
     const recent = list.slice(0, 20);
     if (recent.length < 5) return null;
@@ -70,7 +70,7 @@ export function useAlerts(
     return gaps[Math.floor(gaps.length / 2)]!;
   }
 
-  /** Tagessummen der letzten Tage, heute ausgenommen (unvollständig). */
+  /** Daily totals of recent days, today excluded (incomplete). */
   function dailyMl(): number[] {
     const tz = timezone();
     const today = localDayKey(new Date(), tz);
@@ -88,7 +88,7 @@ export function useAlerts(
     const result: Alert[] = [];
     const nowMs = now();
 
-    /* ── Windeln: der wichtigste Beobachtungspunkt ─────────────────────────── */
+    /* ── Nappies: the most important thing to watch ────────────────────────── */
 
     const lastWet = diapers.value.find((d) => d.diaper === "wet" || d.diaper === "soiled");
     if (lastWet) {
@@ -98,7 +98,7 @@ export function useAlerts(
       // Guide value: after the first days of life, a gap of more than six hours without
       // a wet nappy is considered worth watching.
       const referenceHours = 6;
-      // Eigener Verlauf: dreifacher üblicher Abstand — was für DIESES Kind auffällt.
+      // Her own history: three times the usual gap — what is unusual for THIS child.
       const ownHours = typical ? typical * 3 : Infinity;
 
       if (hours >= Math.min(referenceHours, ownHours) && ageDays() > 5) {
@@ -118,7 +118,7 @@ export function useAlerts(
     const wetToday = diapers.value.filter(
       (d) => localDayKey(d.startedAt, tz) === today && d.diaper !== "empty",
     ).length;
-    // Erst am Abend sinnvoll — morgens um neun sind zwei Windeln kein Befund.
+    // Only meaningful in the evening — at nine in the morning two nappies mean nothing.
     const hourOfDay = new Date().getHours();
     if (ageDays() > 5 && hourOfDay >= 20 && wetToday < 5) {
       result.push({

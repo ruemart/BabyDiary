@@ -1,16 +1,16 @@
 /**
- * Ländergrenzen als ein einziger SVG-Pfad, äquirektangulär projiziert.
+ * Country borders as a single SVG path, equirectangular projection.
  *
- * Erzeugt mit `tools/build-world-map.mjs` aus Natural Earth (gemeinfrei, über das
- * Paket world-atlas). Zur Bauzeit umgerechnet, damit die App zur Laufzeit keinen
- * Kartendienst kontaktiert: funktioniert offline, verrät keine Standorte nach außen,
- * und es gibt keine Kachel-URL, die irgendwann nicht mehr existiert.
+ * Generated with `tools/build-world-map.mjs` from Natural Earth (public domain, via the
+ * world-atlas package). Converted at build time so the app contacts no map service at
+ * runtime: it works offline, gives no locations away, and there is no tile URL that
+ * stops existing one day.
  *
- * NICHT VON HAND BEARBEITEN.
+ * DO NOT EDIT BY HAND.
  */
 export const WORLD_VIEWBOX = { width: 1000, height: 500 } as const;
 
-/** Bildpunkt-Position für Koordinaten — bei dieser Projektion reine Multiplikation. */
+/** Pixel position for coordinates — pure multiplication with this projection. */
 export function projectToMap(latitude: number, longitude: number): { x: number; y: number } {
   return {
     x: ((longitude + 180) / 360) * 1000,

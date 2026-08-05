@@ -11,8 +11,8 @@ function entry(partial: Partial<LocalEntry> & { startedAt: string }): LocalEntry
   return { id: partial.startedAt, type: "feed", ...partial } as LocalEntry;
 }
 
-describe("Woche im Verlauf", () => {
-  it("liefert immer sieben Tage, auch die leeren", () => {
+describe("A week in the history", () => {
+  it("always returns seven days, including the empty ones", () => {
     const week = buildWeek([], TZ, MONTAG, HEUTE);
     expect(week.days).toHaveLength(7);
     expect(week.days.map((d) => d.key)).toEqual([
@@ -22,13 +22,13 @@ describe("Woche im Verlauf", () => {
     expect(week.days.map((d) => d.weekday)).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
 
-  it("summiert Menge, Flaschen und Windeln je Tag", () => {
+  it("sums amount, bottles and nappies per day", () => {
     const week = buildWeek(
       [
         entry({ startedAt: "2026-08-05T06:00:00.000Z", amountMl: 120 }),
         entry({ startedAt: "2026-08-05T09:00:00.000Z", amountMl: 100 }),
         entry({ startedAt: "2026-08-05T10:00:00.000Z", type: "diaper", diaper: "wet" }),
-        // Anderer Tag — darf nicht mitzählen.
+        // A different day — must not count.
         entry({ startedAt: "2026-08-04T09:00:00.000Z", amountMl: 999 }),
       ],
       TZ,
@@ -43,7 +43,7 @@ describe("Woche im Verlauf", () => {
     expect(mittwoch.entries).toHaveLength(3);
   });
 
-  it("lässt Ausgespucktes nicht in die Tagesmenge zählen", () => {
+  it("keeps what came back up out of the daily total", () => {
     const week = buildWeek(
       [
         entry({ startedAt: "2026-08-05T06:00:00.000Z", amountMl: 120 }),
@@ -58,8 +58,8 @@ describe("Woche im Verlauf", () => {
     expect(week.days[2]!.feeds).toBe(2);
   });
 
-  it("ordnet eine Nachtmahlzeit dem lokalen Tag zu, nicht dem UTC-Tag", () => {
-    // 00:30 Berliner Zeit = 22:30 UTC des Vortags.
+  it("assigns a night feed to the local day, not the UTC day", () => {
+    // 00:30 Berlin time = 22:30 UTC of the previous day.
     const week = buildWeek(
       [entry({ startedAt: "2026-08-04T22:30:00.000Z", amountMl: 90 })],
       TZ,
@@ -70,7 +70,7 @@ describe("Woche im Verlauf", () => {
     expect(week.days[2]!.totalMl).toBe(90);
   });
 
-  it("zeigt den Tag chronologisch, von morgens nach abends", () => {
+  it("shows the day chronologically, morning to evening", () => {
     const week = buildWeek(
       [
         entry({ id: "abends", startedAt: "2026-08-05T18:00:00.000Z" }),
@@ -84,7 +84,7 @@ describe("Woche im Verlauf", () => {
     expect(week.days[2]!.entries.map((e) => e.id)).toEqual(["morgens", "mittags", "abends"]);
   });
 
-  it("zählt nur abgeschlossene Schlafphasen", () => {
+  it("counts only completed sleeps", () => {
     const week = buildWeek(
       [
         entry({
@@ -102,7 +102,7 @@ describe("Woche im Verlauf", () => {
     expect(week.days[2]!.sleepMinutes).toBe(90);
   });
 
-  it("markiert Tage nach heute als Zukunft", () => {
+  it("marks days after today as future", () => {
     const week = buildWeek([], TZ, MONTAG, HEUTE);
     expect(week.days.map((d) => d.isFuture)).toEqual([
       false, false, false, true, true, true, true,
@@ -110,29 +110,29 @@ describe("Woche im Verlauf", () => {
   });
 });
 
-describe("Wochenauswahl", () => {
-  it("bietet die laufende Woche auch ohne einen einzigen Eintrag an", () => {
+describe("Week picker", () => {
+  it("offers the current week even without a single entry", () => {
     expect(availableWeeks([], TZ, HEUTE)).toEqual([MONTAG]);
   });
 
-  it("reicht lückenlos bis zur ältesten Woche zurück", () => {
+  it("reaches back to the oldest week without gaps", () => {
     const weeks = availableWeeks(
       [entry({ startedAt: "2026-07-15T06:00:00.000Z" })],
       TZ,
       HEUTE,
     );
-    // 15. Juli liegt in der Woche ab dem 13. Juli — dazwischen keine Lücke.
+    // 15 July falls in the week starting 13 July — no gap in between.
     expect(weeks).toEqual(["2026-08-03", "2026-07-27", "2026-07-20", "2026-07-13"]);
   });
 });
 
-describe("Wochenwechsel", () => {
-  it("behält den Wochentag bei, damit sich Wochen vergleichen lassen", () => {
+describe("Changing week", () => {
+  it("keeps the weekday so weeks stay comparable", () => {
     // A week back from Wednesday -> the Wednesday before.
     expect(dayAfterWeekChange("2026-07-27", 2, HEUTE)).toBe("2026-07-29");
   });
 
-  it("klemmt auf heute, statt in die Zukunft zu springen", () => {
+  it("clamps to today instead of jumping into the future", () => {
     // Friday of the current week still lies ahead of us.
     expect(dayAfterWeekChange(MONTAG, 4, HEUTE)).toBe(HEUTE);
   });

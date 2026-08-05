@@ -62,12 +62,12 @@ function current(category: SupplyCategory): LocalEntry | undefined {
   return periods(category)[0]?.entry;
 }
 
-/** Alle früheren Stände, neueste zuerst. */
+/** All earlier entries, newest first. */
 function history(category: SupplyCategory): SupplyPeriod<LocalEntry>[] {
   return periods(category).slice(1);
 }
 
-/** „seit 17. Jul 2026 · 3 Wochen · Woche 11" — beim laufenden Stand. */
+/** "since 17 Jul 2026 · 3 weeks · week 11" — for the current entry. */
 function since(period: SupplyPeriod<LocalEntry>): string {
   const parts = [period.rangeLabel, period.durationLabel].filter(Boolean);
   if (data.child) {
@@ -91,7 +91,7 @@ const shop = ref("");
 const note = ref("");
 const at = ref(new Date());
 
-/* ── Foto der Verpackung ──────────────────────────────────────────────────── */
+/* ── Photo of the packaging ───────────────────────────────────────────────── */
 
 /**
  * At the shop a picture says more than "Aptamil Pronutra Pre".

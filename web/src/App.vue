@@ -66,7 +66,7 @@ onMounted(async () => {
   try {
     await boot();
   } catch (error) {
-    // Sichtbar scheitern statt still hängen.
+    // Fail visibly rather than hang silently.
     bootError.value = error instanceof Error ? error.message : String(error);
     authenticated.value = authenticated.value ?? false;
   } finally {

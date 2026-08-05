@@ -19,9 +19,9 @@ import { RouterLink } from "vue-router";
  */
 const items = [
   { to: "/", key: "nav.today", icon: "M4 12h16M4 6h16M4 18h10" },
-  // Kalenderblatt: die Woche als Zeitraum.
+  // Calendar page: the week as a period.
   { to: "/wochen", key: "nav.weeks", icon: "M4 7h16v13H4zM4 11h16M9 4v4M15 4v4" },
-  // Treppe: was sie nacheinander schon kann.
+  // Staircase: what she can already do, one step after another.
   { to: "/meilensteine", key: "nav.milestones", icon: "M4 19h5v-5h5v-5h6" },
   { to: "/kurven", key: "nav.charts", icon: "M4 19V5m0 14h16M8 15l3-4 3 3 4-6" },
   { to: "/einstellungen", key: "nav.more", icon: "M12 6h.01M12 12h.01M12 18h.01" },
@@ -80,7 +80,7 @@ const items = [
   text-decoration: none;
   font-size: 0.6875rem;
   font-weight: 500;
-  /* 44 px Mindesthöhe — darunter trifft der Daumen unzuverlässig. */
+  /* 44 px minimum height — below that the thumb hits unreliably. */
   min-height: 2.75rem;
   transition: color 160ms ease, background-color 160ms ease;
 }

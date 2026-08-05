@@ -160,7 +160,7 @@ export function isQuietHour(
   if (sub.quiet_from_hour === null || sub.quiet_to_hour === null) return false;
   const hour = localParts(at, timezone).hour;
   const { quiet_from_hour: from, quiet_to_hour: to } = sub;
-  // Über Mitternacht hinweg, etwa 22 bis 6.
+  // Across midnight, e.g. 22:00 to 06:00.
   return from > to ? hour >= from || hour < to : hour >= from && hour < to;
 }
 

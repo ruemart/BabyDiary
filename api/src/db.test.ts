@@ -68,8 +68,8 @@ beforeEach(() => {
   return () => rmSync(dir, { recursive: true, force: true });
 });
 
-describe("Sync-Grundlagen", () => {
-  it("nimmt Einträge an und gibt sie ab dem Cursor zurück", () => {
+describe("Sync fundamentals", () => {
+  it("accepts entries and returns them from the cursor", () => {
     store.applyChanges(CHILD_ID, [entry({ id: "a" }), entry({ id: "b" })], null);
 
     const all = store.entriesSince(CHILD_ID, 0);
@@ -77,7 +77,7 @@ describe("Sync-Grundlagen", () => {
     expect(all[0]!.amountMl).toBe(120);
   });
 
-  it("liefert ab einem Cursor nur Neues", () => {
+  it("returns only what is new from a cursor", () => {
     store.applyChanges(CHILD_ID, [entry({ id: "a" })], null);
     const afterFirst = store.currentRev();
     store.applyChanges(CHILD_ID, [entry({ id: "b" })], null);
@@ -85,7 +85,7 @@ describe("Sync-Grundlagen", () => {
     expect(store.entriesSince(CHILD_ID, afterFirst).map((e) => e.id)).toEqual(["b"]);
   });
 
-  it("vergibt streng monoton steigende rev — auch bei einem Batch", () => {
+  it("assigns strictly increasing rev — even for a batch", () => {
     store.applyChanges(
       CHILD_ID,
       [entry({ id: "a" }), entry({ id: "b" }), entry({ id: "c" })],
@@ -96,7 +96,7 @@ describe("Sync-Grundlagen", () => {
     expect(new Set(revs).size).toBe(3);
   });
 
-  it("trennt Kinder voneinander", () => {
+  it("keeps children apart", () => {
     store.applyChanges(CHILD_ID, [entry({ id: "a" })], null);
     store.applyChanges("child-2", [entry({ id: "b", childId: "child-2" })], null);
 
@@ -105,8 +105,8 @@ describe("Sync-Grundlagen", () => {
   });
 });
 
-describe("Konfliktauflösung (Last-Write-Wins)", () => {
-  it("lässt die neuere Änderung gewinnen", () => {
+describe("Conflict resolution (last-write-wins)", () => {
+  it("lets the newer change win", () => {
     store.applyChanges(CHILD_ID, [entry({ id: "a", amountMl: 100 })], null);
     const result = store.applyChanges(
       CHILD_ID,
@@ -118,7 +118,7 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
     expect(store.entriesSince(CHILD_ID, 0)[0]!.amountMl).toBe(150);
   });
 
-  it("verwirft die ältere Änderung und meldet sie zurück", () => {
+  it("discards the older change and reports it back", () => {
     store.applyChanges(
       CHILD_ID,
       [entry({ id: "a", amountMl: 150, editedAt: "2026-08-04T11:00:00.000Z" })],
@@ -134,7 +134,7 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
     expect(store.entriesSince(CHILD_ID, 0)[0]!.amountMl).toBe(150);
   });
 
-  it("gibt bei Gleichstand dem Server recht", () => {
+  it("gives the server the win on a tie", () => {
     // Otherwise two devices with identical editedAt would rewrite each other forever.
     store.applyChanges(CHILD_ID, [entry({ id: "a", amountMl: 150 })], null);
     const result = store.applyChanges(CHILD_ID, [entry({ id: "a", amountMl: 100 })], null);
@@ -143,7 +143,7 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
     expect(store.entriesSince(CHILD_ID, 0)[0]!.amountMl).toBe(150);
   });
 
-  it("vergleicht Zeitstempel mit Offset korrekt", () => {
+  it("compares timestamps with an offset correctly", () => {
     // 12:00+02:00 is 10:00Z — so OLDER than 11:00Z, even though the string looks bigger.
     // Without normalising to UTC the comparison here would come out backwards.
     store.applyChanges(
@@ -163,7 +163,7 @@ describe("Konfliktauflösung (Last-Write-Wins)", () => {
 });
 
 describe("Soft-Delete", () => {
-  it("überträgt eine Löschung als eigene Revision", () => {
+  it("carries a deletion as its own revision", () => {
     store.applyChanges(CHILD_ID, [entry({ id: "a" })], null);
     const cursorBeforeDelete = store.currentRev();
 
@@ -181,7 +181,7 @@ describe("Soft-Delete", () => {
     expect(delta[0]!.deleted).toBe(true);
   });
 
-  it("lässt eine Löschung nicht durch einen älteren Stand wiederbeleben", () => {
+  it("does not let an older version revive a deletion", () => {
     store.applyChanges(
       CHILD_ID,
       [entry({ id: "a", deleted: true, editedAt: "2026-08-04T11:00:00.000Z" })],
@@ -197,8 +197,8 @@ describe("Soft-Delete", () => {
   });
 });
 
-describe("Kind-Stammdaten", () => {
-  it("legt sie an und gibt sie zurück", () => {
+describe("Child details", () => {
+  it("creates them and returns them", () => {
     store.applyChanges(CHILD_ID, [], child());
     const saved = store.getChild();
 
@@ -207,21 +207,21 @@ describe("Kind-Stammdaten", () => {
     expect(saved?.birthWeightG).toBe(3200);
   });
 
-  it("aktualisiert nur mit neuerem editedAt", () => {
+  it("only updates with a newer editedAt", () => {
     store.applyChanges(CHILD_ID, [], child({ name: "Neu", editedAt: "2026-08-04T11:00:00.000Z" }));
     store.applyChanges(CHILD_ID, [], child({ name: "Alt", editedAt: "2026-08-04T10:00:00.000Z" }));
 
     expect(store.getChild()?.name).toBe("Neu");
   });
 
-  it("erlaubt einen leeren ET", () => {
+  it("allows an empty due date", () => {
     store.applyChanges(CHILD_ID, [], child({ dueDate: null }));
     expect(store.getChild()?.dueDate).toBeNull();
   });
 });
 
-describe("Alle Eintragstypen überstehen den Roundtrip", () => {
-  it("bildet jeden Typ verlustfrei ab", () => {
+describe("Every entry type survives the round trip", () => {
+  it("maps every type without loss", () => {
     store.applyChanges(
       CHILD_ID,
       [
@@ -260,8 +260,8 @@ describe("Alle Eintragstypen überstehen den Roundtrip", () => {
   });
 });
 
-describe("Ausgespuckte Mahlzeit", () => {
-  it("überträgt das Kennzeichen verlustfrei", () => {
+describe("A feed brought back up", () => {
+  it("carries the flag without loss", () => {
     store.applyChanges(
       CHILD_ID,
       [entry({ id: "a", amountMl: 120, spatUp: true }), entry({ id: "b", amountMl: 120 })],
@@ -277,8 +277,8 @@ describe("Ausgespuckte Mahlzeit", () => {
   });
 });
 
-describe("Migrationen", () => {
-  it("laufen genau einmal und sind beim erneuten Öffnen kein Problem", () => {
+describe("Migrations", () => {
+  it("run exactly once and are no problem on reopening", () => {
     const path = join(dir, "migrate.db");
     const first = openDatabase(path);
     const applied = first
@@ -300,7 +300,7 @@ describe("Migrationen", () => {
     expect(again).toBe(applied.length);
   });
 
-  it("rüstet eine Datenbank nach, die die Spalte noch nicht kennt", () => {
+  it("upgrades a database that does not know the column yet", () => {
     // The real case: the Pi already holds a database from before the spat-up flag.
     // Without a migration step the server would only have failed on the first write.
     const path = join(dir, "alt.db");
@@ -327,8 +327,8 @@ describe("Migrationen", () => {
   });
 });
 
-describe("Alle bekannten Eintragsarten", () => {
-  it("werden von der Datenbank angenommen", () => {
+describe("All known entry types", () => {
+  it("are accepted by the database", () => {
     // A guard against drift: the CHECK constraint on `type` was once still at the
     // state of the first migration while the schema had long known new kinds. The
     // result was a 500 the device retried forever. This test fails as soon as a kind
@@ -355,7 +355,7 @@ describe("Alle bekannten Eintragsarten", () => {
     expect(store.entriesSince(CHILD_ID, 0)).toHaveLength(ENTRY_TYPES.length);
   });
 
-  it("lässt einen einzelnen unbrauchbaren Eintrag den Rest nicht mitreißen", () => {
+  it("does not let one unusable entry take the rest down", () => {
     // The constraint on `type` was deliberately dropped (migration 007) — it never
     // prevented a fault but forced a table rebuild for every new kind. Resilience is
     // checked here through `diaper`, where a small, stable enum stays sensible.

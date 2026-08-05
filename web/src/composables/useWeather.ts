@@ -2,10 +2,11 @@ import { ref } from "vue";
 import type { WeatherDay } from "@babymonitor/shared";
 
 /**
- * Tagestemperaturen vom eigenen Server (der sie von Open-Meteo holt und behält).
+ * Daily temperatures from our own server (which fetches them from Open-Meteo and keeps
+ * them).
  *
- * Bewusst NICHT im Offline-Speicher: Das Wetter ist Beiwerk. Fehlt es, fehlt eine
- * Kurve — die Eingabe funktioniert davon unberührt weiter.
+ * Deliberately NOT in the offline store: the weather is an extra. If it is missing, a
+ * track is missing — data entry carries on unaffected.
  */
 const days = ref<WeatherDay[]>([]);
 const byDay = ref(new Map<string, WeatherDay>());
@@ -24,14 +25,14 @@ export function useWeather() {
       byDay.value = new Map(days.value.map((d) => [d.day, d]));
       loaded = true;
     } catch {
-      // Kein Netz oder Dienst gestört — bleibt einfach leer.
+      // No network, or the service is down — it simply stays empty.
     }
   }
 
   return { days, byDay, load };
 }
 
-/** Einordnung für die Anzeige. Schwellen bewusst grob — es geht um Kontext, nicht um Messtechnik. */
+/** Wording for the display. Thresholds deliberately coarse — this is context, not metrology. */
 export function describeTemperature(tmax: number | null | undefined): string | null {
   if (tmax === null || tmax === undefined) return null;
   if (tmax >= 30) return "weather.veryHot";

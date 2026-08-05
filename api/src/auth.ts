@@ -12,7 +12,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 export type Session = {
   deviceId: string;
-  /** Anzeigename, landet als `createdBy` an jedem Eintrag. */
+  /** Display name, ends up as `createdBy` on every entry. */
   name: string;
   issuedAt: number;
 };
@@ -41,7 +41,7 @@ export function verifySession(token: string | undefined, secret: string): Sessio
   const payload = token.slice(0, dot);
   const provided = Buffer.from(token.slice(dot + 1), "base64url");
   const expected = hmac(secret, payload);
-  // Längen vorab prüfen: timingSafeEqual wirft bei ungleicher Länge, statt false zu liefern.
+  // Check the lengths first: timingSafeEqual throws on unequal length instead of returning false.
   if (provided.length !== expected.length) return null;
   if (!timingSafeEqual(provided, expected)) return null;
 
@@ -54,7 +54,7 @@ export function verifySession(token: string | undefined, secret: string): Sessio
   }
 }
 
-/** Konstantzeit-Vergleich des Einladungs-Tokens gegen HOUSEHOLD_SECRET. */
+/** Constant-time comparison of the invite token against HOUSEHOLD_SECRET. */
 export function isValidInvite(provided: string, expected: string): boolean {
   const a = Buffer.from(provided, "utf8");
   const b = Buffer.from(expected, "utf8");

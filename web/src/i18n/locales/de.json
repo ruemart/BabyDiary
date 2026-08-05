@@ -230,6 +230,7 @@
   "leap": {
     "afterwards": "Was danach oft dazukommt:",
     "disclaimer": "Die Sprungwochen stammen aus einem verbreiteten, wissenschaftlich aber umstrittenen Modell. Nehmt sie als groben Anhaltspunkt, nicht als Fahrplan — jedes Kind hat seinen eigenen.",
+    "eyebrow": "Sprung {n} · Woche {week}",
     "title": "Sprung {n}: {name}",
     "1": {
       "description": "Die Sinne werden wacher. Viele Babys wirken schreckhafter und wollen mehr getragen werden.",
@@ -630,10 +631,15 @@
     "addPhoto": "Foto für Woche {week} hinzufügen",
     "ariaWeeks": "Wochen",
     "checkInList": "In der Liste abhaken",
+    "from": "ab {date}",
     "lead": "Jede Woche ein Foto — der Zeitstrahl wird damit zum Album.",
     "nothingThisWeek": "In dieser Woche steht nichts an.",
     "otherPhoto": "Anderes Foto",
+    "periodWeeks": "Woche {from}",
+    "periodWeeksRange": "Woche {from}–{to}",
+    "photoAlt": "Foto aus Woche {week}",
     "removePhoto": "Entfernen",
+    "stillRunning": " · läuft noch",
     "title": "Wochenband",
     "toThisWeek": "Zu dieser Woche",
     "upcoming": "Demnächst"

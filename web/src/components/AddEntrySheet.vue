@@ -93,7 +93,7 @@ const TYPE_GROUPS: { titleKey: string; types: { value: EntryType; key: string }[
   },
 ];
 
-/** Häufige Krankheiten zum Antippen — Freitext bleibt trotzdem möglich. */
+/** Common illnesses to tap — free text stays possible all the same. */
 const ILLNESS_PRESETS = [
   "illness.cold",
   "illness.fever",

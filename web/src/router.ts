@@ -1,22 +1,21 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
 /**
- * Merker: Das Nachladen einer Ansicht ist gescheitert.
+ * A marker: loading a view failed.
  *
- * Wird von `view()` gesetzt und von `router.onError` ausgewertet. Der Umweg über eine
- * Variable statt über den Fehlertext ist der eigentliche Punkt dieser Datei — siehe
- * die Erklärung bei `router.onError`.
+ * Set by `view()` and evaluated by `router.onError`. The detour through a variable
+ * rather than the error text is the actual point of this file — see the explanation at
+ * `router.onError`.
  */
 let viewFailedToLoad = false;
 
 /**
- * Ansicht bei Bedarf nachladen und einen Fehlschlag festhalten.
+ * Load a view on demand and record a failure.
  *
- * Ein zweiter Versuch an dieser Stelle wäre wirkungslos: Ist ein Modul einmal
- * gescheitert, merkt sich das Dokument genau das und gibt beim nächsten `import()`
- * dieselbe Ablehnung zurück, ohne überhaupt noch einmal anzufragen. Im Prüflauf
- * nachgemessen — der zweite Aufruf löste keine einzige Anfrage aus. Was hier hilft,
- * ist ausschließlich ein neues Dokument, also das harte Neuladen unten.
+ * A second attempt here would be useless: once a module has failed, the document
+ * remembers exactly that and returns the same rejection on the next `import()` without
+ * even asking again. Measured in a test run — the second call triggered not a single
+ * request. What helps here is only a new document, i.e. the hard reload below.
  */
 function view(load: () => Promise<unknown>) {
   return async () => {
@@ -47,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     name: "einstellungen",
     component: view(() => import("./views/SettingsView.vue")),
   },
-  // Der Einladungs-Link landet hier: /start?t=<token>
+  // The invite link lands here: /start?t=<token>
   { path: "/start", name: "start", component: view(() => import("./views/JoinView.vue")) },
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
@@ -59,31 +58,30 @@ export const router = createRouter({
 });
 
 /**
- * Nach einem Update zeigen alte Seitenverweise ins Leere.
+ * After an update, old page references point into the void.
  *
- * Die Ansichten werden bei Bedarf nachgeladen, und ihre Dateinamen enthalten einen
- * Inhalts-Hash. Wird eine neue Fassung ausgerollt, während ein Gerät noch die alte
- * offen hat, verweist dessen JavaScript auf Dateien, die es nicht mehr gibt: Der
- * Aufruf schlägt fehl, und der Navigationspunkt tut scheinbar NICHTS. Betroffen sind
- * nur Punkte, deren Ansicht in dieser Sitzung noch nicht geladen war.
+ * The views are loaded on demand and their file names contain a content hash. When a new
+ * version is rolled out while a device still has the old one open, its JavaScript points
+ * at files that no longer exist: the call fails and the navigation item apparently does
+ * NOTHING. Only items whose view has not been loaded in this session are affected.
  *
- * Hier wird daraus ein hartes Neuladen auf die Zielseite. Für den Menschen davor sieht
- * das aus wie ein etwas langsamer Seitenwechsel statt wie ein toter Knopf.
+ * Here that becomes a hard reload onto the target page. To the person in front of it,
+ * that looks like a slightly slow page change rather than a dead button.
  *
- * ENTSCHEIDEND: erkannt wird das über einen Merker aus `view()`, NICHT über den
- * Fehlertext. Vorher stand hier ein Abgleich mit "Failed to fetch dynamically imported
- * module" und zwei weiteren Formulierungen — und genau daran ist es auf dem iPhone
- * gescheitert: Safari formuliert denselben Fehler anders, der Abgleich griff nicht, und
- * die Knöpfe blieben tot. Jeder Browser darf seinen Fehler nennen, wie er will; ob das
- * Nachladen gescheitert ist, weiß `view()` ohnehin sicherer als jede Textprüfung.
+ * CRUCIAL: this is detected through a marker from `view()`, NOT through the error text.
+ * There used to be a comparison against "Failed to fetch dynamically imported module"
+ * and two other phrasings here — and that is exactly what failed on the iPhone: Safari
+ * phrases the same error differently, the comparison did not match, and the buttons
+ * stayed dead. Every browser may name its error however it likes; whether loading failed
+ * is something `view()` knows more reliably than any text check.
  */
 router.onError((error, to) => {
   if (!viewFailedToLoad) return;
   viewFailedToLoad = false;
 
-  // Schutz vor einer Endlosschleife: Wenn das Neuladen die Lage nicht bessert — etwa
-  // weil der Server wirklich nicht erreichbar ist — darf die App nicht dauerhaft
-  // neu starten. Dann lieber sichtbar stehen bleiben.
+  // A guard against an endless loop: if reloading does not improve matters — because
+  // the server really is unreachable, say — the app must not restart forever. Better to
+  // stand still visibly.
   const marker = `bm.reload:${to.fullPath}`;
   const last = Number(sessionStorage.getItem(marker) ?? 0);
   if (Date.now() - last < 15_000) {

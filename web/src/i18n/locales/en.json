@@ -230,6 +230,7 @@
   "leap": {
     "afterwards": "What often comes next:",
     "disclaimer": "The leap weeks come from a popular but scientifically contested model. Take them as a rough pointer, not a timetable — every child has their own.",
+    "eyebrow": "Leap {n} · week {week}",
     "title": "Leap {n}: {name}",
     "1": {
       "description": "The senses wake up. Many babies seem more easily startled and want to be carried more.",
@@ -630,10 +631,15 @@
     "addPhoto": "Add a photo for week {week}",
     "ariaWeeks": "Weeks",
     "checkInList": "Tick it off in the list",
+    "from": "from {date}",
     "lead": "One photo per week — which turns the timeline into an album.",
     "nothingThisWeek": "Nothing due this week.",
     "otherPhoto": "Another photo",
+    "periodWeeks": "week {from}",
+    "periodWeeksRange": "week {from}–{to}",
+    "photoAlt": "Photo from week {week}",
     "removePhoto": "Remove",
+    "stillRunning": " · still running",
     "title": "Week ribbon",
     "toThisWeek": "To this week",
     "upcoming": "Coming up"

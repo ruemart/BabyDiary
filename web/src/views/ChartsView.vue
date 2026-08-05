@@ -27,7 +27,7 @@ const hasFeeds = computed(() => rhythm.value.length > 0);
 
 const growthMeasure = ref<GrowthMeasure>("weight");
 
-/** Messwerte in die Einheiten der WHO-Tabellen umrechnen: Gramm → kg, mm → cm. */
+/** Convert measurements into the units of the WHO tables: grams → kg, mm → cm. */
 const growthPoints = computed(() => {
   const child = data.child;
   if (!child) return [];
@@ -45,7 +45,7 @@ const growthPoints = computed(() => {
     .sort((a, b) => a.ageDays - b.ageDays);
 });
 
-/** Der aktuelle Perzentilrang — die Zahl, nach der beim Kinderarzt gefragt wird. */
+/** The current percentile rank — the number people are asked about at the doctor's. */
 const currentPercentile = computed(() => {
   const child = data.child;
   const last = growthPoints.value[growthPoints.value.length - 1];
@@ -54,7 +54,7 @@ const currentPercentile = computed(() => {
   return z === null ? null : Math.round(zToPercentile(z));
 });
 
-/** Der Vergleichssatz muss zur Messgröße passen — bei Länge ist "schwer" schlicht falsch. */
+/** The comparison sentence has to match the measure — for length, "heavier" is simply wrong. */
 const percentileComparison = computed(() =>
   growthMeasure.value === "weight" ? t("charts.lighter") : t("charts.shorter"),
 );
@@ -85,7 +85,7 @@ const trendText = computed(() => {
     </p>
 
     <template v-else>
-      <!-- Kennzahlen als Kacheln: Für eine einzelne Zahl ist ein Diagramm der Umweg. -->
+      <!-- Key figures as tiles: for a single number a chart is the long way round. -->
       <section class="tiles" :aria-label="$t('charts.tiles')">
         <div class="tile">
           <p class="tile__label">{{ $t("charts.avgPerDay") }}</p>

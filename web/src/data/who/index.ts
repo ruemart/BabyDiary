@@ -7,18 +7,17 @@ import type { Sex } from "@babymonitor/shared";
 /**
  * WHO Child Growth Standards.
  *
- * QUELLE: World Health Organization, Child Growth Standards, "expanded tables"
- * (z-scores) für Weight-for-age und Length/height-for-age, Jungen und Mädchen.
+ * SOURCE: World Health Organization, Child Growth Standards, "expanded tables"
+ * (z-scores) for weight-for-age and length/height-for-age, boys and girls.
  * https://www.who.int/tools/child-growth-standards/standards
  *
- * Erzeugt mit `tools/build-who-tables.py` aus den Original-xlsx. Behalten wurden nur
- * L, M und S je Stützstelle — daraus lässt sich jedes Perzentil exakt berechnen,
- * während die vorberechneten Standardabweichungsspalten die Dateien ohne jeden
- * Gewinn vervierfachen würden. Ausgedünnt auf ein Wochenraster über zwei Jahre;
- * zwischen zwei benachbarten Tagen ändert sich der Median um Bruchteile eines
- * Gramms, dazwischen wird linear interpoliert.
+ * Generated with `tools/build-who-tables.py` from the original xlsx files. Only L, M and
+ * S were kept per anchor point — from those every percentile can be computed exactly,
+ * whereas the precomputed standard-deviation columns would quadruple the files for no
+ * gain at all. Thinned to a weekly grid over two years; between two adjacent days the
+ * median changes by fractions of a gram, and in between it is interpolated linearly.
  *
- * Format je Zeile: [Lebenstag, L, M, S]
+ * Format per row: [day of life, L, M, S]
  */
 type LmsRow = [day: number, l: number, m: number, s: number];
 
@@ -29,7 +28,7 @@ const TABLES: Record<GrowthMeasure, Record<Sex, LmsRow[]>> = {
   length: { female: lengthGirls as LmsRow[], male: lengthBoys as LmsRow[] },
 };
 
-/** Zwischen den Wochen-Stützstellen linear interpolieren. */
+/** Interpolate linearly between the weekly anchor points. */
 function lmsAt(measure: GrowthMeasure, sex: Sex, ageDays: number): LmsRow | null {
   const table = TABLES[measure][sex];
   if (table.length === 0) return null;
@@ -55,20 +54,20 @@ function lmsAt(measure: GrowthMeasure, sex: Sex, ageDays: number): LmsRow | null
 }
 
 /**
- * Z-Wert nach der LMS-Formel.
+ * Z-score by the LMS formula.
  *
- *   z = ((X/M)^L − 1) / (L·S)      für L ≠ 0
- *   z = ln(X/M) / S                für L = 0
+ *   z = ((X/M)^L − 1) / (L·S)      for L ≠ 0
+ *   z = ln(X/M) / S                for L = 0
  *
- * Der Sonderfall L = 0 ist kein Randfall, sondern der Grenzwert der Box-Cox-
- * Transformation — bei Länge-für-Alter ist L über weite Strecken exakt 1, bei
- * anderen Maßen kann er 0 werden, und dann teilt die obere Formel durch null.
+ * The special case L = 0 is not an edge case but the limit of the Box-Cox
+ * transformation — for length-for-age L is exactly 1 over long stretches, for other
+ * measures it can become 0, and then the upper formula divides by zero.
  */
 export function zScore(
   measure: GrowthMeasure,
   sex: Sex,
   ageDays: number,
-  /** Gewicht in kg bzw. Länge in cm — dieselben Einheiten wie die WHO-Tabellen. */
+  /** Weight in kg or length in cm — the same units as the WHO tables. */
   value: number,
 ): number | null {
   const lms = lmsAt(measure, sex, ageDays);
@@ -77,7 +76,7 @@ export function zScore(
   return Math.abs(l) < 1e-7 ? Math.log(value / m) / s : ((value / m) ** l - 1) / (l * s);
 }
 
-/** Wert, der einem gegebenen Z-Wert entspricht — für die Perzentilkurven. */
+/** The value corresponding to a given z-score — for the percentile curves. */
 export function valueAtZ(
   measure: GrowthMeasure,
   sex: Sex,
@@ -91,9 +90,9 @@ export function valueAtZ(
 }
 
 /**
- * Standardnormalverteilung als Prozentrang.
- * Abramowitz & Stegun 26.2.17, Genauigkeit ~1e-7 — für eine Anzeige wie "P42"
- * um Größenordnungen mehr als nötig.
+ * The standard normal distribution as a percentile rank.
+ * Abramowitz & Stegun 26.2.17, accuracy ~1e-7 — orders of magnitude more than needed
+ * for a display like "P42".
  */
 export function zToPercentile(z: number): number {
   const sign = z < 0 ? -1 : 1;
@@ -108,7 +107,7 @@ export function zToPercentile(z: number): number {
   return 50 * (1 + sign * erf);
 }
 
-/** Die Perzentillinien, die in der Grafik gezeichnet werden. */
+/** The percentile lines drawn in the chart. */
 export const PERCENTILE_LINES = [
   { z: -1.881, label: "P3" },
   { z: -1.036, label: "P15" },

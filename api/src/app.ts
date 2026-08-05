@@ -59,7 +59,7 @@ export async function buildApp(
   const weather = opts.weather;
   const push = opts.push;
 
-  /** Alles unter /api/ braucht ein gültiges Cookie — außer den drei Ausnahmen. */
+  /** Everything under /api/ needs a valid cookie — except the three exceptions. */
   const OPEN_ROUTES = new Set(["/api/health", "/api/session", "/api/session/check"]);
 
   app.addHook("onRequest", async (req: FastifyRequest, reply: FastifyReply) => {
@@ -345,7 +345,7 @@ export async function buildApp(
     leadMinutes: z.number().int().min(0).max(120).default(10),
     /** This device's language — decides the language of the notification. */
     locale: z.string().max(8).default("en"),
-    /** Ruhezeit als Stundenpaar in Lokalzeit; null heißt rund um die Uhr. */
+    /** Quiet hours as a pair of local hours; null means around the clock. */
     quietFromHour: z.number().int().min(0).max(23).nullable().default(22),
     quietToHour: z.number().int().min(0).max(23).nullable().default(6),
   });

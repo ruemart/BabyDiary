@@ -32,13 +32,13 @@ export type SupplyCategory = (typeof SUPPLY_CATEGORIES)[number];
 export const SEXES = ["female", "male"] as const;
 export type Sex = (typeof SEXES)[number];
 
-/** ISO-8601 mit Zeitzonen-Offset oder Z. Wir speichern immer UTC. */
+/** ISO-8601 with a time zone offset or Z. We always store UTC. */
 const isoDateTime = z
   .string()
   .datetime({ offset: true })
   .describe("ISO-8601 Zeitstempel in UTC");
 
-/** Reines Kalenderdatum, YYYY-MM-DD, in lokaler Zeit gemeint (Geburtstag, ET). */
+/** A plain calendar date, YYYY-MM-DD, meant in local time (birthday, due date). */
 const calendarDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Erwartet YYYY-MM-DD");
@@ -76,7 +76,7 @@ export const entrySchema = z
     /** diaper */
     diaper: z.enum(DIAPER_KINDS).nullable().default(null),
 
-    /** growth — in Gramm bzw. Millimetern, damit keine Fließkomma-Rundung auftritt */
+    /** growth — in grams and millimetres so no floating-point rounding creeps in */
     weightG: z.number().int().min(0).max(60000).nullable().default(null),
     lengthMm: z.number().int().min(0).max(2000).nullable().default(null),
     headMm: z.number().int().min(0).max(1000).nullable().default(null),
@@ -122,7 +122,7 @@ export const entrySchema = z
 
     note: z.string().max(4000).nullable().default(null),
 
-    /** Anzeigename des Geräts, das den Eintrag angelegt hat ("Mama"/"Papa"). */
+    /** Display name of the device that created the entry ("Mama"/"Papa"). */
     createdBy: z.string().min(1).max(40),
     /**
      * Client time of the last change. Decides conflicts (last-write-wins).
@@ -208,7 +208,7 @@ export const childSchema = z.object({
   birthWeightG: z.number().int().min(0).max(10000).nullable().default(null),
   birthLengthMm: z.number().int().min(0).max(1000).nullable().default(null),
   birthHeadMm: z.number().int().min(0).max(1000).nullable().default(null),
-  /** IANA-Zone; steuert Tagesgrenzen und Uhrzeit-Achsen in den Auswertungen. */
+  /** IANA zone; drives day boundaries and the time axes in the charts. */
   timezone: z.string().min(1).max(64).default("Europe/Berlin"),
   /**
    * The household's country — drives check-ups and the vaccination schedule.
@@ -238,7 +238,7 @@ export type Child = z.infer<typeof childSchema>;
  */
 export const syncEnvelopeSchema = z.object({
   childId: z.string().min(1).max(64),
-  /** Höchste bereits bekannte `rev`. 0 = alles holen. */
+  /** The highest `rev` already known. 0 = fetch everything. */
   since: z.number().int().min(0),
   changes: z.array(z.record(z.unknown())).max(500),
   child: z.record(z.unknown()).nullable().default(null),
@@ -249,7 +249,7 @@ export type SyncEnvelope = z.infer<typeof syncEnvelopeSchema>;
 export type InvalidEntry = { id: string; reason: string };
 
 export type SyncResponse = {
-  /** Neue Höchstmarke — beim nächsten Mal als `since` schicken. */
+  /** The new high-water mark — send it as `since` next time. */
   rev: number;
   entries: StoredEntry[];
   child: Child | null;
@@ -267,7 +267,7 @@ export type SyncResponse = {
 export type WeatherDay = {
   /** YYYY-MM-DD, lokaler Kalendertag. */
   day: string;
-  /** Höchst- und Tiefsttemperatur in Grad Celsius. */
+  /** Maximum and minimum temperature in degrees Celsius. */
   tmax: number | null;
   tmin: number | null;
 };

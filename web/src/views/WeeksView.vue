@@ -17,7 +17,7 @@ const region = computed(() => regionByCode(data.child?.region));
 const route = useRoute();
 const ribbon = useTemplateRef<{ scrollToWeek: (w: number) => void }>("ribbon");
 
-// Aus der Reisekarte kommt "?woche=12" — dann dorthin springen statt auf heute.
+// The travel map arrives with "?woche=12" — then jump there instead of to today.
 onMounted(() => {
   const target = Number(route.query["woche"]);
   if (Number.isFinite(target) && target >= 0) {
@@ -28,7 +28,7 @@ onMounted(() => {
 const { savePhoto, busy } = usePhotoUpload();
 const { bands, pins, upcoming, activeLeap } = useTimeline(() => data.child);
 
-/** Krankheiten und Abwesenheiten als eigene Spuren im Band. */
+/** Illnesses and away periods as their own tracks in the ribbon. */
 const periods = computed(() =>
   data.child
     ? periodBands(data.entries, data.child.birthDate, data.timezone, data.currentWeek, {
@@ -67,7 +67,7 @@ function requestPhoto(week: number) {
 async function onPhotoPicked(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (file) {
-    // Vorhandenes Foto derselben Woche zuerst entfernen — es gilt eines pro Woche.
+    // Remove an existing photo of the same week first — one per week applies.
     const existing = data.photosByWeek.get(photoTargetWeek.value);
     const saved = await savePhoto(file, photoTargetWeek.value);
     if (saved && existing) await data.remove(existing.id);
@@ -76,11 +76,11 @@ async function onPhotoPicked(event: Event) {
 }
 
 /**
- * Foto ersetzen heißt: neues hoch, altes weg.
+ * Replacing a photo means: new one up, old one gone.
  *
- * Der Eintrag trägt die Lebenswoche, und pro Woche gilt genau ein Foto — der alte
- * Eintrag muss also verschwinden, sonst hängen zwei an derselben Woche und welches
- * gewinnt, entscheidet die Reihenfolge im Speicher.
+ * The entry carries the week of life, and exactly one photo counts per week — so the old
+ * entry has to disappear, otherwise two hang off the same week and which one wins is
+ * decided by the order in the store.
  */
 async function removePhoto() {
   const photo = selectedPhoto.value;
@@ -89,12 +89,11 @@ async function removePhoto() {
 }
 
 /**
- * Beschriftung je Art.
+ * A label per kind.
  *
- * Vorher stand hier ein Ternär mit zwei Zweigen — geschrieben, als es nur
- * Untersuchungen und Impfungen gab. Meilensteine landeten dadurch stillschweigend
- * im Impfungs-Zweig. Eine vollständige Zuordnung kann das nicht passieren: Kommt
- * eine Art dazu, fällt die Lücke sofort auf.
+ * There used to be a two-branch ternary here — written when there were only check-ups
+ * and vaccinations. Milestones therefore ended up silently in the vaccination branch.
+ * A complete mapping cannot do that: when a kind is added, the gap shows up at once.
  */
 const PIN_KIND_LABEL: Record<TimelinePin["kind"], string> = {
   checkup: "pin.checkup",
@@ -141,18 +140,18 @@ function daysAwayLabel(days: number): string {
       @change="onPhotoPicked"
     />
 
-    <!-- Detail zur angetippten Woche -->
+    <!-- Detail for the week that was tapped -->
     <section class="detail" :aria-label="$t('common.weekN', { n: selectedWeek })">
       <div class="detail__head">
         <h2>{{ $t("common.weekN", { n: selectedWeek }) }}</h2>
-        <span class="detail__date">ab {{ selectedDateLabel }}</span>
+        <span class="detail__date">{{ $t("weeks.from", { date: selectedDateLabel }) }}</span>
       </div>
 
       <template v-if="selectedPhoto">
         <figure class="detail__photo">
-          <img :src="`/api/media/${selectedPhoto.mediaId}`" :alt="`Foto aus Woche ${selectedWeek}`" />
+          <img :src="`/api/media/${selectedPhoto.mediaId}`" :alt="$t('weeks.photoAlt', { week: selectedWeek })" />
         </figure>
-        <!-- Ein Foto ist kein endgültiger Zustand: Das erste ist selten das beste. -->
+        <!-- A photo is not a final state: the first one is rarely the best one. -->
         <div class="photo-actions">
           <button class="photo-action" type="button" :disabled="busy" @click="requestPhoto(selectedWeek)">
             {{ busy ? $t("photo.loading") : $t("weeks.otherPhoto") }}
@@ -180,8 +179,10 @@ function daysAwayLabel(days: number): string {
           <span>
             {{ period.label }}
             <span class="periods-list__weeks">
-              Woche {{ period.fromWeek }}<template v-if="period.toWeek !== period.fromWeek">–{{ period.toWeek }}</template>
-              <template v-if="period.ongoing"> · läuft noch</template>
+              {{ period.toWeek !== period.fromWeek
+                ? $t("weeks.periodWeeksRange", { from: period.fromWeek, to: period.toWeek })
+                : $t("weeks.periodWeeks", { from: period.fromWeek }) }}
+              <template v-if="period.ongoing">{{ $t("weeks.stillRunning") }}</template>
             </span>
           </span>
         </li>
@@ -207,7 +208,7 @@ function daysAwayLabel(days: number): string {
       </p>
     </section>
 
-    <!-- Ausblick -->
+    <!-- What is coming -->
     <section v-if="nextItems.length" class="upcoming">
       <h2 class="upcoming__title">{{ $t("weeks.upcoming") }}</h2>
       <ul>
@@ -220,7 +221,7 @@ function daysAwayLabel(days: number): string {
     </section>
 
     <section v-if="runningLeap" class="leap">
-      <p class="leap__eyebrow">Sprung {{ runningLeap.number }} · Woche {{ runningLeap.week }}</p>
+      <p class="leap__eyebrow">{{ $t("leap.eyebrow", { n: runningLeap.number, week: runningLeap.week }) }}</p>
       <h2 class="leap__title">{{ $t("leap.title", { n: runningLeap.number, name: $t(`leap.${runningLeap.number}.title`) }) }}</h2>
       <p class="leap__text">{{ $t(`leap.${runningLeap.number}.description`) }}</p>
       <p class="leap__skills"><strong>{{ $t("leap.afterwards") }}</strong> {{ $t(`leap.${runningLeap.number}.newSkills`) }}</p>
@@ -228,8 +229,9 @@ function daysAwayLabel(days: number): string {
 
     <footer class="notes">
       <p>{{ $t("leap.disclaimer") }}</p>
-      <!-- Der Hinweis kommt aus der Länderdatei, weil er von Land zu Land anders
-           lautet — die deutschen Fristen etwa hängen an der Kassenleistung. -->
+      <!-- The note comes from the country file because it reads differently from
+           country to country — the German deadlines, for instance, hang off insurance
+           cover. -->
       <p v-if="regionNote(region.checkupNote, locale)">{{ regionNote(region.checkupNote, locale) }}</p>
       <p v-if="!region.verified && region.code !== 'none'">{{ $t("region.unverified") }}</p>
       <p>{{ $t("region.medicalNote") }}</p>

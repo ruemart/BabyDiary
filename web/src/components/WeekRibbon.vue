@@ -130,7 +130,7 @@ defineExpose({ scrollToWeek });
 
     <div ref="scroller" class="ribbon__scroll" tabindex="0" role="group" :aria-label="$t('weeks.ariaWeeks')">
       <div class="ribbon__track" :style="{ '--week-w': '4.25rem', '--period-rows': periodRows.length }">
-        <!-- Sprung-Bänder liegen als durchgehende Fläche hinter den Zellen. -->
+        <!-- The leap bands lie as a continuous surface behind the cells. -->
         <div class="bands" aria-hidden="true">
           <div
             v-for="band in bands"
@@ -197,9 +197,9 @@ defineExpose({ scrollToWeek });
             <span class="cell__week bm-tabular">{{ week }}</span>
             <span class="cell__date bm-tabular">{{ weekShortDate(week) }}</span>
 
-            <!-- U-Termine namentlich, Impfungen zu EINEM Punkt zusammengefasst.
-                 Vier identische grüne Punkte nebeneinander tragen keine Information;
-                 welche Impfungen es sind, steht in der Detailkarte darunter. -->
+            <!-- Check-ups by name, vaccinations condensed into ONE dot. Four identical green
+                 dots side by side carry no information; which vaccinations they are is in
+                 the detail card below. -->
             <span class="cell__pins">
               <span
                 v-for="pin in checkupsInWeek(week)"
@@ -236,7 +236,7 @@ defineExpose({ scrollToWeek });
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x proximity;
-  /* Randlos bis an den Bildschirmrand scrollen, obwohl die Seite Innenabstand hat. */
+  /* Scroll edge to edge even though the page has padding. */
   margin-inline: -1rem;
   padding: 0.5rem 1rem 0.75rem;
   scrollbar-width: thin;
@@ -252,7 +252,7 @@ defineExpose({ scrollToWeek });
   display: block;
 }
 
-/* ── Sprung-Bänder ────────────────────────────────────────────────────────── */
+/* ── Leap bands ───────────────────────────────────────────────────────────── */
 
 /* The leap bands run as a continuous strip BELOW the cells, not between the week
    number and the appointment pins. Before, the band visually separated the pins from

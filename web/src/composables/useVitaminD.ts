@@ -3,35 +3,35 @@ import { localDayKey, localTimeLabel } from "@babymonitor/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**
- * Wurde heute schon Vitamin D gegeben?
+ * Has vitamin D already been given today?
  *
- * Die tägliche Prophylaxe ist die Art Aufgabe, die genau deshalb vergessen wird, weil
- * sie so klein ist: kein eigener Anlass, keine Rückmeldung, und am Abend weiß niemand
- * mehr sicher, ob es nun passiert ist. Genau diese Frage beantwortet die Zeile.
+ * The daily prophylaxis is the kind of task that gets forgotten precisely because it is
+ * so small: no occasion of its own, no feedback, and by the evening nobody is sure any
+ * more whether it happened. That is the question this line answers.
  *
- * Der Ton bleibt sachlich. Ein vergessener Tag ist kein Notfall — die App erinnert,
- * sie mahnt nicht. Erst am Abend wird der Hinweis deutlicher, weil dann der Tag
- * tatsächlich knapp wird.
+ * The tone stays matter-of-fact. A forgotten day is not an emergency — the app reminds,
+ * it does not nag. Only in the evening does the note get clearer, because by then the
+ * day really is running out.
  */
 
 export type VitaminDStatus = {
   given: boolean;
-  /** Uhrzeit der Gabe, falls sie stattgefunden hat. */
+  /** Time it was given, if it happened. */
   atLabel: string | null;
-  /** Id der Mahlzeit, an der es hängt — zum Aufheben. */
+  /** Id of the feed it hangs off — for taking it back. */
   entryId: string | null;
-  /** Id der letzten heutigen Mahlzeit — daran lässt es sich nachträglich setzen. */
+  /** Id of today's last feed — it can be set on that one retrospectively. */
   latestFeedId: string | null;
   /** Ab dem Abend deutlicher formuliert. */
   urgent: boolean;
 };
 
 /**
- * Die Mahlzeit, an der an EINEM BESTIMMTEN TAG das Vitamin D hängt.
+ * The feed that carries the vitamin D on A PARTICULAR DAY.
  *
- * Bewusst nach Tag gefragt und nicht nach "heute": Beim Nachtragen zählt das Datum des
- * Eintrags. Wer eine Flasche von gestern ergänzt, muss das Häkchen für GESTERN setzen
- * können — auch wenn heute schon eines gesetzt ist.
+ * Deliberately asked by day and not by "today": when adding a past entry the date of the
+ * entry counts. Someone adding yesterday's bottle must be able to tick YESTERDAY — even
+ * when one is already ticked for today.
  */
 export function vitaminHolderOn(
   entries: LocalEntry[],
@@ -63,7 +63,7 @@ export function useVitaminD(
       atLabel: given ? localTimeLabel(given.startedAt, tz) : null,
       entryId: given?.id ?? null,
       latestFeedId: todaysFeeds[0]?.id ?? null,
-      // Ab 18 Uhr wird aus "steht noch aus" ein deutlicherer Hinweis.
+      // From 6 pm on, "still outstanding" becomes a clearer note.
       urgent: !given && now().getHours() >= 18,
     };
   });
