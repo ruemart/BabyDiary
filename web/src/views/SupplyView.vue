@@ -6,6 +6,7 @@ import type { LocalEntry } from "../db/local.ts";
 import SheetDialog from "../components/SheetDialog.vue";
 import TimeField from "../components/TimeField.vue";
 import { supplyPeriods, type SupplyPeriod } from "../utils/supplyPeriods.ts";
+import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 
 /**
  * Was wir kaufen — zum Nachschlagen im Laden.
@@ -89,12 +90,87 @@ const shop = ref("");
 const note = ref("");
 const at = ref(new Date());
 
+/* ── Foto der Verpackung ──────────────────────────────────────────────────── */
+
+/**
+ * Ein Bild sagt im Laden mehr als "Aptamil Pronutra Pre".
+ *
+ * Regale sind voll von fast gleich aussehenden Packungen derselben Marke, die sich nur
+ * in einer Ziffer unterscheiden — und genau die ist die wichtige. Wer die Packung
+ * abfotografiert hat, vergleicht im Laden Bild mit Regal statt Erinnerung mit Regal.
+ *
+ * Das Hochladen braucht als einziger Weg in dieser App das Netz. Scheitert es, wird der
+ * Eintrag trotzdem gespeichert — ohne Bild ist er immer noch nützlich.
+ */
+const { uploadPhoto, busy: photoBusy } = usePhotoUpload();
+const mediaId = ref<string | null>(null);
+/** Sofortige Vorschau aus der lokalen Datei, noch bevor der Server geantwortet hat. */
+const localPreview = ref<string | null>(null);
+
+function releasePreview() {
+  if (localPreview.value) URL.revokeObjectURL(localPreview.value);
+  localPreview.value = null;
+}
+
+const previewSrc = computed(() => {
+  if (localPreview.value) return localPreview.value;
+  return mediaId.value ? `/api/media/${mediaId.value}` : null;
+});
+
+async function pickPhoto(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+
+  releasePreview();
+  localPreview.value = URL.createObjectURL(file);
+
+  const id = await uploadPhoto(file);
+  if (id) mediaId.value = id;
+  else releasePreview();
+}
+
+function dropPhoto() {
+  releasePreview();
+  mediaId.value = null;
+}
+
+/**
+ * Das Bild des bisherigen Standes — zum Übernehmen angeboten, nicht still übernommen.
+ *
+ * Bei einem Stufenwechsel sieht die Packung fast gleich aus, nur eine Ziffer ist anders.
+ * Genau die ist die wichtige. Automatisch mitgeschleppt hätte man irgendwann ein Foto,
+ * das die falsche Zahl zeigt — das wäre schlimmer als gar keines. Ein Tap ist der
+ * richtige Preis für "ja, dieselbe Packung".
+ */
+const previousMediaId = computed(() =>
+  editing.value ? null : (current(category.value)?.mediaId ?? null),
+);
+
+function reusePreviousPhoto() {
+  releasePreview();
+  mediaId.value = previousMediaId.value;
+}
+
+/**
+ * Großansicht. Hält immer eine FERTIGE Bildquelle, nie eine halbe Medien-Id — sonst
+ * muss jede Aufrufstelle wissen, ob noch ein Pfad davor gehört.
+ */
+const zoomed = ref<string | null>(null);
+
 const categoryMeta = computed(
   () => CATEGORIES.find((c) => c.value === category.value) ?? CATEGORIES[0]!,
 );
 
 watch(sheetOpen, (open) => {
-  if (!open) return;
+  if (!open) {
+    // Die Vorschau-URL zeigt auf einen Blob im Speicher. Ohne Freigabe bleibt der
+    // liegen, bis die Seite neu geladen wird.
+    if (zoomed.value === localPreview.value) zoomed.value = null;
+    releasePreview();
+    return;
+  }
   const existing = editing.value;
   if (existing) {
     category.value = existing.supplyCategory ?? "formula";
@@ -103,6 +179,8 @@ watch(sheetOpen, (open) => {
     shop.value = existing.supplyShop ?? "";
     note.value = existing.note ?? "";
     at.value = new Date(existing.startedAt);
+    releasePreview();
+    mediaId.value = existing.mediaId;
     return;
   }
   // Bei einem Wechsel das Bisherige vorbelegen — meist ändert sich nur die Größe.
@@ -112,6 +190,10 @@ watch(sheetOpen, (open) => {
   shop.value = previous?.supplyShop ?? "";
   note.value = "";
   at.value = new Date();
+  releasePreview();
+  // Das Bild wird NICHT vom vorigen Stand übernommen: Ein Wechsel ist meist genau die
+  // andere Packung, und ein falsches Foto ist schlimmer als keines.
+  mediaId.value = null;
 });
 
 function startNew(next: SupplyCategory) {
@@ -143,6 +225,7 @@ async function save() {
   if (!canSave.value) return;
   const fields = {
     supplyCategory: category.value,
+    mediaId: mediaId.value,
     supplySize: size.value.trim() || null,
     supplyShop: shop.value.trim() || null,
     label: product.value.trim() || null,
@@ -178,14 +261,28 @@ async function remove() {
              Eintrag ÜBERSCHRIEBEN — der naheliegendste Griff war ausgerechnet der,
              der die Historie zerstört. Beide Wege stehen jetzt benannt darunter. -->
         <div class="current">
-          <span class="current__value">{{ describe(periods(cat.value)[0]!.entry) }}</span>
-          <span v-if="periods(cat.value)[0]!.entry.supplyShop" class="current__shop">
-            bei {{ periods(cat.value)[0]!.entry.supplyShop }}
-          </span>
-          <span class="current__since">{{ since(periods(cat.value)[0]!) }}</span>
-          <span v-if="periods(cat.value)[0]!.entry.note" class="current__note">
-            {{ periods(cat.value)[0]!.entry.note }}
-          </span>
+          <!-- Das Bild steht neben den Angaben, nicht darunter: Im Laden schaut man
+               zuerst darauf und liest den Namen nur zur Bestätigung. -->
+          <button
+            v-if="periods(cat.value)[0]!.entry.mediaId"
+            class="thumb"
+            type="button"
+            :aria-label="`Foto der Verpackung vergrößern: ${describe(periods(cat.value)[0]!.entry)}`"
+            @click="zoomed = `/api/media/${periods(cat.value)[0]!.entry.mediaId}`"
+          >
+            <img :src="`/api/media/${periods(cat.value)[0]!.entry.mediaId}`" alt="" />
+          </button>
+
+          <div class="current__text">
+            <span class="current__value">{{ describe(periods(cat.value)[0]!.entry) }}</span>
+            <span v-if="periods(cat.value)[0]!.entry.supplyShop" class="current__shop">
+              bei {{ periods(cat.value)[0]!.entry.supplyShop }}
+            </span>
+            <span class="current__since">{{ since(periods(cat.value)[0]!) }}</span>
+            <span v-if="periods(cat.value)[0]!.entry.note" class="current__note">
+              {{ periods(cat.value)[0]!.entry.note }}
+            </span>
+          </div>
         </div>
 
         <div class="deeds">
@@ -204,8 +301,16 @@ async function remove() {
           <ul>
             <li v-for="old in history(cat.value)" :key="old.entry.id">
               <button type="button" @click="startEdit(old.entry)">
-                <span class="history__value">{{ describe(old.entry) }}</span>
-                <span class="history__since">{{ [old.rangeLabel, old.durationLabel].filter(Boolean).join(" · ") }}</span>
+                <img
+                  v-if="old.entry.mediaId"
+                  class="history__thumb"
+                  :src="`/api/media/${old.entry.mediaId}`"
+                  alt=""
+                />
+                <span class="history__text">
+                  <span class="history__value">{{ describe(old.entry) }}</span>
+                  <span class="history__since">{{ [old.rangeLabel, old.durationLabel].filter(Boolean).join(" · ") }}</span>
+                </span>
               </button>
             </li>
           </ul>
@@ -271,6 +376,42 @@ async function remove() {
           <input v-model="size" type="text" placeholder="z. B. Größe 3" />
         </label>
 
+        <div class="field">
+          <span class="field__label">Foto der Verpackung</span>
+          <div class="photo">
+            <button
+              v-if="previewSrc"
+              class="photo__preview"
+              type="button"
+              aria-label="Foto vergrößern"
+              @click="zoomed = previewSrc"
+            >
+              <img :src="previewSrc" alt="" />
+            </button>
+
+            <div class="photo__deeds">
+              <!-- Ohne `capture`: Damit lässt sich auch ein Bild aus der Galerie
+                   wählen, etwa das vom letzten Einkauf. -->
+              <label class="photo__pick">
+                <input type="file" accept="image/*" @change="pickPhoto" />
+                <span>{{ photoBusy ? "Wird geladen …" : previewSrc ? "Anderes Foto" : "Foto aufnehmen" }}</span>
+              </label>
+              <button
+                v-if="!previewSrc && previousMediaId"
+                class="photo__reuse"
+                type="button"
+                @click="reusePreviousPhoto"
+              >
+                Bisheriges übernehmen
+              </button>
+              <button v-if="previewSrc" class="photo__drop" type="button" @click="dropPhoto">
+                Entfernen
+              </button>
+            </div>
+          </div>
+          <p class="field__hint">Hilft im Regal — die Packungen einer Marke sehen sich sehr ähnlich.</p>
+        </div>
+
         <label class="field">
           <span class="field__label">Wo gekauft</span>
           <input v-model="shop" type="text" placeholder="z. B. dm, Rossmann, Apotheke" />
@@ -296,6 +437,16 @@ async function remove() {
         </div>
       </template>
     </SheetDialog>
+
+    <!-- Großansicht. Ein Bild von 3 rem beantwortet die Frage im Laden nicht. -->
+    <div v-if="zoomed" class="zoom" role="dialog" aria-label="Foto" @click="zoomed = null">
+      <img :src="zoomed" alt="Foto der Verpackung" />
+      <button class="zoom__close" type="button" aria-label="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -338,8 +489,162 @@ async function remove() {
 
 .current {
   display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.current__text {
+  display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  min-width: 0;
+}
+
+/* ── Foto der Verpackung ─────────────────────────────────────────────────── */
+
+.thumb {
+  flex: none;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history__thumb {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 1px solid var(--bm-hairline);
+}
+
+.photo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.photo__preview {
+  flex: none;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.photo__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo__deeds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.photo__pick {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface-sunk);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.photo__pick input {
+  display: none;
+}
+
+.photo__reuse {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface);
+  color: var(--bm-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.photo__drop {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--bm-ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.field__hint {
+  margin: 0;
+  color: var(--bm-ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(20 16 18 / 88%);
+}
+
+.zoom img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0.75rem;
+}
+
+.zoom__close {
+  position: absolute;
+  top: 1rem;
+  inset-inline-end: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 15%);
+  color: #fff;
+  cursor: pointer;
+}
+
+.zoom__close svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .current__value {
@@ -443,7 +748,8 @@ async function remove() {
 
 .history button {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
   width: 100%;
   border: none;
   background: none;
@@ -451,6 +757,12 @@ async function remove() {
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+.history__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .history__since {

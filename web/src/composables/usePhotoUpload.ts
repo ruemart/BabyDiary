@@ -17,6 +17,37 @@ export function usePhotoUpload() {
   const toast = useToast();
   const busy = ref(false);
 
+  /**
+   * Verkleinern und hochladen, ohne einen Eintrag anzulegen.
+   *
+   * Für Bilder, die an einem ANDEREN Eintrag hängen — etwa die Verpackung der
+   * Milchnahrung. Gibt die Medien-Id zurück oder null, wenn es nicht geklappt hat;
+   * der Aufrufer entscheidet dann, ob er ohne Bild weitermacht.
+   */
+  async function uploadPhoto(file: File | Blob): Promise<string | null> {
+    busy.value = true;
+    try {
+      return await uploadImage(await shrinkImage(file));
+    } catch (error) {
+      reportFailure(error);
+      return null;
+    } finally {
+      busy.value = false;
+    }
+  }
+
+  function reportFailure(error: unknown) {
+    toast.show({
+      headline: "Foto konnte nicht gespeichert werden",
+      description:
+        error instanceof Error && error.message.includes("fehlgeschlagen")
+          ? "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen."
+          : "Bitte noch einmal versuchen.",
+      color: "danger",
+      duration: 8000,
+    });
+  }
+
   async function savePhoto(file: File | Blob, lifeWeek: number, label?: string): Promise<boolean> {
     busy.value = true;
     try {
@@ -34,20 +65,12 @@ export function usePhotoUpload() {
       toast.show({ headline: `Foto für Woche ${lifeWeek} gespeichert`, color: "success" });
       return true;
     } catch (error) {
-      toast.show({
-        headline: "Foto konnte nicht gespeichert werden",
-        description:
-          error instanceof Error && error.message.includes("fehlgeschlagen")
-            ? "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen."
-            : "Bitte noch einmal versuchen.",
-        color: "danger",
-        duration: 8000,
-      });
+      reportFailure(error);
       return false;
     } finally {
       busy.value = false;
     }
   }
 
-  return { savePhoto, busy };
+  return { savePhoto, uploadPhoto, busy };
 }
