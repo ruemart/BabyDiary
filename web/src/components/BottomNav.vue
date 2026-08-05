@@ -2,20 +2,20 @@
 import { RouterLink } from "vue-router";
 
 /**
- * Navigation unten, nicht oben: Auf dem Handy liegt das obere Bildschirmdrittel
- * außerhalb der Reichweite des Daumens, und diese App wird einhändig bedient,
- * während der andere Arm das Kind hält.
+ * Navigation at the bottom, not the top: on a phone the upper third of the screen is
+ * out of the thumb's reach, and this app is operated one-handed while the other arm
+ * holds the child.
  */
 /**
- * Jedes Zeichen muss eine eigene FORM haben, nicht nur eine eigene Beschriftung.
+ * Every icon must have a SHAPE of its own, not just a label of its own.
  *
- * "Wochen" und "Schritte" waren beide eine Zickzacklinie und unterschieden sich nur in
- * der Zackenhöhe — bei 1,5 rem und im Vorbeigehen ist das dasselbe Bild. Jetzt tragen
- * sie verschiedene Umrisse: Kalender gegen Treppe, rund gegen eckig, waagrecht gegen
- * aufsteigend. Das ist auch der Unterschied, der bei schlechten Lichtverhältnissen und
- * ohne Brille noch trägt.
+ * "Weeks" and "Steps" were both a zigzag line differing only in the height of the
+ * peaks — at 1.5 rem and in passing that is the same picture. Now they carry different
+ * outlines: calendar against staircase, round against angular, horizontal against
+ * ascending. That is also the difference that still carries in poor light and without
+ * glasses.
  *
- * Ein `d` darf mehrere Teilstrecken enthalten — deshalb genügt weiterhin ein <path>.
+ * A `d` may contain several subpaths — so a single <path> still does.
  */
 const items = [
   { to: "/", key: "nav.today", icon: "M4 12h16M4 6h16M4 18h10" },

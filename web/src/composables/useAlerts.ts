@@ -5,24 +5,24 @@ import { useI18n } from "vue-i18n";
 
 
 /**
- * Hinweise auf Auffälligkeiten.
+ * Notes about things worth watching.
  *
- * DREI REGELN, an die sich das hier hält:
+ * THREE RULES this sticks to:
  *
- * 1. Beobachten, nicht beurteilen. Die App stellt fest, was in den Daten steht
- *    ("seit 9 Stunden keine nasse Windel"), und zieht keine Schlüsse daraus.
- *    Eine Diagnose kann sie nicht stellen, also tut sie auch nicht so.
+ * 1. Observe, do not judge. The app states what the data says ("no wet nappy for
+ *    9 hours") and draws no conclusions from it. It cannot make a diagnosis, so it does
+ *    not pretend to.
  *
- * 2. Wo möglich am EIGENEN Verlauf messen. "Sonst alle 3 Stunden" sagt mehr als
- *    ein Bevölkerungsmittelwert, und es erzeugt weniger Fehlalarme bei einem
- *    gesunden Kind, das schlicht anders tickt.
+ * 2. Where possible, measure against the child's OWN history. "Usually every 3 hours"
+ *    says more than a population average, and it produces fewer false alarms for a
+ *    healthy child who simply runs differently.
  *
- * 3. Ruhig bleiben. Keine roten Balken, kein Alarmton, keine Zähler über verpasste
- *    Dinge. Eltern eines Neugeborenen sind ohnehin wachsam genug; eine App, die
- *    Angst macht, wird zu Recht gelöscht.
+ * 3. Stay calm. No red bars, no alarm sound, no counters of missed things. The parents
+ *    of a newborn are alert enough already; an app that frightens them gets deleted,
+ *    rightly.
  *
- * Die Richtwerte stammen aus verbreiteter Elternliteratur und ersetzen keine
- * ärztliche Beurteilung. Das steht auch so in der Oberfläche.
+ * The reference values come from common parenting literature and do not replace medical
+ * assessment. The interface says so too.
  */
 
 export type Alert = {
@@ -95,8 +95,8 @@ export function useAlerts(
       const hours = (nowMs - Date.parse(lastWet.startedAt)) / HOUR;
       const typical = medianGapHours(diapers.value);
 
-      // Richtwert: Nach den ersten Lebenstagen gilt eine Pause von mehr als sechs
-      // Stunden ohne nasse Windel als Beobachtungsgrund.
+      // Guide value: after the first days of life, a gap of more than six hours without
+      // a wet nappy is considered worth watching.
       const referenceHours = 6;
       // Eigener Verlauf: dreifacher üblicher Abstand — was für DIESES Kind auffällt.
       const ownHours = typical ? typical * 3 : Infinity;

@@ -26,7 +26,7 @@ const SEX_OPTIONS: { value: Sex; key: string }[] = [
   { value: "male", key: "child.boy" },
 ];
 
-/** Zahleneingabe: leeres Feld muss null werden, nicht 0. */
+/** Number input: an empty field has to become null, not 0. */
 function toNumber(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -56,7 +56,7 @@ function toNumber(value: string): number | null {
           {{ $t(option.key) }}
         </button>
       </div>
-      <!-- Ehrlich benennen, wofür das gebraucht wird — nicht als beiläufige Pflichtangabe. -->
+      <!-- Name honestly what this is needed for — not as a casual mandatory field. -->
       <p class="field__hint">
         {{ $t("child.sexHint") }}
       </p>

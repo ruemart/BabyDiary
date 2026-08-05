@@ -3,11 +3,11 @@ import { ageInDays, localDayKey } from "@babymonitor/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**
- * Die Zahlen zum Stöbern: Summen, Schnitte, Rekorde.
+ * The numbers to browse: totals, averages, records.
  *
- * Anders als die Kurven beantwortet das keine Frage — es ist zum Anschauen. Deshalb
- * stehen hier auch Dinge wie die längste durchgeschlafene Nacht, die medizinisch
- * nichts aussagen, an die man sich aber später gern erinnert.
+ * Unlike the charts this answers no question — it is there to look at. Which is why it
+ * also holds things like the longest night slept through, which say nothing medically
+ * but are fondly remembered later.
  */
 
 export type Record_ = { labelKey: string; value: string; detail?: string };
@@ -21,7 +21,7 @@ export function useTotals(
   const diapers = computed(() => entries().filter((e) => e.type === "diaper"));
   const sleeps = computed(() => entries().filter((e) => e.type === "sleep" && e.endedAt));
 
-  /** Tage mit mindestens einem Eintrag — die Basis aller Durchschnitte. */
+  /** Days with at least one entry — the basis of every average. */
   const activeDays = computed(() => {
     const tz = timezone();
     return new Set(entries().map((e) => localDayKey(e.startedAt, tz))).size;
@@ -42,7 +42,7 @@ export function useTotals(
     return {
       feeds: feeds.value.length,
       totalMl,
-      /** In Litern, weil "42 Liter" greifbarer ist als "42.000 ml". */
+      /** In litres, because "42 litres" is more tangible than "42,000 ml". */
       totalLiters: Math.round(totalMl / 100) / 10,
       diapers: diapers.value.length,
       soiled: diapers.value.filter((d) => d.diaper === "soiled" || d.diaper === "both").length,
@@ -94,8 +94,8 @@ export function useTotals(
     }
 
     /**
-     * Die längste Pause zwischen zwei Mahlzeiten in der Nacht.
-     * Medizinisch belanglos, aber der Wert, den Eltern tatsächlich feiern.
+     * The longest gap between two feeds at night.
+     * Medically irrelevant, but the number parents actually celebrate.
      */
     const sorted = [...feeds.value].sort((a, b) => a.startedAt.localeCompare(b.startedAt));
     let longestGap = 0;

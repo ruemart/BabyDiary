@@ -8,9 +8,9 @@ const { t } = useI18n();
 const data = useData();
 
 /**
- * Die Lebenswoche ist die Identität, unter der ein Säugling geführt wird — Eltern und
- * Kinderärzte rechnen im ersten Jahr in Wochen, nicht in Monaten. Deshalb steht sie
- * hier statt eines Datums.
+ * The week of life is the identity an infant is tracked under — parents and paediatric
+ * practices count in weeks during the first year, not in months. So it stands here
+ * instead of a date.
  */
 const weekLabel = computed(() => t("common.weekN", { n: data.currentWeek }));
 
@@ -31,8 +31,8 @@ const syncLabel = computed(() => {
       <h1 class="header__week">{{ weekLabel }}</h1>
       <p class="header__name">{{ data.child?.name }}</p>
     </div>
-    <!-- Nur zeigen, wenn es etwas zu sagen gibt. Ein dauerhaftes "alles in Ordnung"
-         wäre reines Rauschen an einer Stelle, die ruhig bleiben soll. -->
+    <!-- Only shown when there is something to say. A permanent "all fine" would be pure
+         noise in a place that should stay quiet. -->
     <span v-if="syncLabel" class="header__sync">{{ syncLabel }}</span>
   </header>
 </template>

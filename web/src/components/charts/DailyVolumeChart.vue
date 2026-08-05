@@ -6,20 +6,20 @@ import type { DailyTotal } from "../../composables/useStats.ts";
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
 
 /**
- * Trinkmenge pro Tag — das Diagramm, das die eigentliche Frage beantwortet:
- * trinkt sie mehr oder weniger als vorher?
+ * Daily intake — the chart that answers the actual question: is she drinking more or
+ * less than before?
  *
- * Balken plus gleitendes 7-Tage-Mittel auf EINER Achse, beide in Millilitern. Keine
- * zweite y-Achse: zwei Skalen im selben Bild lassen jede beliebige Beziehung zwischen
- * den Kurven entstehen, je nachdem wie man sie skaliert.
+ * Bars plus a rolling 7-day average on ONE axis, both in millilitres. No second y-axis:
+ * two scales in the same picture can produce any relationship you like between the
+ * curves, depending on how you scale them.
  */
 const props = defineProps<{ series: DailyTotal[] }>();
 
 const colors = useChartColors();
 
-// Gemischtes Diagramm (Balken + Linie). Chart.js kann das, die Typen von vue-chartjs
-// erwarten aber eine einzelne Diagrammart — deshalb hier eine einzelne Zusicherung an
-// der Grenze statt `any` quer durch die Datei.
+// A mixed chart (bars + line). Chart.js can do that, but the vue-chartjs types expect
+// a single chart type — hence one assertion at the boundary instead of `any` throughout
+// the file.
 const chartData = computed(() => ({
   labels: props.series.map((d) => d.label),
   datasets: [
@@ -27,9 +27,9 @@ const chartData = computed(() => ({
       label: "Tagesmenge",
       data: props.series.map((d) => d.totalMl),
       backgroundColor: colors.value.feed,
-      // Nur das Datenende rundet; der Fuß bleibt an der Nulllinie verankert.
-      // Mit `false` würden alle vier Ecken runden und die schmalen Balken sähen
-      // bei 30 Tagen auf einem Handybildschirm wie schwebende Pillen aus.
+      // Only the data end is rounded; the foot stays anchored on the zero line. With
+      // `false` all four corners would round and the narrow bars would look like
+      // floating pills at 30 days on a phone screen.
       borderRadius: 4,
       borderSkipped: "bottom",
       // 2 px Fläche zwischen benachbarten Balken.

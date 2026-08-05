@@ -9,9 +9,9 @@ import { REGIONS, DEFAULT_REGION } from "../data/regions/index.ts";
 
 const { t } = useI18n();
 /**
- * Einmalige Einrichtung. Danach ist alles hier über die Einstellungen änderbar —
- * nichts davon steckt im Code oder in der Konfiguration, damit die App nicht auf
- * ein bestimmtes Kind zugeschnitten ist.
+ * One-time setup. Afterwards everything here can be changed in Settings — none of it
+ * sits in the code or in the configuration, so the app is not tailored to one
+ * particular child.
  */
 const data = useData();
 
@@ -26,11 +26,11 @@ const form = ref<Partial<Child>>({
 });
 
 /**
- * Land für Vorsorge- und Impftermine.
+ * Country for check-ups and vaccinations.
  *
- * Vorbelegt aus dem, was der Server beim Einrichten mitgibt (siehe install.sh) —
- * sonst "keine Termine". Bewusst NICHT aus der Gerätesprache geraten: Wer eine
- * deutschsprachige App in Südtirol benutzt, bekommt sonst deutsche Impftermine.
+ * Prefilled from what the server passes along during setup (see install.sh) — otherwise
+ * "no appointments". Deliberately NOT guessed from the device language: someone using a
+ * German-language app in South Tyrol would otherwise get German vaccination dates.
  */
 const region = ref(data.defaultRegion || DEFAULT_REGION);
 
@@ -51,16 +51,16 @@ async function save() {
     birthHeadMm: form.value.birthHeadMm ?? null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
     region: region.value,
-    // Ort wird später in den Einstellungen gesetzt — das Wetter ist Beiwerk und
-    // hat beim Einrichten nichts verloren.
+    // The location is set later in Settings — the weather is an extra and has no
+    // business in the setup screen.
     latitude: null,
     longitude: null,
     placeName: null,
     editedAt: new Date().toISOString(),
   });
 
-  // Geburtsmaße als ersten Punkt der Wachstumskurve übernehmen — sonst beginnt
-  // die Kurve erst bei der U3 und die ersten Wochen fehlen für immer.
+  // Take the birth measurements as the first point of the growth curve — otherwise the
+  // curve only starts at the first check-up and the first weeks are missing forever.
   if (form.value.birthWeightG || form.value.birthLengthMm || form.value.birthHeadMm) {
     await data.add(
       data.draft("growth", new Date(`${form.value.birthDate}T12:00:00`), {

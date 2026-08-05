@@ -5,15 +5,14 @@ import type { ChartData, ChartOptions } from "chart.js";
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
 
 /**
- * Mahlzeiten-Rhythmus: x = Tag, y = Uhrzeit, Punktgröße = Menge.
+ * Feeding rhythm: x = day, y = time of day, dot size = amount.
  *
- * Das lohnendste Diagramm der ganzen App. Über Wochen sieht man zu, wie sich das
- * nächtliche Band lichtet und die Mahlzeiten in den Tag rutschen — eine Entwicklung,
- * die in einer Tabelle unsichtbar bleibt und die man als Eltern sehr genau spüren,
- * aber schlecht belegen kann.
+ * The most rewarding chart in the whole app. Over weeks you watch the night-time band
+ * thin out and the feeds slide into the day — a development invisible in a table and one
+ * parents feel very clearly but can hardly evidence.
  *
- * Die y-Achse steht auf dem Kopf (0 Uhr oben), damit die Nacht oben und unten liegt
- * und die Nachtmahlzeiten als zusammenhängendes Band lesbar sind.
+ * The y-axis is upside down (midnight at the top) so the night sits at the top and the
+ * bottom and the night feeds read as one connected band.
  */
 const props = defineProps<{
   points: { x: number; y: number; ml: number; spatUp: boolean; day: string }[];
@@ -27,8 +26,8 @@ const chartData = computed<ChartData<"scatter">>(() => ({
     {
       label: "Mahlzeiten",
       data: props.points.map((p) => ({ x: p.x, y: p.y, ml: p.ml, spatUp: p.spatUp, day: p.day })),
-      // Ausgespuckte Mahlzeiten hohl: Der Zeitpunkt gehört in den Rhythmus, die
-      // Menge kam aber nicht an — eine gefüllte Fläche würde das Gegenteil behaupten.
+      // Feeds brought back up are hollow: the moment belongs in the rhythm, but the
+      // amount did not arrive — a filled area would claim the opposite.
       backgroundColor: (ctx) =>
         (ctx.raw as { spatUp?: boolean } | undefined)?.spatUp
           ? "transparent"
@@ -41,8 +40,8 @@ const chartData = computed<ChartData<"scatter">>(() => ({
       borderWidth: 2,
       pointRadius: (ctx) => {
         const ml = (ctx.raw as { ml: number } | undefined)?.ml ?? 0;
-        // Fläche proportional zur Menge, nicht der Radius — sonst überzeichnet
-        // ein doppelter Wert die Fläche um das Vierfache.
+        // Area proportional to the amount, not the radius — otherwise doubling the
+        // value would quadruple the area.
         return Math.max(4, Math.sqrt(ml) * 0.85);
       },
       pointHoverRadius: (ctx) => {
@@ -64,9 +63,9 @@ const options = computed<ChartOptions<"scatter">>(() => ({
       min: -0.5,
       max: props.days - 0.5,
       grid: { display: false },
-      // Halber Rand links und rechts, damit Punkte am Rand nicht abgeschnitten werden.
-      // Die Beschriftungen müssen deshalb von Hand gesetzt werden — Chart.js würde
-      // sonst auf den halben Positionen landen und "vor 29.5 T" schreiben.
+      // Half a margin left and right so dots at the edge are not clipped. The labels
+      // therefore have to be placed by hand — Chart.js would otherwise land on the half
+      // positions and write "29.5 d ago".
       afterBuildTicks: (axis) => {
         const marks = [0, 7, 14, 21, props.days - 1].filter(
           (v, i, all) => v >= 0 && v <= props.days - 1 && all.indexOf(v) === i,
@@ -99,7 +98,7 @@ const options = computed<ChartOptions<"scatter">>(() => ({
     },
   },
   plugins: {
-    // Eine Reihe — die Überschrift benennt sie, ein Legendenkasten wäre Rauschen.
+    // A single series — the heading names it, a legend box would be noise.
     legend: { display: false },
     tooltip: {
       backgroundColor: colors.value.reference,

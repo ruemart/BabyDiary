@@ -13,24 +13,24 @@ import {
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
 
 /**
- * Wachstum gegen die WHO-Perzentilkurven.
+ * Growth against the WHO percentile curves.
  *
- * Der Punkt ist nicht der absolute Wert, sondern die Lage im Band: Ein Kind auf P20
- * ist völlig gesund, solange es auf P20 BLEIBT. Deshalb liegen die Referenzkurven
- * zurückhaltend im Hintergrund und die eigene Messreihe deutlich darüber — man soll
- * den Verlauf lesen, nicht einen Wert mit einer Sollmarke vergleichen.
+ * The point is not the absolute value but the position in the band: a child on P20 is
+ * perfectly healthy as long as it STAYS on P20. So the reference curves sit quietly in
+ * the background and the child's own measurements clearly on top — you should read the
+ * course, not compare a value against a target mark.
  */
 const props = defineProps<{
   measure: GrowthMeasure;
   sex: Sex;
-  /** Messwerte in der Einheit der WHO-Tabellen: kg bzw. cm. */
+  /** Measurements in the units of the WHO tables: kg and cm. */
   points: { ageDays: number; value: number }[];
   maxAgeDays: number;
 }>();
 
 const colors = useChartColors();
 
-/** Stützstellen alle zwei Wochen — dichter braucht es für eine glatte Kurve nicht. */
+/** Anchor points every two weeks — no denser is needed for a smooth curve. */
 const grid = computed(() => {
   const step = 14;
   const upper = Math.max(60, Math.ceil((props.maxAgeDays + 28) / step) * step);
@@ -46,8 +46,8 @@ const chartData = computed(() => ({
         y: valueAtZ(props.measure, props.sex, day, line.z),
       })),
       borderColor: colors.value.grid,
-      // Der Median durchgezogen, die äußeren Linien gestrichelt — damit die
-      // Orientierung nicht allein von der Farbe abhängt.
+      // The median solid, the outer lines dashed — so orientation does not depend on
+      // colour alone.
       borderDash: line.label === "P50" ? [] : [4, 4],
       borderWidth: 1,
       pointRadius: 0,
@@ -102,8 +102,8 @@ const options = computed<ChartOptions<"line">>(() => ({
     },
   },
   plugins: {
-    // Fünf Referenzlinien in einer Legende wären Rauschen; sie sind unter dem
-    // Diagramm benannt, und die eigentlich interessante Zahl steht im Tooltip.
+    // Five reference lines in a legend would be noise; they are named under the chart,
+    // and the number that actually matters is in the tooltip.
     legend: { display: false },
     tooltip: {
       backgroundColor: colors.value.reference,

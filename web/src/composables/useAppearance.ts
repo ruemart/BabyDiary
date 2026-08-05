@@ -1,15 +1,15 @@
 import { ref } from "vue";
 
 /**
- * Tag- und Nachtdarstellung.
+ * Day and night appearance.
  *
- * Die Umschaltung hängt an der Uhrzeit, nicht (nur) an der Systemeinstellung. Grund:
- * Der wichtigste Bedienmoment dieser App ist die nächtliche Fütterung im abgedunkelten
- * Zimmer. Ein hell leuchtendes Display ist dort nicht nur unangenehm, es macht das
- * Wiedereinschlafen messbar schwerer — deshalb wird die Nachtdarstellung automatisch
- * aktiv, auch wenn das Telefon tagsüber im Hellmodus läuft.
+ * The switch depends on the clock, not (only) on the system setting. The reason: the
+ * most important moment of use for this app is the night feed in a darkened room. A
+ * brightly lit display is not just unpleasant there, it measurably makes falling back
+ * asleep harder — so night mode kicks in automatically even when the phone runs in
+ * light mode during the day.
  *
- * Wer das nicht mag, stellt in den Einstellungen fest auf hell oder dunkel.
+ * Anyone who dislikes that can pin it to light or dark in Settings.
  */
 
 export type AppearanceSetting = "auto" | "day" | "night";
@@ -43,8 +43,8 @@ function apply(): void {
   isNight.value = night;
 
   document.documentElement.dataset["mode"] = night ? "night" : "day";
-  // Die Adressleiste bzw. die Statusleiste der installierten App mitfärben —
-  // sonst bleibt oben ein heller Streifen im dunklen Zimmer stehen.
+  // Tint the address bar, or the status bar of the installed app, along with it —
+  // otherwise a bright strip stays at the top in a dark room.
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute("content", night ? "#16120f" : "#f7f4ee");
@@ -52,7 +52,7 @@ function apply(): void {
 
 export function startAppearanceWatcher(): void {
   apply();
-  // Jede Minute prüfen: die Umschaltung soll auch passieren, während die App offen liegt.
+  // Check every minute: the switch should also happen while the app lies open.
   setInterval(apply, 60_000);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) apply();

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
- * "Wieder ausgespuckt" — die Mahlzeit fand statt, die Menge zählt nicht.
+ * "Brought back up" — the feed happened, the amount does not count.
  *
- * Bewusst ein Schalter und keine Mengenangabe: Wie viel von 120 ml zurückkam, kann
- * niemand beziffern. Die ehrliche Unterscheidung ist "im Kind angekommen" gegen
- * "vollständig zurück" — alles dazwischen wäre erfundene Genauigkeit.
+ * Deliberately a switch and not an amount: nobody can quantify how much of 120 ml came
+ * back. The honest distinction is "arrived in the child" against "came back
+ * completely" — anything in between would be invented precision.
  */
 const model = defineModel<boolean>({ required: true });
 </script>

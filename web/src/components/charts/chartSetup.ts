@@ -30,16 +30,15 @@ Chart.register(
 );
 
 /**
- * Diagrammfarben aus den CSS-Tokens lesen.
+ * Read the chart colours from the CSS tokens.
  *
- * Chart.js zeichnet auf ein Canvas und kann keine CSS-Variablen auflösen — die Werte
- * müssen als konkrete Farbe hinein. Die Abhängigkeit von `isNight` sorgt dafür, dass
- * die Diagramme beim nächtlichen Umschalten neu gezeichnet werden statt in den
- * Tagesfarben stehen zu bleiben.
+ * Chart.js draws onto a canvas and cannot resolve CSS variables — the values have to go
+ * in as concrete colours. The dependency on `isNight` makes sure the charts are redrawn
+ * when night mode kicks in instead of staying in the daytime colours.
  */
 export function useChartColors() {
   return computed(() => {
-    // Zugriff erzwingt die Neuberechnung beim Moduswechsel.
+    // Reading it forces recomputation when the mode changes.
     void isNight.value;
     const style = getComputedStyle(document.documentElement);
     const read = (name: string, fallback: string) =>
@@ -57,7 +56,7 @@ export function useChartColors() {
   });
 }
 
-/** Achsen und Raster treten zurück; die Daten sind das Laute. */
+/** Axes and gridlines step back; the data is the loud part. */
 export function baseScaleStyle(colors: { grid: string; axis: string }) {
   return {
     grid: { color: colors.grid, drawTicks: false },

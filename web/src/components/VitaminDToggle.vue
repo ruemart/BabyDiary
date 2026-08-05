@@ -1,31 +1,29 @@
 <script setup lang="ts">
 import { computed } from "vue";
 /**
- * "Vitamin D gegeben" an einer Mahlzeit.
+ * "Vitamin D given" on a feed.
  *
- * Bewusst genauso gebaut wie der Ausspuck-Schalter: Beides sind Kennzeichen an
- * derselben Mahlzeit, und zwei ähnliche Dinge sollen auch gleich aussehen und gleich
- * bedient werden.
+ * Deliberately built exactly like the spat-up switch: both are flags on the same feed,
+ * and two similar things should look and behave the same.
  */
 const model = defineModel<boolean>({ required: true });
 
 const props = withDefaults(
   defineProps<{
     /**
-     * An einer ANDEREN Mahlzeit desselben Tages hängt das Vitamin D schon.
+     * ANOTHER feed on the same day already carries the vitamin D.
      *
-     * Dann ist der Schalter gesperrt: Einmal am Tag genügt, und ein zweites Häkchen
-     * wäre entweder ein Versehen oder eine doppelte Gabe — beides will man nicht
-     * beiläufig eintragen.
+     * Then the switch is locked: once a day is enough, and a second tick would be either
+     * a slip or a double dose — neither is something to record in passing.
      *
-     * "Desselben Tages", nicht "heute": Beim Nachtragen zählt der Tag des Eintrags.
+     * "The same day", not "today": when adding a past entry, the day of the entry counts.
      */
     alreadyGivenThatDay?: boolean;
   }>(),
   { alreadyGivenThatDay: false },
 );
 
-/** Gesperrt nur, wenn es woanders schon steht — der eigene Haken bleibt umkehrbar. */
+/** Locked only when it already sits elsewhere — the entry's own tick stays reversible. */
 const locked = computed(() => props.alreadyGivenThatDay && !model.value);
 
 function toggle() {
@@ -53,8 +51,8 @@ function toggle() {
     <span class="vit__text">
       <span class="vit__label">{{ $t("feed.vitaminD.label") }}</span>
       <span class="vit__hint">
-        <!-- "An diesem Tag" statt "heute": Beim Nachtragen ist der gemeinte Tag nicht
-             zwingend heute, und ein falsches "heute" wäre schlimmer als kein Hinweis. -->
+        <!-- "On this day" instead of "today": when adding a past entry the day meant is not
+             necessarily today, and a wrong "today" would be worse than no note at all. -->
         {{ locked ? $t("feed.vitaminD.hintLocked") : $t("feed.vitaminD.hint") }}
       </span>
     </span>

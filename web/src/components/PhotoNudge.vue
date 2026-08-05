@@ -4,12 +4,12 @@ import { useData } from "../stores/data.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 
 /**
- * Erinnerung an das Wochenfoto.
+ * A nudge about the weekly photo.
  *
- * Bewusst zurückhaltend: kein rotes Abzeichen, keine Push-Nachricht, kein Zähler über
- * verpasste Wochen. Das hier ist ein schönes Vorhaben, kein Pflichtprogramm — und eine
- * App, die Eltern eines Neugeborenen ein schlechtes Gewissen macht, wird zu Recht
- * gelöscht. Sie verschwindet still, sobald das Foto da ist.
+ * Deliberately restrained: no red badge, no push notification, no counter of missed
+ * weeks. This is a nice intention, not a duty — and an app that gives the parents of a
+ * newborn a guilty conscience gets deleted, rightly. It disappears quietly as soon as
+ * the photo is there.
  */
 const data = useData();
 const { savePhoto, busy } = usePhotoUpload();
@@ -31,9 +31,9 @@ async function onPick(event: Event) {
     <button class="nudge__action" type="button" :disabled="busy" @click="input?.click()">
       {{ busy ? $t("photo.loading") : $t("photo.nudge.action") }}
     </button>
-    <!-- Bewusst OHNE `capture`: Mit dem Attribut springt das Handy direkt in die
-         Kamera, und ein bereits vorhandenes Foto lässt sich gar nicht auswählen.
-         Ohne zeigt das System die Auswahl "Aufnehmen oder aus der Galerie". -->
+    <!-- Deliberately WITHOUT `capture`: with the attribute the phone jumps straight into
+         the camera and an existing photo cannot be picked at all. Without it the system
+         offers the choice "take a photo or pick from the gallery". -->
     <input
       ref="input"
       class="nudge__input"
@@ -45,9 +45,9 @@ async function onPick(event: Event) {
 </template>
 
 <style scoped>
-/* Bewusst die leiseste Zeile auf dem Bildschirm.
-   Der laute Platz gehört dem Flasche-Knopf; eine Erinnerung, die lauter ist als die
-   Hauptaktion, macht aus einem schönen Vorhaben ein Pflichtprogramm. */
+/* Deliberately the quietest line on the screen.
+   The loud spot belongs to the bottle button; a nudge louder than the main action turns
+   a nice intention into a duty. */
 .nudge {
   display: flex;
   align-items: center;

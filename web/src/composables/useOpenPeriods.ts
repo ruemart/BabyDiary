@@ -5,15 +5,15 @@ import type { LocalEntry } from "../db/local.ts";
 import { useI18n } from "vue-i18n";
 
 /**
- * Alles, was gerade läuft — Schlaf, Krankheit, Abwesenheit.
+ * Everything currently running — sleep, illness, being away.
  *
- * Der Gedanke dahinter: Ein Zeitraum wird begonnen, wenn er beginnt. Nach dem Ende
- * zu fragen, während das Kind gerade einschläft, ist genau die Art von Rückfrage, die
- * eine Eingabe verhindert. Also: starten mit einem Tap, später mit einem Tap beenden —
- * und zwar für ALLE Zeitraum-Arten gleich, nicht als Sonderfall für den Schlaf.
+ * The thinking behind it: a period is started when it begins. Asking for the end while
+ * the child is falling asleep is exactly the kind of prompt that prevents an entry. So:
+ * start with one tap, end later with one tap — and the same way for ALL kinds of period,
+ * not as a special case for sleep.
  *
- * Mehrere gleichzeitig sind ausdrücklich möglich: Ein Kind kann im Urlaub krank
- * werden und dabei schlafen.
+ * Several at once are explicitly possible: a child can fall ill on holiday and sleep
+ * while doing so.
  */
 
 export type OpenPeriod = {
@@ -23,7 +23,7 @@ export type OpenPeriod = {
   title: string;
   /** "seit 2 Std 10 Min" */
   since: string;
-  /** Für die Farbgebung. */
+  /** For the colour coding. */
   kind: "sleep" | "illness" | "absence";
 };
 
@@ -36,7 +36,7 @@ export function useOpenPeriods(entries: () => LocalEntry[], now: () => Date) {
   return computed<OpenPeriod[]>(() =>
     entries()
       .filter((e) => PERIOD_TYPES.has(e.type) && e.endedAt === null)
-      // Zuletzt begonnenes zuerst — das ist meist das, was man beenden will.
+      // Most recently started first — that is usually the one you want to end.
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
       .map((e) => ({
         id: e.id,

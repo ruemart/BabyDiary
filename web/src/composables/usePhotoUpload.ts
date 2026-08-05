@@ -7,12 +7,12 @@ import { useI18n } from "vue-i18n";
 
 
 /**
- * Foto für eine Lebenswoche aufnehmen und speichern.
+ * Take and store a photo for a week of life.
  *
- * Anders als alle übrigen Eingaben braucht dieser Weg das Netz: Das Bild muss zum
- * Server, bevor der Eintrag einen Sinn ergibt. Das ist vertretbar, weil ein Foto
- * ohnehin nichts ist, was man um 3 Uhr nachts im Funkloch macht — aber der Fehlerfall
- * muss dann auch ehrlich benannt werden statt still zu scheitern.
+ * Unlike every other input this path needs the network: the image has to reach the
+ * server before the entry makes sense. That is acceptable, because a photo is not
+ * something you take at three in the morning in a dead spot anyway — but the failure
+ * case then has to be named honestly rather than failing silently.
  */
 export function usePhotoUpload() {
   const { t } = useI18n();
@@ -22,11 +22,11 @@ export function usePhotoUpload() {
   const busy = ref(false);
 
   /**
-   * Verkleinern und hochladen, ohne einen Eintrag anzulegen.
+   * Shrink and upload without creating an entry.
    *
-   * Für Bilder, die an einem ANDEREN Eintrag hängen — etwa die Verpackung der
-   * Milchnahrung. Gibt die Medien-Id zurück oder null, wenn es nicht geklappt hat;
-   * der Aufrufer entscheidet dann, ob er ohne Bild weitermacht.
+   * For images that hang off ANOTHER entry — the formula packaging, for instance.
+   * Returns the media id, or null when it did not work; the caller then decides whether
+   * to carry on without a picture.
    */
   async function uploadPhoto(file: File | Blob): Promise<string | null> {
     busy.value = true;

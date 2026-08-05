@@ -1,14 +1,14 @@
 <script setup lang="ts">
 /**
- * Windel-Raster: 14 Tage × 24 Stunden.
+ * Nappy grid: 14 days × 24 hours.
  *
- * Bewusst reines HTML/CSS-Grid statt eines Chart.js-Matrix-Plugins — das Raster ist ein
- * Layout-Problem, kein Diagramm-Problem. Als echte Tabelle ist es außerdem vorlesbar
- * und funktioniert ohne Canvas.
+ * Deliberately plain HTML/CSS grid rather than a Chart.js matrix plugin — the grid is a
+ * layout problem, not a charting problem. As a real table it is also readable by screen
+ * readers and works without a canvas.
  *
- * Die Farbskala ist EINFARBIG und gestuft, nicht kategorial: leer → feucht → voll ist
- * eine Rangfolge, keine Auswahl gleichrangiger Kategorien. Deshalb eine Sättigungs-
- * treppe in einem Ton statt drei bunter Farben.
+ * The colour scale is SINGLE-HUE and stepped, not categorical: empty → wet → soiled is a
+ * ranking, not a set of equal categories. So a saturation ladder in one hue instead of
+ * three different colours.
  */
 defineProps<{
   rows: { day: string; label: string; hours: ({ kind: string; count: number } | null)[] }[];
@@ -84,7 +84,7 @@ const LEGEND = [
 
 table {
   border-collapse: separate;
-  /* 2 px Fläche zwischen den Zellen, damit benachbarte Felder nicht verschmelzen. */
+  /* 2 px between the cells so neighbouring fields do not merge. */
   border-spacing: 2px;
   width: 100%;
 }
@@ -116,7 +116,7 @@ table {
   background: var(--bm-surface-sunk);
 }
 
-/* Eine Farbe, drei Stufen — die Reihenfolge steckt in der Sättigung. */
+/* One colour, three steps — the ranking lives in the saturation. */
 .cell--empty {
   background: color-mix(in srgb, var(--bm-chart-diaper) 25%, transparent);
 }

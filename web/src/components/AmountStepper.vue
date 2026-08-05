@@ -2,13 +2,12 @@
 import { useI18n } from "vue-i18n";
 
 /**
- * Mengeneingabe mit großen Schaltflächen statt Tastatur.
+ * Amount entry with large buttons instead of a keyboard.
  *
- * Wird an beiden Stellen benutzt, an denen eine Trinkmenge erfasst wird: im
- * Schnellzugriff und beim Nachtragen. Vorher hatte das Nachtragen ein nacktes
- * Zahlenfeld — dieselbe Handlung mit zwei verschiedenen Bedienungen, je nachdem
- * wo man hereinkommt. Ein Bedienelement, das an zwei Orten unterschiedlich
- * aussieht, muss man zweimal lernen.
+ * Used in both places where an amount is recorded: the quick actions and adding past
+ * entries. Adding entries used to have a bare number field — the same action with two
+ * different controls depending on where you came in. A control that looks different in
+ * two places has to be learned twice.
  */
 const model = defineModel<number>({ required: true });
 
@@ -45,8 +44,8 @@ function adjust(delta: number) {
       >
         −
       </button>
-      <!-- role=status: Vorlesewerkzeuge sollen die neue Menge ansagen, ohne dass der
-           Fokus vom gerade gedrückten Knopf wegspringt. -->
+      <!-- role=status: screen readers should announce the new amount without the focus
+           jumping away from the button just pressed. -->
       <div class="stepper__value" role="status" aria-live="polite">
         <span class="bm-tabular">{{ model }}</span>
         <span class="stepper__unit">{{ unit }}</span>

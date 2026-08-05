@@ -25,19 +25,19 @@ const spatUp = ref(false);
 const vitaminD = ref(false);
 
 /**
- * Hängt an dem Tag, auf den dieser Eintrag fällt, schon irgendwo das Vitamin D?
+ * Does the day this entry falls on already carry the vitamin D somewhere?
  *
- * Dann ist der Schalter gesperrt — dieses Blatt legt immer NEU an, ein zweiter Haken
- * am selben Tag wäre also entweder ein Versehen oder eine doppelte Gabe. Gefragt wird
- * nach dem Tag des Eintrags, weil sich die Zeit hier auch zurückstellen lässt.
+ * Then the switch is locked — this sheet always creates a NEW entry, so a second tick on
+ * the same day would be either a slip or a double dose. The question is about the day of
+ * the entry, because the time can be moved back here too.
  */
 const vitaminAlreadyThatDay = computed(
   () => !!vitaminHolderOn(data.entries, data.timezone, localDayKey(at.value, data.timezone)),
 );
 
 /**
- * Beim Öffnen frisch vorbelegen: Menge auf den Median der letzten sieben Mahlzeiten,
- * Zeit auf jetzt. Damit ist der Normalfall zwei Taps — öffnen, speichern.
+ * Prefill freshly on open: amount to the median of the last seven feeds, time to now.
+ * That makes the normal case two taps — open, save.
  */
 watch(open, (isOpen) => {
   if (!isOpen) return;
@@ -78,8 +78,8 @@ async function save() {
 
       <label class="note">
         <span class="note__label">{{ $t("common.noteLabel") }}</span>
-        <!-- Kein eigenes Spracherkennungs-Feld: die Mikrofontaste der Systemtastatur
-             diktiert hier zuverlässiger als die Web Speech API, auf beiden Plattformen. -->
+        <!-- No speech recognition field of our own: the microphone key on the system keyboard
+             dictates more reliably here than the Web Speech API, on both platforms. -->
         <textarea v-model="note" rows="2" :placeholder="$t('common.notePlaceholder')" />
       </label>
     </div>
