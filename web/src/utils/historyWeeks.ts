@@ -8,6 +8,11 @@ import type { LocalEntry } from "../db/local.ts";
  * und je länger die App benutzt wird, desto schlechter. Eine Woche mit sieben Tagen ist
  * die Einheit, in der man ohnehin denkt — und die Tagesleiste zeigt die Zahlen des ganzen
  * Wochenverlaufs auf einen Blick, ohne dass man einen einzigen Tag öffnen müsste.
+ *
+ * Innerhalb eines Tages geht es AUFWÄRTS, von morgens nach abends. In einer Liste aller
+ * Tage muss das Neueste oben stehen; ein abgeschlossener Tag dagegen hat kein "neuestes",
+ * er hat einen Anfang. So beginnt jeder Tag an derselben Stelle — oben — und lässt sich
+ * mit dem nächsten vergleichen, statt dass der Morgen je nach Eintragszahl woanders sitzt.
  */
 
 export type DaySummary = {
@@ -17,6 +22,7 @@ export type DaySummary = {
   weekday: number;
   /** Kalendertag als Zahl, für die Tagesleiste. */
   dayOfMonth: number;
+  /** Chronologisch aufsteigend — der Tag wird von morgens nach abends gelesen. */
   entries: LocalEntry[];
   /** Getrunkene Menge — Ausgespucktes zählt nicht mit. */
   totalMl: number;
@@ -60,7 +66,10 @@ export function buildWeek(
   const days: DaySummary[] = [];
   for (let i = 0; i < WEEK_LENGTH; i++) {
     const key = addDays(weekStart, i);
-    const dayEntries = byDay.get(key) ?? [];
+    // Aufsteigend, unabhängig davon, wie der Aufrufer sortiert hat.
+    const dayEntries = (byDay.get(key) ?? []).sort((a, b) =>
+      a.startedAt.localeCompare(b.startedAt),
+    );
     days.push({
       key,
       weekday: i,

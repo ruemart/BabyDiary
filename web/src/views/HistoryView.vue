@@ -32,7 +32,7 @@ const weekStart = computed(() => startOfWeek(selectedDay.value));
 const weeks = computed(() => availableWeeks(data.entries, data.timezone, today.value));
 
 const week = computed(() =>
-  buildWeek(data.byTimeDesc, data.timezone, weekStart.value, today.value),
+  buildWeek(data.entries, data.timezone, weekStart.value, today.value),
 );
 
 const day = computed(

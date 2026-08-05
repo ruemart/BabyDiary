@@ -70,6 +70,20 @@ describe("Woche im Verlauf", () => {
     expect(week.days[2]!.totalMl).toBe(90);
   });
 
+  it("zeigt den Tag chronologisch, von morgens nach abends", () => {
+    const week = buildWeek(
+      [
+        entry({ id: "abends", startedAt: "2026-08-05T18:00:00.000Z" }),
+        entry({ id: "morgens", startedAt: "2026-08-05T05:00:00.000Z" }),
+        entry({ id: "mittags", startedAt: "2026-08-05T11:00:00.000Z" }),
+      ],
+      TZ,
+      MONTAG,
+      HEUTE,
+    );
+    expect(week.days[2]!.entries.map((e) => e.id)).toEqual(["morgens", "mittags", "abends"]);
+  });
+
   it("zählt nur abgeschlossene Schlafphasen", () => {
     const week = buildWeek(
       [
