@@ -13,7 +13,12 @@ import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";
 import { numberWithinDay } from "../utils/dayOrdinals.ts";
 import { availableWeeks, buildWeek, dayAfterWeekChange } from "../utils/historyWeeks.ts";
+import { useI18n } from "vue-i18n";
+import { useDuration } from "../i18n/format.ts";
 
+
+const { t } = useI18n();
+const duration = useDuration();
 const data = useData();
 const addOpen = ref(false);
 
@@ -65,15 +70,14 @@ function weekLabel(start: string): string {
   return `${from} – ${calendarDateLabel(addDays(start, 6))}`;
 }
 
-const WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const WEEKDAY_LONG = [
-  "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
-];
+/** Wochentagsnamen aus den Sprachdateien, Montag = 0 (siehe `weekdayIndex`). */
+const weekdayShort = (i: number) => t(`weekday.short.${i}`);
+const weekdayLong = (i: number) => t(`weekday.long.${i}`);
 
 /** Überschrift des gewählten Tages: "Mittwoch, 5. Aug 2026" — plus "heute", wenn er es ist. */
 const dayTitle = computed(() => {
-  const label = `${WEEKDAY_LONG[day.value.weekday]}, ${calendarDateLabel(day.value.key)}`;
-  return day.value.key === today.value ? `${label} · heute` : label;
+  const label = `${weekdayLong(day.value.weekday)}, ${calendarDateLabel(day.value.key)}`;
+  return day.value.key === today.value ? t("history.dayTitleToday", { day: label }) : label;
 });
 
 /** Die Zahlen des Tages in Worten — die Leiste zeigt sie knapp, hier stehen sie ausgeschrieben. */
@@ -81,25 +85,18 @@ const dayFacts = computed(() => {
   const d = day.value;
   const facts: string[] = [];
   if (d.totalMl > 0) facts.push(`${d.totalMl} ml`);
-  if (d.feeds > 0) facts.push(d.feeds === 1 ? "1 Flasche" : `${d.feeds} Flaschen`);
-  if (d.diapers > 0) facts.push(d.diapers === 1 ? "1 Windel" : `${d.diapers} Windeln`);
-  if (d.sleepMinutes > 0) facts.push(`${hoursAndMinutes(d.sleepMinutes)} Schlaf`);
+  if (d.feeds > 0) facts.push(t("history.factsFeeds", { n: d.feeds }, d.feeds));
+  if (d.diapers > 0) facts.push(t("history.factsDiapers", { n: d.diapers }, d.diapers));
+  if (d.sleepMinutes > 0) facts.push(t("history.factsSleep", { duration: duration(d.sleepMinutes) }));
   return facts;
 });
 
-function hoursAndMinutes(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (!h) return `${m} Min`;
-  return m ? `${h} Std ${m} Min` : `${h} Std`;
-}
-
 /** Für die Vorlesehilfe: Die Leiste ist sonst nur eine Zahlenwand. */
 function tabLabel(d: { weekday: number; key: string; totalMl: number; diapers: number }): string {
-  const parts = [`${WEEKDAY_LONG[d.weekday]}, ${calendarDateLabel(d.key)}`];
-  if (d.totalMl > 0) parts.push(`${d.totalMl} Milliliter`);
-  if (d.diapers > 0) parts.push(`${d.diapers} Windeln`);
-  if (d.totalMl === 0 && d.diapers === 0) parts.push("nichts eingetragen");
+  const parts = [`${weekdayLong(d.weekday)}, ${calendarDateLabel(d.key)}`];
+  if (d.totalMl > 0) parts.push(t("history.tabMl", { n: d.totalMl }));
+  if (d.diapers > 0) parts.push(t("history.tabDiapers", { n: d.diapers }));
+  if (d.totalMl === 0 && d.diapers === 0) parts.push(t("history.tabNothing"));
   return parts.join(", ");
 }
 
@@ -123,25 +120,13 @@ function edit(entry: LocalEntry) {
   editOpen.value = true;
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  feed: "Flasche",
-  diaper: "Windel",
-  sleep: "Schlaf",
-  growth: "Wachstum",
-  milestone: "Meilenstein",
-  note: "Notiz",
-  photo: "Foto",
-  illness: "Krankheit",
-  absence: "Abwesenheit",
-  supply: "Gekauft",
-  bath: "Baden",
-};
+const typeLabel = (type: string) => t(`entry.${type}`);
 
-const DIAPER_LABEL: Record<string, string> = {
-  empty: "leer",
-  wet: "feucht",
-  soiled: "voll",
-  both: "voll",
+const DIAPER_KEY: Record<string, string> = {
+  empty: "diaper.empty",
+  wet: "diaper.wet",
+  soiled: "diaper.soiled",
+  both: "diaper.soiled",
 };
 
 function describe(entry: LocalEntry): string {
@@ -149,41 +134,41 @@ function describe(entry: LocalEntry): string {
     case "feed":
       return [
         `${entry.amountMl} ml`,
-        entry.spatUp ? "ausgespuckt" : null,
-        entry.vitaminD ? "Vitamin D" : null,
+        entry.spatUp ? t("describe.spatUp") : null,
+        entry.vitaminD ? t("describe.vitaminD") : null,
       ]
         .filter(Boolean)
         .join(" · ");
     case "diaper":
-      return DIAPER_LABEL[entry.diaper ?? "empty"] ?? "";
+      return t(DIAPER_KEY[entry.diaper ?? "empty"] ?? "diaper.empty");
     case "sleep":
       return entry.endedAt
-        ? `bis ${localTimeLabel(entry.endedAt, data.timezone)}`
-        : "läuft noch";
+        ? t("describe.until", { time: localTimeLabel(entry.endedAt, data.timezone) })
+        : t("describe.running");
     case "growth":
       return [
         entry.weightG ? `${(entry.weightG / 1000).toFixed(3)} kg` : null,
         entry.lengthMm ? `${(entry.lengthMm / 10).toFixed(1)} cm` : null,
-        entry.headMm ? `KU ${(entry.headMm / 10).toFixed(1)} cm` : null,
+        entry.headMm ? t("describe.head", { cm: (entry.headMm / 10).toFixed(1) }) : null,
       ]
         .filter(Boolean)
         .join(" · ");
     case "milestone":
       return entry.label ?? "";
     case "photo":
-      return `Woche ${entry.lifeWeek}`;
+      return t("describe.weekN", { n: entry.lifeWeek });
     case "illness":
       return [
         entry.label,
         entry.temperatureDc ? `${(entry.temperatureDc / 10).toFixed(1).replace(".", ",")} °C` : null,
-        entry.endedAt ? null : "läuft noch",
+        entry.endedAt ? null : t("describe.running"),
       ]
         .filter(Boolean)
         .join(" · ");
     case "absence":
       return entry.label ?? "";
     case "supply":
-      return [entry.label, entry.supplySize, entry.supplyShop && `bei ${entry.supplyShop}`]
+      return [entry.label, entry.supplySize, entry.supplyShop && t("describe.boughtAt", { shop: entry.supplyShop })]
         .filter(Boolean)
         .join(" · ");
     default:
@@ -199,7 +184,7 @@ async function remove(entry: LocalEntry) {
 <template>
   <div class="history">
     <header class="history__head">
-      <h1>Verlauf</h1>
+      <h1>{{ $t("history.title") }}</h1>
       <!-- Nur sichtbar, wenn man wirklich weg ist. Ein Knopf, der immer dasteht und
            meistens nichts tut, ist schlimmer als keiner. -->
       <button
@@ -208,9 +193,9 @@ async function remove(entry: LocalEntry) {
         type="button"
         @click="selectedDay = today"
       >
-        Heute
+        {{ $t("history.jumpToday") }}
       </button>
-      <button class="history__add" type="button" @click="addOpen = true">Nachtragen</button>
+      <button class="history__add" type="button" @click="addOpen = true">{{ $t("history.addEntry") }}</button>
     </header>
 
     <!-- Einträge, die der Server dauerhaft ablehnt. Sie blockieren den Abgleich
@@ -218,12 +203,12 @@ async function remove(entry: LocalEntry) {
          nie auf das andere Gerät über. -->
     <div v-if="data.invalidEntries.length > 0" class="warning" role="alert">
       <p class="warning__title">
-        {{ data.invalidEntries.length === 1 ? "Ein Eintrag konnte" : `${data.invalidEntries.length} Einträge konnten` }}
-        nicht übertragen werden
+        {{ data.invalidEntries.length === 1
+          ? $t("history.invalid.one")
+          : $t("history.invalid.many", { n: data.invalidEntries.length }) }}
       </p>
       <p class="warning__text">
-        Die Werte liegen außerhalb des Erlaubten. Bitte den Eintrag antippen und
-        korrigieren — danach wird er automatisch übertragen.
+        {{ $t("history.invalid.text") }}
       </p>
       <p class="warning__reason">{{ data.invalidEntries[0]!.reason }}</p>
     </div>
@@ -235,7 +220,7 @@ async function remove(entry: LocalEntry) {
         class="weekbar__step"
         type="button"
         :disabled="!hasOlder"
-        aria-label="Vorige Woche"
+        :aria-label="$t('history.prevWeek')"
         @click="shiftWeek(1)"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -245,7 +230,7 @@ async function remove(entry: LocalEntry) {
 
       <label class="weekbar__pick">
         <span class="weekbar__label">{{ weekLabel(weekStart) }}</span>
-        <select :value="weekStart" aria-label="Woche wählen" @change="goToWeek(($event.target as HTMLSelectElement).value)">
+        <select :value="weekStart" :aria-label="$t('history.pickWeek')" @change="goToWeek(($event.target as HTMLSelectElement).value)">
           <option v-for="w in weeks" :key="w" :value="w">{{ weekLabel(w) }}</option>
         </select>
       </label>
@@ -254,7 +239,7 @@ async function remove(entry: LocalEntry) {
         class="weekbar__step"
         type="button"
         :disabled="!hasNewer"
-        aria-label="Nächste Woche"
+        :aria-label="$t('history.nextWeek')"
         @click="shiftWeek(-1)"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -265,7 +250,7 @@ async function remove(entry: LocalEntry) {
 
     <!-- Tagesleiste: sieben feste Spalten, auch die leeren. Eine Lücke ist eine
          Aussage; würde man sie weglassen, verschöben sich die Wochentage. -->
-    <div class="dayrow" role="tablist" aria-label="Wochentag">
+    <div class="dayrow" role="tablist" :aria-label="$t('history.weekday')">
       <button
         v-for="d in week.days"
         :key="d.key"
@@ -282,7 +267,7 @@ async function remove(entry: LocalEntry) {
         :disabled="d.isFuture"
         @click="selectedDay = d.key"
       >
-        <span class="dayrow__wd">{{ WEEKDAY_SHORT[d.weekday] }}</span>
+        <span class="dayrow__wd">{{ weekdayShort(d.weekday) }}</span>
         <span class="dayrow__num bm-tabular">{{ d.dayOfMonth }}</span>
         <span class="dayrow__ml bm-tabular">{{ d.totalMl > 0 ? d.totalMl : "·" }}</span>
         <span class="dayrow__dp bm-tabular">{{ d.diapers > 0 ? `${d.diapers}×` : "·" }}</span>
@@ -298,8 +283,8 @@ async function remove(entry: LocalEntry) {
       <p v-if="day.entries.length === 0" class="empty">
         {{
           day.key === today
-            ? "Heute noch nichts eingetragen."
-            : "An diesem Tag wurde nichts eingetragen."
+            ? $t("history.nothingToday")
+            : $t("history.nothingThatDay")
         }}
       </p>
 
@@ -317,7 +302,7 @@ async function remove(entry: LocalEntry) {
                 <span v-if="ordinals.has(entry.id)" class="entry__ordinal bm-tabular"
                   >{{ ordinals.get(entry.id) }}.</span
                 >
-                {{ TYPE_LABEL[entry.type] }}
+                {{ typeLabel(entry.type) }}
               </span>
               <span class="entry__detail">{{ describe(entry) }}</span>
               <span v-if="entry.note" class="entry__note">{{ entry.note }}</span>
@@ -327,7 +312,7 @@ async function remove(entry: LocalEntry) {
           <button
             class="entry__remove"
             type="button"
-            :aria-label="`${TYPE_LABEL[entry.type]} um ${localTimeLabel(entry.startedAt, data.timezone)} löschen`"
+            :aria-label="$t('history.deleteAria', { type: typeLabel(entry.type), time: localTimeLabel(entry.startedAt, data.timezone) })"
             @click="remove(entry)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">

@@ -1,4 +1,37 @@
 {
+  "absence": {
+    "cure": "Rehab stay",
+    "holiday": "Holiday",
+    "hospital": "Hospital",
+    "parentalLeave": "Parental leave"
+  },
+  "add": {
+    "absence": "Away",
+    "amount": "Amount",
+    "condition": "Condition",
+    "end": "End",
+    "endKnown": "The end is already known",
+    "endPickBelow": "Choose the time below",
+    "head": "Head circumference",
+    "kind": "Kind",
+    "length": "Length",
+    "ownEntry": "or your own wording",
+    "placePlaceholder": "Town, postcode or country",
+    "saveEdit": "Save change",
+    "saved": "Entry added",
+    "stillRunning": "Still running — end it later with one tap",
+    "temperature": "Highest measured temperature (optional)",
+    "titleEdit": "Edit entry",
+    "titleNew": "Add a past entry",
+    "weight": "Weight",
+    "whatsWrong": "What is going on?",
+    "where": "Where? (optional)",
+    "group": {
+      "everyday": "Everyday",
+      "occasional": "Now and then",
+      "period": "Period with a start and an end"
+    }
+  },
   "alerts": {
     "disclaimer": "These notes only describe what your own entries say — they are not a medical assessment. If you are worried, call your paediatric practice; when in doubt, rather once too early.",
     "fewWetToday": {
@@ -44,6 +77,15 @@
     "weekN": "Week {n}",
     "yesterday": "yesterday"
   },
+  "describe": {
+    "boughtAt": "at {shop}",
+    "head": "head {cm} cm",
+    "running": "still running",
+    "spatUp": "brought back up",
+    "until": "until {time}",
+    "vitaminD": "Vitamin D",
+    "weekN": "Week {n}"
+  },
   "diaper": {
     "empty": "empty",
     "soiled": "soiled",
@@ -79,6 +121,37 @@
       "hintLocked": "Already recorded for this day",
       "label": "Vitamin D given"
     }
+  },
+  "history": {
+    "addEntry": "Add entry",
+    "dayTitleToday": "{day} · today",
+    "deleteAria": "Delete {type} at {time}",
+    "factsDiapers": "1 nappy | {n} nappies",
+    "factsFeeds": "1 bottle | {n} bottles",
+    "factsSleep": "{duration} of sleep",
+    "jumpToday": "Today",
+    "nextWeek": "Next week",
+    "nothingThatDay": "Nothing was recorded on this day.",
+    "nothingToday": "Nothing recorded today yet.",
+    "pickWeek": "Choose a week",
+    "prevWeek": "Previous week",
+    "tabDiapers": "{n} nappies",
+    "tabMl": "{n} millilitres",
+    "tabNothing": "nothing recorded",
+    "title": "History",
+    "weekday": "Weekday",
+    "invalid": {
+      "many": "{n} entries could not be synced",
+      "one": "One entry could not be synced",
+      "text": "The values are out of range. Please tap the entry and correct it — after that it syncs automatically."
+    }
+  },
+  "illness": {
+    "cold": "Cold",
+    "fever": "Fever",
+    "stomach": "Stomach bug",
+    "teething": "Teething",
+    "vaccineReaction": "Vaccine reaction"
   },
   "intake": {
     "note": "A rough guide: about one sixth of body weight in milk per day, before solids. How much she actually needs she decides herself — hunger and fullness cues say more than any number.",
@@ -271,6 +344,26 @@
       "empty": "Empty",
       "soiled": "Soiled",
       "wet": "Wet"
+    }
+  },
+  "weekday": {
+    "long": {
+      "0": "Monday",
+      "1": "Tuesday",
+      "2": "Wednesday",
+      "3": "Thursday",
+      "4": "Friday",
+      "5": "Saturday",
+      "6": "Sunday"
+    },
+    "short": {
+      "0": "Mon",
+      "1": "Tue",
+      "2": "Wed",
+      "3": "Thu",
+      "4": "Fri",
+      "5": "Sat",
+      "6": "Sun"
     }
   }
 }

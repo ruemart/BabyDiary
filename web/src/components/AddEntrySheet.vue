@@ -11,7 +11,10 @@ import AmountStepper from "./AmountStepper.vue";
 import SpatUpToggle from "./SpatUpToggle.vue";
 import VitaminDToggle from "./VitaminDToggle.vue";
 import CmField from "./CmField.vue";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Ein Blatt für Nachtragen UND Ändern.
  *
@@ -67,35 +70,46 @@ const BACKDATE_MEMORY_MS = 45 * 60 * 1000;
  * Nichts ist versteckt: Alles bleibt einen Tap entfernt, nur das Gewicht folgt der
  * Häufigkeit.
  */
-const TYPE_GROUPS: { title: string; types: { value: EntryType; label: string }[] }[] = [
+const TYPE_GROUPS: { titleKey: string; types: { value: EntryType; key: string }[] }[] = [
   {
-    title: "Alltag",
+    titleKey: "add.group.everyday",
     types: [
-      { value: "feed", label: "Flasche" },
-      { value: "diaper", label: "Windel" },
-      { value: "sleep", label: "Schlaf" },
-      { value: "bath", label: "Baden" },
+      { value: "feed", key: "entry.feed" },
+      { value: "diaper", key: "entry.diaper" },
+      { value: "sleep", key: "entry.sleep" },
+      { value: "bath", key: "entry.bath" },
     ],
   },
   {
-    title: "Ab und zu",
+    titleKey: "add.group.occasional",
     types: [
-      { value: "growth", label: "Wachstum" },
-      { value: "note", label: "Notiz" },
+      { value: "growth", key: "entry.growth" },
+      { value: "note", key: "entry.note" },
     ],
   },
   {
-    title: "Zeitraum mit Anfang und Ende",
+    titleKey: "add.group.period",
     types: [
-      { value: "illness", label: "Krankheit" },
-      { value: "absence", label: "Urlaub" },
+      { value: "illness", key: "entry.illness" },
+      { value: "absence", key: "add.absence" },
     ],
   },
 ];
 
 /** Häufige Krankheiten zum Antippen — Freitext bleibt trotzdem möglich. */
-const ILLNESS_PRESETS = ["Erkältung", "Fieber", "Magen-Darm", "Zahnen", "Impfreaktion"];
-const ABSENCE_KINDS = ["Urlaub", "Elternzeit", "Kur", "Krankenhaus"];
+const ILLNESS_PRESETS = [
+  "illness.cold",
+  "illness.fever",
+  "illness.stomach",
+  "illness.teething",
+  "illness.vaccineReaction",
+];
+const ABSENCE_KINDS = [
+  "absence.holiday",
+  "absence.parentalLeave",
+  "absence.cure",
+  "absence.hospital",
+];
 
 const type = ref<EntryType>("feed");
 const at = ref(new Date());
@@ -308,22 +322,22 @@ async function save() {
   const entry = data.draft(type.value, at.value, fields());
   await data.add(entry);
   open.value = false;
-  confirmWithUndo("Eintrag nachgetragen", entry.id);
+  confirmWithUndo(t("add.saved"), entry.id);
 }
 </script>
 
 <template>
-  <SheetDialog v-model:open="open" :title="isEditing ? 'Eintrag ändern' : 'Eintrag nachtragen'">
+  <SheetDialog v-model:open="open" :title="isEditing ? $t('add.titleEdit') : $t('add.titleNew')">
     <div class="add">
       <div v-if="!isEditing" class="types">
         <div
           v-for="group in TYPE_GROUPS"
-          :key="group.title"
+          :key="group.titleKey"
           class="types__group"
           role="group"
-          :aria-label="group.title"
+          :aria-label="$t(group.titleKey)"
         >
-          <p class="types__title">{{ group.title }}</p>
+          <p class="types__title">{{ $t(group.titleKey) }}</p>
           <div class="types__row" :style="{ '--cols': group.types.length }">
             <button
               v-for="option in group.types"
@@ -333,14 +347,14 @@ async function save() {
               :class="{ 'types__item--active': type === option.value }"
               @click="type = option.value"
             >
-              {{ option.label }}
+              {{ $t(option.key) }}
             </button>
           </div>
         </div>
       </div>
 
       <div v-if="type === 'feed'" class="field">
-        <span class="field__label">Menge</span>
+        <span class="field__label">{{ $t("add.amount") }}</span>
         <AmountStepper v-model="amountMl" />
         <SpatUpToggle v-model="spatUp" />
         <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
@@ -348,13 +362,13 @@ async function save() {
 
       <template v-else-if="type === 'diaper'">
         <div class="field">
-          <span class="field__label">Zustand</span>
+          <span class="field__label">{{ $t("add.condition") }}</span>
           <div class="segmented">
             <button
               v-for="option in [
-                { value: 'empty', label: 'Leer' },
-                { value: 'wet', label: 'Feucht' },
-                { value: 'soiled', label: 'Voll' },
+                { value: 'empty', key: 'today.diaperButton.empty' },
+                { value: 'wet', key: 'today.diaperButton.wet' },
+                { value: 'soiled', key: 'today.diaperButton.soiled' },
               ]"
               :key="option.value"
               type="button"
@@ -362,7 +376,7 @@ async function save() {
               :class="{ 'segmented__item--active': diaper === option.value }"
               @click="diaper = option.value as 'empty' | 'wet' | 'soiled'"
             >
-              {{ option.label }}
+              {{ $t(option.key) }}
             </button>
           </div>
         </div>
@@ -371,36 +385,36 @@ async function save() {
       <template v-else-if="type === 'growth'">
         <div class="grid">
           <label class="field">
-            <span class="field__label">Gewicht</span>
+            <span class="field__label">{{ $t("add.weight") }}</span>
             <span class="field__group">
               <input :value="weightG ?? ''" type="number" inputmode="numeric" @input="weightG = num(($event.target as HTMLInputElement).value)" />
               <span class="field__unit">g</span>
             </span>
           </label>
-          <CmField v-model="lengthMm" label="Länge" />
+          <CmField v-model="lengthMm" :label="$t('add.length')" />
         </div>
-        <CmField v-model="headMm" label="Kopfumfang" />
+        <CmField v-model="headMm" :label="$t('add.head')" />
       </template>
 
       <template v-else-if="type === 'illness'">
         <div class="field">
-          <span class="field__label">Was ist los?</span>
+          <span class="field__label">{{ $t("add.whatsWrong") }}</span>
           <div class="chips">
             <button
               v-for="preset in ILLNESS_PRESETS"
               :key="preset"
               type="button"
               class="chip"
-              :class="{ 'chip--active': label === preset }"
-              @click="label = preset"
+              :class="{ 'chip--active': label === $t(preset) }"
+              @click="label = $t(preset)"
             >
-              {{ preset }}
+              {{ $t(preset) }}
             </button>
           </div>
-          <input v-model="label" type="text" placeholder="oder eigene Angabe" />
+          <input v-model="label" type="text" :placeholder="$t('add.ownEntry')" />
         </div>
         <label class="field">
-          <span class="field__label">Höchste gemessene Temperatur (optional)</span>
+          <span class="field__label">{{ $t("add.temperature") }}</span>
           <span class="field__group">
             <input
               :value="temperatureDc === null ? '' : String(temperatureDc / 10).replace('.', ',')"
@@ -416,24 +430,24 @@ async function save() {
 
       <template v-else-if="type === 'absence'">
         <div class="field">
-          <span class="field__label">Art</span>
+          <span class="field__label">{{ $t("add.kind") }}</span>
           <div class="chips">
             <button
               v-for="kind in ABSENCE_KINDS"
               :key="kind"
               type="button"
               class="chip"
-              :class="{ 'chip--active': label === kind }"
-              @click="label = kind"
+              :class="{ 'chip--active': label === $t(kind) }"
+              @click="label = $t(kind)"
             >
-              {{ kind }}
+              {{ $t(kind) }}
             </button>
           </div>
-          <input v-model="label" type="text" placeholder="oder eigene Angabe" />
+          <input v-model="label" type="text" :placeholder="$t('add.ownEntry')" />
         </div>
 
         <div class="field">
-          <span class="field__label">Wo? (optional)</span>
+          <span class="field__label">{{ $t("add.where") }}</span>
           <!-- Damit für diese Tage das Wetter am Urlaubsort gilt statt zu Hause.
                Ein Eintrag statt einer täglichen Ortsangabe. -->
           <p v-if="place" class="place__chosen">
@@ -445,7 +459,7 @@ async function save() {
               <input
                 v-model="placeQuery"
                 type="text"
-                placeholder="Ort, PLZ oder Land"
+                :placeholder="$t('add.placePlaceholder')"
                 @keyup.enter="searchPlace"
               />
               <button type="button" class="place__go" :disabled="placeSearching" @click="searchPlace">
@@ -481,22 +495,22 @@ async function save() {
             </svg>
           </span>
           <span class="ends__text">
-            <span class="ends__label">Ende ist schon bekannt</span>
+            <span class="ends__label">{{ $t("add.endKnown") }}</span>
             <span class="ends__hint">
-              {{ hasEnd ? "Zeitpunkt unten wählen" : "Läuft noch — später mit einem Tap beenden" }}
+              {{ hasEnd ? $t("add.endPickBelow") : $t("add.stillRunning") }}
             </span>
           </span>
         </button>
       </div>
 
       <div v-if="PERIOD_TYPES.has(type) && hasEnd" class="field">
-        <span class="field__label">Ende</span>
+        <span class="field__label">{{ $t("add.end") }}</span>
         <TimeField v-model="endAt" allow-future />
       </div>
 
       <label class="field">
         <span class="field__label">
-          {{ type === "note" ? "Notiz" : "Notiz (optional)" }}
+          {{ type === "note" ? $t("entry.note") : $t("common.noteLabel") }}
         </span>
         <textarea v-model="note" rows="2" />
       </label>
@@ -504,7 +518,7 @@ async function save() {
 
     <template #actions>
       <button class="save" type="button" :disabled="!canSave" @click="save">
-        {{ isEditing ? "Änderung speichern" : "Speichern" }}
+        {{ isEditing ? $t("add.saveEdit") : $t("common.save") }}
       </button>
     </template>
   </SheetDialog>

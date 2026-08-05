@@ -1,4 +1,37 @@
 {
+  "absence": {
+    "cure": "Kur",
+    "holiday": "Urlaub",
+    "hospital": "Krankenhaus",
+    "parentalLeave": "Elternzeit"
+  },
+  "add": {
+    "absence": "Urlaub",
+    "amount": "Menge",
+    "condition": "Zustand",
+    "end": "Ende",
+    "endKnown": "Ende ist schon bekannt",
+    "endPickBelow": "Zeitpunkt unten wählen",
+    "head": "Kopfumfang",
+    "kind": "Art",
+    "length": "Länge",
+    "ownEntry": "oder eigene Angabe",
+    "placePlaceholder": "Ort, PLZ oder Land",
+    "saveEdit": "Änderung speichern",
+    "saved": "Eintrag nachgetragen",
+    "stillRunning": "Läuft noch — später mit einem Tap beenden",
+    "temperature": "Höchste gemessene Temperatur (optional)",
+    "titleEdit": "Eintrag ändern",
+    "titleNew": "Eintrag nachtragen",
+    "weight": "Gewicht",
+    "whatsWrong": "Was ist los?",
+    "where": "Wo? (optional)",
+    "group": {
+      "everyday": "Alltag",
+      "occasional": "Ab und zu",
+      "period": "Zeitraum mit Anfang und Ende"
+    }
+  },
   "alerts": {
     "disclaimer": "Diese Hinweise beschreiben nur, was in euren Einträgen steht — sie sind keine ärztliche Beurteilung. Wenn ihr euch Sorgen macht, ruft die Kinderarztpraxis an; im Zweifel lieber einmal zu früh.",
     "fewWetToday": {
@@ -44,6 +77,15 @@
     "weekN": "Woche {n}",
     "yesterday": "gestern"
   },
+  "describe": {
+    "boughtAt": "bei {shop}",
+    "head": "KU {cm} cm",
+    "running": "läuft noch",
+    "spatUp": "ausgespuckt",
+    "until": "bis {time}",
+    "vitaminD": "Vitamin D",
+    "weekN": "Woche {n}"
+  },
   "diaper": {
     "empty": "leer",
     "soiled": "voll",
@@ -79,6 +121,37 @@
       "hintLocked": "An diesem Tag schon eingetragen",
       "label": "Vitamin D gegeben"
     }
+  },
+  "history": {
+    "addEntry": "Nachtragen",
+    "dayTitleToday": "{day} · heute",
+    "deleteAria": "{type} um {time} löschen",
+    "factsDiapers": "1 Windel | {n} Windeln",
+    "factsFeeds": "1 Flasche | {n} Flaschen",
+    "factsSleep": "{duration} Schlaf",
+    "jumpToday": "Heute",
+    "nextWeek": "Nächste Woche",
+    "nothingThatDay": "An diesem Tag wurde nichts eingetragen.",
+    "nothingToday": "Heute noch nichts eingetragen.",
+    "pickWeek": "Woche wählen",
+    "prevWeek": "Vorige Woche",
+    "tabDiapers": "{n} Windeln",
+    "tabMl": "{n} Milliliter",
+    "tabNothing": "nichts eingetragen",
+    "title": "Verlauf",
+    "weekday": "Wochentag",
+    "invalid": {
+      "many": "{n} Einträge konnten nicht übertragen werden",
+      "one": "Ein Eintrag konnte nicht übertragen werden",
+      "text": "Die Werte liegen außerhalb des Erlaubten. Bitte den Eintrag antippen und korrigieren — danach wird er automatisch übertragen."
+    }
+  },
+  "illness": {
+    "cold": "Erkältung",
+    "fever": "Fieber",
+    "stomach": "Magen-Darm",
+    "teething": "Zahnen",
+    "vaccineReaction": "Impfreaktion"
   },
   "intake": {
     "note": "Grobe Orientierung: etwa ein Sechstel des Körpergewichts an Milch pro Tag, vor der Beikost. Wie viel sie tatsächlich braucht, entscheidet sie selbst — Hunger- und Sättigungszeichen sagen mehr als jede Zahl.",
@@ -271,6 +344,26 @@
       "empty": "Leer",
       "soiled": "Voll",
       "wet": "Feucht"
+    }
+  },
+  "weekday": {
+    "long": {
+      "0": "Montag",
+      "1": "Dienstag",
+      "2": "Mittwoch",
+      "3": "Donnerstag",
+      "4": "Freitag",
+      "5": "Samstag",
+      "6": "Sonntag"
+    },
+    "short": {
+      "0": "Mo",
+      "1": "Di",
+      "2": "Mi",
+      "3": "Do",
+      "4": "Fr",
+      "5": "Sa",
+      "6": "So"
     }
   }
 }
