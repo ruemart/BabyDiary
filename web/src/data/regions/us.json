@@ -1,0 +1,252 @@
+{
+  "code": "us",
+  "name": "United States",
+  "englishName": "United States",
+  "verified": false,
+  "checkupsLabel": "Well-child visits",
+  "sources": {
+    "checkups": "AAP Bright Futures periodicity schedule",
+    "vaccinations": "CDC/ACIP child immunization schedule",
+    "url": "https://www.cdc.gov/vaccines/schedules/hcp/imz/child-adolescent.html"
+  },
+  "checkups": [
+    {
+      "id": "newborn",
+      "windowLabel": "3–5 days",
+      "unit": "day",
+      "from": 2,
+      "to": 4,
+      "what": "First visit after discharge: weight, feeding, jaundice."
+    },
+    {
+      "id": "1month",
+      "windowLabel": "1 month",
+      "unit": "month",
+      "from": 0,
+      "to": 0,
+      "what": "Growth, feeding and development."
+    },
+    {
+      "id": "2month",
+      "windowLabel": "2 months",
+      "unit": "month",
+      "from": 1,
+      "to": 1,
+      "what": "Development check and the first round of immunizations."
+    },
+    {
+      "id": "4month",
+      "windowLabel": "4 months",
+      "unit": "month",
+      "from": 3,
+      "to": 3,
+      "what": "Growth, motor skills, second round of immunizations."
+    },
+    {
+      "id": "6month",
+      "windowLabel": "6 months",
+      "unit": "month",
+      "from": 5,
+      "to": 5,
+      "what": "Solids, sitting, teeth."
+    },
+    {
+      "id": "9month",
+      "windowLabel": "9 months",
+      "unit": "month",
+      "from": 8,
+      "to": 8,
+      "what": "Developmental screening, movement and communication."
+    },
+    {
+      "id": "12month",
+      "windowLabel": "12 months",
+      "unit": "month",
+      "from": 11,
+      "to": 11,
+      "what": "First steps and words, more immunizations."
+    },
+    {
+      "id": "15month",
+      "windowLabel": "15 months",
+      "unit": "month",
+      "from": 14,
+      "to": 14,
+      "what": "Speech, walking, feeding."
+    },
+    {
+      "id": "18month",
+      "windowLabel": "18 months",
+      "unit": "month",
+      "from": 17,
+      "to": 17,
+      "what": "Developmental and autism screening."
+    },
+    {
+      "id": "24month",
+      "windowLabel": "24 months",
+      "unit": "month",
+      "from": 23,
+      "to": 23,
+      "what": "Language, motor skills, behaviour."
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "hepb",
+      "name": "Hepatitis B",
+      "doses": [
+        {
+          "month": 0,
+          "dose": "1"
+        },
+        {
+          "month": 1,
+          "dose": "2"
+        },
+        {
+          "month": 6,
+          "dose": "3"
+        }
+      ],
+      "note": "First dose at birth; the third between 6 and 18 months."
+    },
+    {
+      "id": "rv",
+      "name": "Rotavirus",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 6,
+          "dose": "3",
+          "optional": true
+        }
+      ],
+      "note": "Two or three doses depending on the brand."
+    },
+    {
+      "id": "dtap",
+      "name": "DTaP",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 6,
+          "dose": "3"
+        },
+        {
+          "month": 15,
+          "dose": "4"
+        }
+      ]
+    },
+    {
+      "id": "hib",
+      "name": "Hib",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ],
+      "note": "Some brands need a third dose at 6 months."
+    },
+    {
+      "id": "pcv",
+      "name": "Pneumococcal (PCV)",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 6,
+          "dose": "3"
+        },
+        {
+          "month": 12,
+          "dose": "4"
+        }
+      ]
+    },
+    {
+      "id": "ipv",
+      "name": "Polio (IPV)",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 6,
+          "dose": "3"
+        }
+      ]
+    },
+    {
+      "id": "mmr",
+      "name": "MMR",
+      "doses": [
+        {
+          "month": 12,
+          "dose": "1"
+        }
+      ],
+      "note": "First dose between 12 and 15 months."
+    },
+    {
+      "id": "var",
+      "name": "Varicella",
+      "doses": [
+        {
+          "month": 12,
+          "dose": "1"
+        }
+      ],
+      "note": "First dose between 12 and 15 months."
+    },
+    {
+      "id": "hepa",
+      "name": "Hepatitis A",
+      "doses": [
+        {
+          "month": 12,
+          "dose": "1"
+        },
+        {
+          "month": 18,
+          "dose": "2"
+        }
+      ]
+    }
+  ]
+}

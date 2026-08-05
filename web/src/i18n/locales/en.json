@@ -196,6 +196,14 @@
       "text": "Photo for week {week} still missing"
     }
   },
+  "region": {
+    "label": "Country",
+    "lead": "Controls which check-ups and vaccination dates appear on the timeline. Applies to the whole household.",
+    "medicalNote": "This does not replace medical advice — your paediatric practice sets the actual appointments.",
+    "noneHint": "Without appointments the timeline shows leaps, photos and your own entries only.",
+    "source": "Source: {source}",
+    "unverified": "These dates were gathered from public sources and are not officially verified. Please check them against your country's own schedule."
+  },
   "settings": {
     "appearance": "Appearance",
     "appearanceAuto": "Automatic",
@@ -345,6 +353,10 @@
       "soiled": "Soiled",
       "wet": "Wet"
     }
+  },
+  "vaccine": {
+    "dependsOnBrand": "depends on the brand",
+    "from": "from {date}"
   },
   "weekday": {
     "long": {

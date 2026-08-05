@@ -8,10 +8,10 @@ import {
   lifeWeekStart,
   type Child,
 } from "@babymonitor/shared";
-import { CHECKUPS, type Checkup } from "../data/checkups.ts";
 import { MILESTONES } from "../data/milestones.ts";
 import { LEAPS, type Leap } from "../data/leaps.ts";
-import { VACCINATIONS } from "../data/vaccinations.ts";
+import { regionByCode, type RegionCheckup } from "../data/regions/index.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Rechnet alle Zeitstrahl-Elemente auf eine gemeinsame Achse: die Lebenswoche ab Geburt.
@@ -86,6 +86,17 @@ export function periodBands(
 }
 
 export function useTimeline(child: () => Child | null, weeksTotal = 80) {
+  const { t } = useI18n();
+
+  /**
+   * Termine kommen aus der Länderkonfiguration des Haushalts.
+   *
+   * Ein unbekannter Wert — etwa weil ein anderes Gerät eine neuere Fassung mit einem
+   * Land hat, das dieses Gerät noch nicht kennt — fällt auf "keine Termine" zurück.
+   * Lieber nichts anzeigen als die Termine des falschen Landes.
+   */
+  const region = () => regionByCode(child()?.region);
+
   /**
    * Verschiebung zwischen Sprungzählung (ab ET) und Wochenachse (ab Geburt).
    * Positiv, wenn das Kind vor dem Termin geboren wurde.
@@ -107,7 +118,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
   });
 
   /** Wandelt ein Untersuchungsfenster in Lebenswochen um. */
-  function checkupWeeks(c: Child, checkup: Checkup): { from: number; to: number; dates: string } {
+  function checkupWeeks(c: Child, checkup: RegionCheckup): { from: number; to: number; dates: string } {
     const startDate =
       checkup.unit === "day"
         ? addDays(c.birthDate, checkup.from)
@@ -138,7 +149,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
 
     const result: TimelinePin[] = [];
 
-    for (const checkup of CHECKUPS) {
+    for (const checkup of region().checkups) {
       const { from, dates } = checkupWeeks(c, checkup);
       if (from > weeksTotal) continue;
       result.push({
@@ -151,7 +162,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
       });
     }
 
-    for (const vaccination of VACCINATIONS) {
+    for (const vaccination of region().vaccinations) {
       for (const dose of vaccination.doses) {
         const date = addMonths(c.birthDate, dose.month);
         const week = daysBetween(c.birthDate, date) / 7;
@@ -162,7 +173,9 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
           kind: "vaccination",
           label: vaccination.name,
           detail: vaccination.note ?? "",
-          when: `${dose.dose}${dose.optional ? " (je nach Impfstoff)" : ""} · ab ${calendarDateLabel(date)}`,
+          when:
+            `${dose.dose}${dose.optional ? ` (${t("vaccine.dependsOnBrand")})` : ""}` +
+            ` · ${t("vaccine.from", { date: calendarDateLabel(date) })}`,
         });
       }
     }

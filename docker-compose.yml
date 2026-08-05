@@ -26,6 +26,8 @@ services:
       # Hinter dem Tunnel sieht der Browser HTTPS -> Cookie muss `secure` sein.
       COOKIE_SECURE: "true"
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Nur ein Vorschlag für den Einrichtungs-Assistenten; verbindlich ist der Wert am Kind.
+      DEFAULT_REGION: ${DEFAULT_REGION:-none}
       # Fehlen die Schlüssel, sind Benachrichtigungen einfach aus.
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}

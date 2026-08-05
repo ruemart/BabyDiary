@@ -11,6 +11,7 @@ import { usePushNotifications } from "../composables/usePushNotifications.ts";
 import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { LOCALES, setLocale } from "../i18n/index.ts";
+import { REGIONS, regionByCode } from "../data/regions/index.ts";
 
 
 const { t, locale } = useI18n();
@@ -28,6 +29,8 @@ const APPEARANCES: { value: AppearanceSetting; key: string; hintKey: string }[] 
 ];
 
 const photoCount = computed(() => data.photosByWeek.size);
+
+const activeRegion = computed(() => regionByCode(form.value.region));
 
 /* ── Benachrichtigungen ───────────────────────────────────────────────────── */
 
@@ -209,6 +212,35 @@ async function signOut() {
       <button class="primary" type="button" :disabled="saving" @click="save">
         {{ saving ? $t("settings.saving") : $t("settings.saveChanges") }}
       </button>
+    </section>
+
+    <!-- Land: bestimmt, welche Vorsorge- und Impftermine der Zeitstrahl zeigt. -->
+    <section class="card">
+      <h2 class="card__title">{{ $t("region.label") }}</h2>
+      <p class="card__lead">{{ $t("region.lead") }}</p>
+      <div class="options">
+        <button
+          v-for="r in REGIONS"
+          :key="r.code"
+          type="button"
+          class="option"
+          :class="{ 'option--active': form.region === r.code }"
+          @click="form.region = r.code"
+        >
+          <span class="option__label">{{ r.name }}</span>
+        </button>
+      </div>
+      <!-- Der Hinweis steht DORT, wo die Wahl getroffen wird, nicht in der
+           Dokumentation: Nur Deutschland ist gegen die amtliche Quelle geprüft. -->
+      <p v-if="!activeRegion.verified && activeRegion.code !== 'none'" class="card__note">
+        {{ $t("region.unverified") }}
+      </p>
+      <p v-else-if="activeRegion.code === 'none'" class="card__note">
+        {{ $t("region.noneHint") }}
+      </p>
+      <p v-if="activeRegion.sources.vaccinations" class="card__note">
+        {{ $t("region.source", { source: activeRegion.sources.vaccinations }) }}
+      </p>
     </section>
 
     <!-- Sprache vor Darstellung: Wer die App in einer fremden Sprache vor sich hat,

@@ -1,0 +1,169 @@
+{
+  "code": "ch",
+  "name": "Schweiz",
+  "englishName": "Switzerland",
+  "verified": false,
+  "checkupsLabel": "Vorsorgeuntersuchungen",
+  "sources": {
+    "checkups": "Schweizerische Gesellschaft für Pädiatrie, Vorsorgeuntersuchungen",
+    "vaccinations": "Schweizerischer Impfplan, BAG / EKIF",
+    "url": "https://www.bag.admin.ch/bag/de/home/gesund-leben/gesundheitsfoerderung-und-praevention/impfungen-prophylaxe/schweizerischer-impfplan.html"
+  },
+  "checkups": [
+    {
+      "id": "V1",
+      "windowLabel": "1. Lebensmonat",
+      "unit": "month",
+      "from": 0,
+      "to": 0,
+      "what": "Erste Kontrolle nach der Geburt: Gewicht, Trinken, Gelbsucht."
+    },
+    {
+      "id": "V2",
+      "windowLabel": "2. Lebensmonat",
+      "unit": "month",
+      "from": 1,
+      "to": 1,
+      "what": "Entwicklung und erste Impfungen."
+    },
+    {
+      "id": "V3",
+      "windowLabel": "4. Lebensmonat",
+      "unit": "month",
+      "from": 3,
+      "to": 3,
+      "what": "Wachstum, Motorik, zweite Impfrunde."
+    },
+    {
+      "id": "V4",
+      "windowLabel": "6. Lebensmonat",
+      "unit": "month",
+      "from": 5,
+      "to": 5,
+      "what": "Beikost, Bewegung, Zähne."
+    },
+    {
+      "id": "V5",
+      "windowLabel": "9. Lebensmonat",
+      "unit": "month",
+      "from": 8,
+      "to": 8,
+      "what": "Sitzen, Greifen, Reaktion auf Ansprache."
+    },
+    {
+      "id": "V6",
+      "windowLabel": "12. Lebensmonat",
+      "unit": "month",
+      "from": 11,
+      "to": 11,
+      "what": "Erste Schritte, erste Worte, Auffrischimpfungen."
+    },
+    {
+      "id": "V7",
+      "windowLabel": "18. Lebensmonat",
+      "unit": "month",
+      "from": 17,
+      "to": 17,
+      "what": "Sprache, Gehen, Selbstständigkeit."
+    },
+    {
+      "id": "V8",
+      "windowLabel": "24. Lebensmonat",
+      "unit": "month",
+      "from": 23,
+      "to": 23,
+      "what": "Sprachentwicklung, Motorik, Sozialverhalten."
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "rota",
+      "name": "Rotaviren",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 3,
+          "dose": "2"
+        },
+        {
+          "month": 4,
+          "dose": "3",
+          "optional": true
+        }
+      ],
+      "note": "Schluckimpfung ab der 6. Lebenswoche."
+    },
+    {
+      "id": "sechsfach",
+      "name": "DTPa-IPV-Hib-HepB",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ],
+      "note": "2+1-Schema mit 2, 4 und 12 Monaten."
+    },
+    {
+      "id": "pneumo",
+      "name": "Pneumokokken",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ]
+    },
+    {
+      "id": "menb",
+      "name": "Meningokokken B",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ]
+    },
+    {
+      "id": "mmr",
+      "name": "Masern, Mumps, Röteln",
+      "doses": [
+        {
+          "month": 9,
+          "dose": "1"
+        },
+        {
+          "month": 12,
+          "dose": "2"
+        }
+      ]
+    }
+  ]
+}

@@ -30,6 +30,8 @@ export const useData = defineStore("data", () => {
   const entries = shallowRef<LocalEntry[]>([]);
   const child = ref<Child | null>(null);
   const deviceName = ref<string>("");
+  /** Vorschlag des Servers für das Land — nur beim Einrichten benutzt. */
+  const defaultRegion = ref<string>("");
   const syncState = ref<SyncState>("idle");
   const pending = ref(0);
   const ready = ref(false);
@@ -235,6 +237,7 @@ export const useData = defineStore("data", () => {
     byTimeDesc,
     child,
     deviceName,
+    defaultRegion,
     timezone,
     syncState,
     pending,

@@ -6,11 +6,11 @@ import { useData } from "../stores/data.ts";
 import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 import { LEAP_DISCLAIMER } from "../data/leaps.ts";
-import { CHECKUP_NOTE } from "../data/checkups.ts";
-import { VACCINATION_DISCLAIMER } from "../data/vaccinations.ts";
+import { regionByCode } from "../data/regions/index.ts";
 import WeekRibbon from "../components/WeekRibbon.vue";
 
 const data = useData();
+const region = computed(() => regionByCode(data.child?.region));
 const route = useRoute();
 const ribbon = useTemplateRef<{ scrollToWeek: (w: number) => void }>("ribbon");
 
@@ -222,8 +222,11 @@ function daysAwayLabel(days: number): string {
 
     <footer class="notes">
       <p>{{ LEAP_DISCLAIMER }}</p>
-      <p>{{ CHECKUP_NOTE }}</p>
-      <p>{{ VACCINATION_DISCLAIMER }}</p>
+      <!-- Der Hinweis kommt aus der Länderdatei, weil er von Land zu Land anders
+           lautet — die deutschen Fristen etwa hängen an der Kassenleistung. -->
+      <p v-if="region.checkupNote">{{ region.checkupNote }}</p>
+      <p v-if="!region.verified && region.code !== 'none'">{{ $t("region.unverified") }}</p>
+      <p>{{ $t("region.medicalNote") }}</p>
     </footer>
   </div>
 </template>

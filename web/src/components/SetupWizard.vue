@@ -4,6 +4,7 @@ import { uuidv7, type Child } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import ChildForm from "./ChildForm.vue";
 import { useI18n } from "vue-i18n";
+import { REGIONS, DEFAULT_REGION } from "../data/regions/index.ts";
 
 
 const { t } = useI18n();
@@ -24,6 +25,15 @@ const form = ref<Partial<Child>>({
   birthHeadMm: null,
 });
 
+/**
+ * Land für Vorsorge- und Impftermine.
+ *
+ * Vorbelegt aus dem, was der Server beim Einrichten mitgibt (siehe install.sh) —
+ * sonst "keine Termine". Bewusst NICHT aus der Gerätesprache geraten: Wer eine
+ * deutschsprachige App in Südtirol benutzt, bekommt sonst deutsche Impftermine.
+ */
+const region = ref(data.defaultRegion || DEFAULT_REGION);
+
 const canSave = computed(() => !!form.value.name?.trim() && !!form.value.birthDate);
 const busy = ref(false);
 
@@ -40,6 +50,7 @@ async function save() {
     birthLengthMm: form.value.birthLengthMm ?? null,
     birthHeadMm: form.value.birthHeadMm ?? null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
+    region: region.value,
     // Ort wird später in den Einstellungen gesetzt — das Wetter ist Beiwerk und
     // hat beim Einrichten nichts verloren.
     latitude: null,

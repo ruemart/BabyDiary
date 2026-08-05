@@ -212,6 +212,15 @@ export const childSchema = z.object({
   birthHeadMm: z.number().int().min(0).max(1000).nullable().default(null),
   /** IANA-Zone; steuert Tagesgrenzen und Uhrzeit-Achsen in den Auswertungen. */
   timezone: z.string().min(1).max(64).default("Europe/Berlin"),
+  /**
+   * Land des Haushalts — steuert Vorsorgetermine und Impfkalender.
+   *
+   * Absichtlich frei als Zeichenkette und nicht als Aufzählung: Ein neues Land ist
+   * eine JSON-Datei im Frontend, und dafür soll niemand das gemeinsame Schema und
+   * damit den Server anfassen müssen. Unbekannte Werte fallen in der App auf
+   * "keine Termine" zurück.
+   */
+  region: z.string().max(8).default("none"),
   /** Ort für die Wetterabfrage. Ohne Angabe bleibt die Wetterspur leer. */
   latitude: z.number().min(-90).max(90).nullable().default(null),
   longitude: z.number().min(-180).max(180).nullable().default(null),

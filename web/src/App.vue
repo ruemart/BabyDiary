@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { OnyxToast } from "sit-onyx";
 import { useData } from "./stores/data.ts";
-import { checkSession } from "./sync.ts";
+import { checkSession, fetchDefaultRegion } from "./sync.ts";
 import { wipeLocal } from "./db/local.ts";
 import BottomNav from "./components/BottomNav.vue";
 import SetupWizard from "./components/SetupWizard.vue";
@@ -78,6 +78,8 @@ async function boot() {
   await data.load();
 
   const session = await checkSession();
+  // Parallel wäre schöner, aber der Assistent braucht es erst nach dem Abgleich.
+  data.defaultRegion = await fetchDefaultRegion();
   authenticated.value = session.authenticated;
   if (session.name && !data.deviceName) await data.setDeviceName(session.name);
 

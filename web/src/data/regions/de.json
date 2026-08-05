@@ -1,0 +1,215 @@
+{
+  "code": "de",
+  "name": "Deutschland",
+  "englishName": "Germany",
+  "verified": true,
+  "checkupsLabel": "U-Untersuchungen",
+  "sources": {
+    "checkups": "Gemeinsamer Bundesausschuss (G-BA), Kinder-Richtlinie / Kinderuntersuchungsheft",
+    "vaccinations": "STIKO-Impfkalender 2026 (Epid. Bull. 4/2026), Robert Koch-Institut",
+    "url": "https://www.rki.de/DE/Themen/Infektionskrankheiten/Impfen/Staendige-Impfkommission/Empfehlungen-der-STIKO/Empfehlungen/Impfkalender.html"
+  },
+  "checkupNote": "Die Zeitfenster sind verbindlich — wird eine Untersuchung zu spät wahrgenommen, zahlt die Krankenkasse sie eventuell nicht.",
+  "checkups": [
+    {
+      "id": "U1",
+      "windowLabel": "direkt nach der Geburt",
+      "unit": "day",
+      "from": 0,
+      "to": 0,
+      "what": "Erste Untersuchung im Kreißsaal: Atmung, Herzschlag, Muskelspannung, Reflexe, Hautfarbe."
+    },
+    {
+      "id": "U2",
+      "windowLabel": "3.–10. Lebenstag",
+      "unit": "day",
+      "from": 2,
+      "to": 9,
+      "what": "Gründliche Untersuchung aller Organe, dazu Blutabnahme für das Neugeborenen-Screening und der Hörtest."
+    },
+    {
+      "id": "U3",
+      "windowLabel": "4.–5. Lebenswoche",
+      "unit": "week",
+      "from": 3,
+      "to": 4,
+      "what": "Gewichtsentwicklung und Trinkverhalten, Ultraschall der Hüften, Kontrolle der Reflexe."
+    },
+    {
+      "id": "U4",
+      "windowLabel": "3.–4. Lebensmonat",
+      "unit": "month",
+      "from": 2,
+      "to": 3,
+      "what": "Beweglichkeit, Sehen und Hören, Reaktion auf Ansprache. Meist der erste Impftermin."
+    },
+    {
+      "id": "U5",
+      "windowLabel": "6.–7. Lebensmonat",
+      "unit": "month",
+      "from": 5,
+      "to": 6,
+      "what": "Greifen, Drehen, Kopfkontrolle. Beginnende Beikost ist hier oft Thema."
+    },
+    {
+      "id": "U6",
+      "windowLabel": "10.–12. Lebensmonat",
+      "unit": "month",
+      "from": 9,
+      "to": 11,
+      "what": "Bewegung bis zum freien Sitzen und Stehen, erste Silben, Verstehen einfacher Aufforderungen."
+    },
+    {
+      "id": "U7",
+      "windowLabel": "21.–24. Lebensmonat",
+      "unit": "month",
+      "from": 20,
+      "to": 23,
+      "what": "Sprachentwicklung, Laufen, Feinmotorik, soziales Verhalten."
+    },
+    {
+      "id": "U7a",
+      "windowLabel": "34.–36. Lebensmonat",
+      "unit": "month",
+      "from": 33,
+      "to": 35,
+      "what": "Sehen, Sprechen, Zahngesundheit und Verhalten in der Gruppe."
+    },
+    {
+      "id": "U8",
+      "windowLabel": "46.–48. Lebensmonat",
+      "unit": "month",
+      "from": 45,
+      "to": 47,
+      "what": "Aussprache, Grob- und Feinmotorik, Selbstständigkeit, ausführlicher Seh- und Hörtest."
+    },
+    {
+      "id": "U9",
+      "windowLabel": "60.–64. Lebensmonat",
+      "unit": "month",
+      "from": 59,
+      "to": 63,
+      "what": "Letzte Untersuchung vor der Schule: Sprache, Motorik, Wahrnehmung, Sozialverhalten."
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "rota",
+      "name": "Rotaviren",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "G1"
+        },
+        {
+          "month": 3,
+          "dose": "G2"
+        },
+        {
+          "month": 4,
+          "dose": "G3",
+          "optional": true
+        }
+      ],
+      "note": "Erste Dosis bereits ab 6 Lebenswochen möglich. Je nach Impfstoff zwei oder drei Dosen im Abstand von mindestens 4 Wochen. Schluckimpfung."
+    },
+    {
+      "id": "sechsfach",
+      "name": "Sechsfachimpfung",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "G1"
+        },
+        {
+          "month": 4,
+          "dose": "G2"
+        },
+        {
+          "month": 11,
+          "dose": "G3"
+        }
+      ],
+      "note": "Tetanus, Diphtherie, Keuchhusten, Hib, Kinderlähmung und Hepatitis B in einer Spritze. Zwischen G2 und G3 liegen mindestens 6 Monate. Frühgeborene bekommen eine zusätzliche Dosis mit 3 Monaten, also insgesamt vier."
+    },
+    {
+      "id": "pneumo",
+      "name": "Pneumokokken",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "G1"
+        },
+        {
+          "month": 4,
+          "dose": "G2"
+        },
+        {
+          "month": 11,
+          "dose": "G3"
+        }
+      ],
+      "note": "Frühgeborene erhalten eine zusätzliche Dosis mit 3 Monaten."
+    },
+    {
+      "id": "menb",
+      "name": "Meningokokken B",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "G1"
+        },
+        {
+          "month": 4,
+          "dose": "G2"
+        },
+        {
+          "month": 12,
+          "dose": "G3"
+        }
+      ],
+      "note": "Seit dem Impfkalender 2026 Standardimpfung für alle Säuglinge, nicht mehr nur bei Indikation."
+    },
+    {
+      "id": "mmr",
+      "name": "Masern, Mumps, Röteln",
+      "doses": [
+        {
+          "month": 11,
+          "dose": "G1"
+        },
+        {
+          "month": 15,
+          "dose": "G2"
+        }
+      ],
+      "note": "Kann zusammen mit der Windpocken-Impfung gegeben werden oder mit mindestens 4 Wochen Abstand."
+    },
+    {
+      "id": "varizellen",
+      "name": "Windpocken",
+      "doses": [
+        {
+          "month": 11,
+          "dose": "G1"
+        },
+        {
+          "month": 15,
+          "dose": "G2"
+        }
+      ]
+    },
+    {
+      "id": "rsv",
+      "name": "RSV-Antikörper",
+      "doses": [
+        {
+          "month": 0,
+          "dose": "einmalig",
+          "optional": true
+        }
+      ],
+      "note": "Kein Impfstoff, sondern ein monoklonaler Antikörper (Nirsevimab). Zwischen April und September geborene Kinder bekommen ihn im Herbst vor der ersten RSV-Saison; wer während der Saison geboren wird, möglichst rasch nach der Geburt."
+    }
+  ]
+}

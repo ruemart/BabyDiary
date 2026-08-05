@@ -80,6 +80,14 @@ export async function buildApp(
     ok: true,
     rev: store.currentRev(),
     time: new Date().toISOString(),
+    /**
+     * Voreinstellung für das Land, gesetzt beim Einrichten (siehe install.sh).
+     *
+     * Nur ein VORSCHLAG für den Einrichtungs-Assistenten — die verbindliche Angabe
+     * steht am Kind und lässt sich jederzeit in den Einstellungen ändern. Über
+     * /api/health, weil der Assistent läuft, bevor es ein Kind gibt.
+     */
+    defaultRegion: config.defaultRegion,
   }));
 
   /* ── Sitzung ──────────────────────────────────────────────────────────────── */

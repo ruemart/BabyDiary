@@ -50,6 +50,7 @@ function child(over: Partial<Child> = {}): Child {
     birthLengthMm: 510,
     birthHeadMm: 350,
     timezone: "Europe/Berlin",
+    region: "de",
     latitude: null,
     longitude: null,
     placeName: null,

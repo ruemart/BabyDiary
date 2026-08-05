@@ -216,10 +216,10 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
   const upsertChild = db.prepare(`
     INSERT INTO child (
       id, name, sex, birth_date, due_date, birth_weight_g, birth_length_mm,
-      birth_head_mm, timezone, latitude, longitude, place_name, edited_at, rev
+      birth_head_mm, timezone, region, latitude, longitude, place_name, edited_at, rev
     ) VALUES (
       @id, @name, @sex, @birth_date, @due_date, @birth_weight_g, @birth_length_mm,
-      @birth_head_mm, @timezone, @latitude, @longitude, @place_name, @edited_at, @rev
+      @birth_head_mm, @timezone, @region, @latitude, @longitude, @place_name, @edited_at, @rev
     )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
@@ -230,6 +230,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
       birth_length_mm = excluded.birth_length_mm,
       birth_head_mm = excluded.birth_head_mm,
       timezone = excluded.timezone,
+      region = excluded.region,
       latitude = excluded.latitude,
       longitude = excluded.longitude,
       place_name = excluded.place_name,
@@ -250,6 +251,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
       birthLengthMm: (row["birth_length_mm"] as number | null) ?? null,
       birthHeadMm: (row["birth_head_mm"] as number | null) ?? null,
       timezone: row["timezone"] as string,
+      region: (row["region"] as string | null) ?? "none",
       latitude: (row["latitude"] as number | null) ?? null,
       longitude: (row["longitude"] as number | null) ?? null,
       placeName: (row["place_name"] as string | null) ?? null,
@@ -290,6 +292,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
             birth_length_mm: child.birthLengthMm,
             birth_head_mm: child.birthHeadMm,
             timezone: child.timezone,
+            region: child.region,
             latitude: child.latitude,
             longitude: child.longitude,
             place_name: child.placeName,

@@ -32,6 +32,15 @@ export const config = {
   cookieSecure: process.env["COOKIE_SECURE"] !== "false",
 
   /**
+   * Vorgeschlagenes Land für Vorsorge- und Impftermine, gesetzt beim Einrichten.
+   *
+   * Nur ein Vorschlag für den Einrichtungs-Assistenten. Die verbindliche Angabe steht
+   * am Kind und wird mit beiden Geräten abgeglichen — ein Wert in der Umgebung wäre
+   * dafür der falsche Ort, weil man ihn nur mit Serverzugriff ändern könnte.
+   */
+  defaultRegion: process.env["DEFAULT_REGION"] ?? "none",
+
+  /**
    * Schlüsselpaar für Web Push (VAPID). Fehlt es, sind Benachrichtigungen einfach
    * aus — die App funktioniert vollständig ohne. Erzeugen mit:
    *   node -e "console.log(require('web-push').generateVAPIDKeys())"

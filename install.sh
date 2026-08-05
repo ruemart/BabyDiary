@@ -59,7 +59,9 @@ step "Preparing configuration"
 
 if [ -f .env ]; then
   ok ".env already exists — leaving it untouched"
+  fresh=""
 else
+  fresh=1
   cp .env.example .env
   # Generated, not asked for. A password prompt here would only tempt people
   # into something short and memorable, and this value is never typed by hand.
@@ -88,6 +90,47 @@ fi
 
 mkdir -p data backups data/web-assets
 ok "Data directories ready"
+
+# ── 2b. Country ─────────────────────────────────────────────────────────────
+#
+# Check-up and vaccination schedules differ by country. Asked here so a fresh
+# install already shows the right thing — but it is only a SUGGESTION for the
+# setup screen. The binding choice lives with the child record and can be
+# changed in Settings at any time, on either phone.
+
+# Nur beim ERSTEN Lauf fragen. Die Vorlage bringt schon eine Zeile mit, ein
+# blosses grep würde die Frage also immer überspringen — und wer erneut
+# installiert, hat seine Wahl längst in der App getroffen.
+if [ -n "${fresh:-}" ]; then
+  say ""
+  say "  Which country's check-up and vaccination schedule should the timeline use?"
+  say ""
+  say "    1) Germany     ${DIM}(U1–U9, STIKO — the only verified one)${OFF}"
+  say "    2) Austria     ${DIM}(Mutter-Kind-Pass)${OFF}"
+  say "    3) Switzerland"
+  say "    4) United Kingdom ${DIM}(NHS)${OFF}"
+  say "    5) United States  ${DIM}(AAP / CDC)${OFF}"
+  say "    6) None        ${DIM}(leaps, photos and your own entries only)${OFF}"
+  say ""
+  printf '  Choice [6]: '
+  # Nicht-interaktiv (Pipe, CI) fällt auf "keine Termine" zurück, statt zu hängen.
+  if read -r -t 60 choice </dev/tty 2>/dev/null; then :; else choice=""; fi
+  case "${choice:-6}" in
+    1) region=de ;;
+    2) region=at ;;
+    3) region=ch ;;
+    4) region=gb ;;
+    5) region=us ;;
+    *) region=none ;;
+  esac
+  sed -i.bak "s|^DEFAULT_REGION=.*|DEFAULT_REGION=${region}|" .env
+  rm -f .env.bak
+  ok "Country set to ${region}"
+  if [ "$region" != "de" ] && [ "$region" != "none" ]; then
+    warn "Only the German schedule has been verified against the official source."
+    warn "Please check the dates against your country's own schedule."
+  fi
+fi
 
 # ── 3. Build and start ──────────────────────────────────────────────────────
 

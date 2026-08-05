@@ -196,6 +196,14 @@
       "text": "Foto für Woche {week} fehlt noch"
     }
   },
+  "region": {
+    "label": "Land",
+    "lead": "Steuert, welche Vorsorgeuntersuchungen und Impftermine auf dem Zeitstrahl erscheinen. Gilt für den ganzen Haushalt.",
+    "medicalNote": "Ersetzt keine ärztliche Beratung — die tatsächlichen Termine legt eure Kinderärztin oder euer Kinderarzt fest.",
+    "noneHint": "Ohne Termine bleibt der Zeitstrahl bei Sprüngen, Fotos und euren eigenen Einträgen.",
+    "source": "Quelle: {source}",
+    "unverified": "Diese Termine sind aus öffentlichen Quellen zusammengetragen und nicht amtlich geprüft. Bitte gegen den Kalender eures Landes abgleichen."
+  },
   "settings": {
     "appearance": "Darstellung",
     "appearanceAuto": "Automatisch",
@@ -345,6 +353,10 @@
       "soiled": "Voll",
       "wet": "Feucht"
     }
+  },
+  "vaccine": {
+    "dependsOnBrand": "je nach Impfstoff",
+    "from": "ab {date}"
   },
   "weekday": {
     "long": {

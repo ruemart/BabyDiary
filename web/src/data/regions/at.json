@@ -1,0 +1,143 @@
+{
+  "code": "at",
+  "name": "Österreich",
+  "englishName": "Austria",
+  "verified": false,
+  "checkupsLabel": "Mutter-Kind-Pass-Untersuchungen",
+  "sources": {
+    "checkups": "Mutter-Kind-Pass, Sozialministerium Österreich",
+    "vaccinations": "Österreichischer Impfplan / Gratis-Kinderimpfkonzept",
+    "url": "https://www.sozialministerium.gv.at/Themen/Gesundheit/Impfen/Impfplan-Österreich.html"
+  },
+  "checkupNote": "Die Untersuchungen sind an Fristen gebunden; verspätete Termine können den Anspruch auf Leistungen berühren.",
+  "checkups": [
+    {
+      "id": "MKP1",
+      "windowLabel": "1. Lebenswoche",
+      "unit": "week",
+      "from": 0,
+      "to": 0,
+      "what": "Erstuntersuchung nach der Geburt, meist noch in der Klinik."
+    },
+    {
+      "id": "MKP2",
+      "windowLabel": "4.–7. Lebenswoche",
+      "unit": "week",
+      "from": 3,
+      "to": 6,
+      "what": "Allgemeine Untersuchung, Gewichtsentwicklung, Hüftultraschall."
+    },
+    {
+      "id": "MKP3",
+      "windowLabel": "3.–5. Lebensmonat",
+      "unit": "month",
+      "from": 2,
+      "to": 4,
+      "what": "Entwicklung, Sehen und Hören, erste Impftermine."
+    },
+    {
+      "id": "MKP4",
+      "windowLabel": "7.–9. Lebensmonat",
+      "unit": "month",
+      "from": 6,
+      "to": 8,
+      "what": "Motorik, Greifen, Reaktion auf Ansprache."
+    },
+    {
+      "id": "MKP5",
+      "windowLabel": "10.–14. Lebensmonat",
+      "unit": "month",
+      "from": 9,
+      "to": 13,
+      "what": "Sitzen, Stehen, erste Worte, Zahnentwicklung."
+    },
+    {
+      "id": "MKP6",
+      "windowLabel": "22.–26. Lebensmonat",
+      "unit": "month",
+      "from": 21,
+      "to": 25,
+      "what": "Sprachentwicklung, Laufen, Feinmotorik."
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "rota",
+      "name": "Rotaviren",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 3,
+          "dose": "2"
+        },
+        {
+          "month": 4,
+          "dose": "3",
+          "optional": true
+        }
+      ],
+      "note": "Schluckimpfung, erste Dosis ab der vollendeten 6. Lebenswoche. Je nach Impfstoff zwei oder drei Dosen."
+    },
+    {
+      "id": "sechsfach",
+      "name": "6-fach-Impfung",
+      "doses": [
+        {
+          "month": 3,
+          "dose": "1"
+        },
+        {
+          "month": 5,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ],
+      "note": "Diphtherie, Tetanus, Keuchhusten, Kinderlähmung, Hib und Hepatitis B im 2+1-Schema."
+    },
+    {
+      "id": "pneumo",
+      "name": "Pneumokokken",
+      "doses": [
+        {
+          "month": 3,
+          "dose": "1"
+        },
+        {
+          "month": 5,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ]
+    },
+    {
+      "id": "mmr",
+      "name": "Masern, Mumps, Röteln",
+      "doses": [
+        {
+          "month": 9,
+          "dose": "1"
+        },
+        {
+          "month": 12,
+          "dose": "2"
+        }
+      ],
+      "note": "Ab dem vollendeten 9. Lebensmonat möglich; zweite Dosis frühestens drei Monate später."
+    },
+    {
+      "id": "menb",
+      "name": "Meningokokken B",
+      "doses": [],
+      "note": "Empfohlen, aber nicht im kostenfreien Programm. Zeitpunkt mit der Kinderärztin besprechen."
+    }
+  ]
+}

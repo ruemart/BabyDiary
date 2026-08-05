@@ -110,6 +110,20 @@ async function run(childId: string): Promise<SyncOutcome> {
 
 /* ── Sitzung ────────────────────────────────────────────────────────────────── */
 
+/**
+ * Vorschlag des Servers für das Land. Schlägt der Abruf fehl, bleibt es leer und der
+ * Assistent zeigt "keine Termine" — das ist die richtige Vorgabe, wenn man nichts weiß.
+ */
+export async function fetchDefaultRegion(): Promise<string> {
+  try {
+    const res = await fetch("/api/health", { signal: AbortSignal.timeout(5_000) });
+    if (!res.ok) return "";
+    return ((await res.json()) as { defaultRegion?: string }).defaultRegion ?? "";
+  } catch {
+    return "";
+  }
+}
+
 export async function checkSession(): Promise<{ authenticated: boolean; name?: string }> {
   try {
     const res = await fetch("/api/session/check", {

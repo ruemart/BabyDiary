@@ -1,0 +1,132 @@
+{
+  "code": "gb",
+  "name": "United Kingdom",
+  "englishName": "United Kingdom",
+  "verified": false,
+  "checkupsLabel": "NHS reviews",
+  "sources": {
+    "checkups": "NHS Healthy Child Programme reviews",
+    "vaccinations": "NHS routine immunisation schedule",
+    "url": "https://www.nhs.uk/vaccinations/nhs-vaccinations-and-when-to-have-them/"
+  },
+  "checkupNote": "Dates of the health visitor reviews vary a little between local authorities.",
+  "checkups": [
+    {
+      "id": "NIPE",
+      "windowLabel": "within 72 hours",
+      "unit": "day",
+      "from": 0,
+      "to": 2,
+      "what": "Newborn physical examination: heart, hips, eyes and testes."
+    },
+    {
+      "id": "6-8week",
+      "windowLabel": "6–8 weeks",
+      "unit": "week",
+      "from": 5,
+      "to": 7,
+      "what": "GP check of growth and development, usually with the first immunisations."
+    },
+    {
+      "id": "9-12month",
+      "windowLabel": "9–12 months",
+      "unit": "month",
+      "from": 8,
+      "to": 11,
+      "what": "Health visitor review: movement, communication, feeding and sleep."
+    },
+    {
+      "id": "2year",
+      "windowLabel": "2–2½ years",
+      "unit": "month",
+      "from": 23,
+      "to": 29,
+      "what": "Health visitor review: speech, behaviour and general development."
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "6in1",
+      "name": "6-in-1",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 3,
+          "dose": "2"
+        },
+        {
+          "month": 4,
+          "dose": "3"
+        }
+      ],
+      "note": "Diphtheria, tetanus, whooping cough, polio, Hib and hepatitis B — at 8, 12 and 16 weeks."
+    },
+    {
+      "id": "rota",
+      "name": "Rotavirus",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 3,
+          "dose": "2"
+        }
+      ],
+      "note": "Oral vaccine at 8 and 12 weeks."
+    },
+    {
+      "id": "menb",
+      "name": "MenB",
+      "doses": [
+        {
+          "month": 2,
+          "dose": "1"
+        },
+        {
+          "month": 4,
+          "dose": "2"
+        },
+        {
+          "month": 12,
+          "dose": "3"
+        }
+      ],
+      "note": "At 8 weeks, 16 weeks and 1 year."
+    },
+    {
+      "id": "pcv",
+      "name": "Pneumococcal (PCV)",
+      "doses": [
+        {
+          "month": 3,
+          "dose": "1"
+        },
+        {
+          "month": 12,
+          "dose": "2"
+        }
+      ],
+      "note": "Schedule changed in 2025 — check the current NHS page."
+    },
+    {
+      "id": "mmr",
+      "name": "MMR",
+      "doses": [
+        {
+          "month": 12,
+          "dose": "1"
+        },
+        {
+          "month": 40,
+          "dose": "2"
+        }
+      ],
+      "note": "At 1 year and again before school, around 3 years 4 months."
+    }
+  ]
+}
