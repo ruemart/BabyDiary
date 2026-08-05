@@ -4,6 +4,7 @@ import { localDateLabel, localDayKey, localTimeLabel } from "@babymonitor/shared
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";
+import { numberWithinDay } from "../utils/dayOrdinals.ts";
 
 const data = useData();
 const addOpen = ref(false);
@@ -55,6 +56,7 @@ const days = computed(() => {
     key,
     label: localDateLabel(`${key}T12:00:00Z`, data.timezone),
     entries,
+    ordinals: numberWithinDay(entries),
     // Ausgespucktes zählt nicht zur Tagessumme.
     totalMl: entries.reduce((sum, e) => sum + (e.spatUp ? 0 : (e.amountMl ?? 0)), 0),
   }));
@@ -154,7 +156,12 @@ async function remove(entry: LocalEntry) {
             </span>
             <span class="entry__dot" :class="`entry__dot--${entry.type}`" aria-hidden="true" />
             <span class="entry__body">
-              <span class="entry__type">{{ TYPE_LABEL[entry.type] }}</span>
+              <span class="entry__type">
+                <span v-if="day.ordinals.has(entry.id)" class="entry__ordinal bm-tabular"
+                  >{{ day.ordinals.get(entry.id) }}.</span
+                >
+                {{ TYPE_LABEL[entry.type] }}
+              </span>
               <span class="entry__detail">{{ describe(entry) }}</span>
               <span v-if="entry.note" class="entry__note">{{ entry.note }}</span>
             </span>
@@ -351,6 +358,12 @@ async function remove(entry: LocalEntry) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* Die laufende Nummer tritt zurück: Sie ordnet ein, sie ist nicht die Hauptsache. */
+.entry__ordinal {
+  color: var(--bm-ink-soft);
+  font-weight: 500;
 }
 
 .entry__type {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 /**
  * "Vitamin D gegeben" an einer Mahlzeit.
  *
@@ -7,16 +8,42 @@
  * bedient werden.
  */
 const model = defineModel<boolean>({ required: true });
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * An einer ANDEREN Mahlzeit desselben Tages hängt das Vitamin D schon.
+     *
+     * Dann ist der Schalter gesperrt: Einmal am Tag genügt, und ein zweites Häkchen
+     * wäre entweder ein Versehen oder eine doppelte Gabe — beides will man nicht
+     * beiläufig eintragen.
+     *
+     * "Desselben Tages", nicht "heute": Beim Nachtragen zählt der Tag des Eintrags.
+     */
+    alreadyGivenThatDay?: boolean;
+  }>(),
+  { alreadyGivenThatDay: false },
+);
+
+/** Gesperrt nur, wenn es woanders schon steht — der eigene Haken bleibt umkehrbar. */
+const locked = computed(() => props.alreadyGivenThatDay && !model.value);
+
+function toggle() {
+  if (locked.value) return;
+  model.value = !model.value;
+}
 </script>
 
 <template>
   <button
     class="vit"
-    :class="{ 'vit--on': model }"
+    :class="{ 'vit--on': model, 'vit--locked': locked }"
     type="button"
     role="switch"
     :aria-checked="model"
-    @click="model = !model"
+    :aria-disabled="locked"
+    :disabled="locked"
+    @click="toggle"
   >
     <span class="vit__box" aria-hidden="true">
       <svg v-if="model" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -25,7 +52,11 @@ const model = defineModel<boolean>({ required: true });
     </span>
     <span class="vit__text">
       <span class="vit__label">Vitamin D gegeben</span>
-      <span class="vit__hint">Die tägliche Gabe — einmal am Tag genügt</span>
+      <span class="vit__hint">
+        <!-- "An diesem Tag" statt "heute": Beim Nachtragen ist der gemeinte Tag nicht
+             zwingend heute, und ein falsches "heute" wäre schlimmer als kein Hinweis. -->
+        {{ locked ? "An diesem Tag schon eingetragen" : "Die tägliche Gabe — einmal am Tag genügt" }}
+      </span>
     </span>
   </button>
 </template>
@@ -50,6 +81,11 @@ const model = defineModel<boolean>({ required: true });
 .vit--on {
   border-color: color-mix(in srgb, var(--bm-diaper) 55%, transparent);
   background: var(--bm-diaper-soft);
+}
+
+.vit--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .vit__box {

@@ -26,6 +26,23 @@ export type VitaminDStatus = {
   urgent: boolean;
 };
 
+/**
+ * Die Mahlzeit, an der an EINEM BESTIMMTEN TAG das Vitamin D hängt.
+ *
+ * Bewusst nach Tag gefragt und nicht nach "heute": Beim Nachtragen zählt das Datum des
+ * Eintrags. Wer eine Flasche von gestern ergänzt, muss das Häkchen für GESTERN setzen
+ * können — auch wenn heute schon eines gesetzt ist.
+ */
+export function vitaminHolderOn(
+  entries: LocalEntry[],
+  timezone: string,
+  dayKey: string,
+): LocalEntry | undefined {
+  return entries.find(
+    (e) => e.type === "feed" && e.vitaminD && localDayKey(e.startedAt, timezone) === dayKey,
+  );
+}
+
 export function useVitaminD(
   entries: () => LocalEntry[],
   timezone: () => string,
@@ -39,7 +56,7 @@ export function useVitaminD(
       .filter((e) => e.type === "feed" && localDayKey(e.startedAt, tz) === today)
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
-    const given = todaysFeeds.find((e) => e.vitaminD);
+    const given = vitaminHolderOn(todaysFeeds, tz, today);
 
     return {
       given: !!given,

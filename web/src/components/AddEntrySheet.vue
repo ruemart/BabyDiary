@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import type { EntryType } from "@babymonitor/shared";
+import { localDayKey, type EntryType } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
+import { vitaminHolderOn } from "../composables/useVitaminD.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
@@ -98,6 +99,22 @@ const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
 const vitaminD = ref(false);
+
+/**
+ * Hängt an einer ANDEREN Mahlzeit DESSELBEN TAGES schon das Vitamin D?
+ *
+ * Maßgeblich ist der Tag des Eintrags, nicht heute — beim Nachtragen von gestern muss
+ * das Häkchen für gestern setzbar bleiben. Der eigene Eintrag zählt nicht mit, sonst
+ * ließe sich ein einmal gesetzter Haken nie wieder entfernen.
+ */
+const vitaminAlreadyThatDay = computed(() => {
+  const holder = vitaminHolderOn(
+    data.entries,
+    data.timezone,
+    localDayKey(at.value, data.timezone),
+  );
+  return !!holder && holder.id !== props.entry?.id;
+});
 const temperatureDc = ref<number | null>(null);
 
 /**
@@ -314,8 +331,7 @@ async function save() {
         <span class="field__label">Menge</span>
         <AmountStepper v-model="amountMl" />
         <SpatUpToggle v-model="spatUp" />
-        <VitaminDToggle v-model="vitaminD" />
-      <VitaminDToggle v-model="vitaminD" />
+        <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
       </div>
 
       <template v-else-if="type === 'diaper'">

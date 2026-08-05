@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { localDayKey } from "@babymonitor/shared";
+import { vitaminHolderOn } from "../composables/useVitaminD.ts";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
@@ -18,6 +20,17 @@ const at = ref(new Date());
 const note = ref("");
 const spatUp = ref(false);
 const vitaminD = ref(false);
+
+/**
+ * Hängt an dem Tag, auf den dieser Eintrag fällt, schon irgendwo das Vitamin D?
+ *
+ * Dann ist der Schalter gesperrt — dieses Blatt legt immer NEU an, ein zweiter Haken
+ * am selben Tag wäre also entweder ein Versehen oder eine doppelte Gabe. Gefragt wird
+ * nach dem Tag des Eintrags, weil sich die Zeit hier auch zurückstellen lässt.
+ */
+const vitaminAlreadyThatDay = computed(
+  () => !!vitaminHolderOn(data.entries, data.timezone, localDayKey(at.value, data.timezone)),
+);
 
 /**
  * Beim Öffnen frisch vorbelegen: Menge auf den Median der letzten sieben Mahlzeiten,
@@ -56,7 +69,7 @@ async function save() {
       <TimeField v-model="at" />
 
       <SpatUpToggle v-model="spatUp" />
-      <VitaminDToggle v-model="vitaminD" />
+      <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
 
       <label class="note">
         <span class="note__label">Notiz (optional)</span>
