@@ -19,6 +19,7 @@ export const ENTRY_TYPES = [
   "illness",
   "absence",
   "supply",
+  "bath",
 ] as const;
 export type EntryType = (typeof ENTRY_TYPES)[number];
 
@@ -136,13 +137,15 @@ export const entrySchema = z
         require(e.diaper !== null, "diaper", "Windelart fehlt");
         break;
       case "sleep":
+      case "illness":
         if (e.endedAt !== null) {
           require(
             Date.parse(e.endedAt) > Date.parse(e.startedAt),
             "endedAt",
-            "Schlafende liegt vor dem Beginn",
+            "Das Ende liegt vor dem Beginn",
           );
         }
+        if (e.type === "illness") require(!!e.label?.trim(), "label", "Bezeichnung fehlt");
         break;
       case "growth":
         require(
@@ -158,12 +161,10 @@ export const entrySchema = z
           "Meilenstein fehlt",
         );
         break;
-      case "illness":
-        require(!!e.label?.trim(), "label", "Bezeichnung fehlt");
-        break;
       case "absence":
         require(!!e.label?.trim(), "label", "Art fehlt");
-        require(!!e.endedAt, "endedAt", "Ende fehlt");
+        // Kein Pflicht-Ende: Ein Urlaub, der gerade läuft, hat noch keines. Beendet
+        // wird er über "Läuft gerade" auf dem Startbildschirm — genau wie Schlaf.
         break;
       case "supply":
         require(e.supplyCategory !== null, "supplyCategory", "Kategorie fehlt");

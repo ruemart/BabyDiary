@@ -62,6 +62,7 @@ const TYPE_GROUPS: { title: string; types: { value: EntryType; label: string }[]
       { value: "feed", label: "Flasche" },
       { value: "diaper", label: "Windel" },
       { value: "sleep", label: "Schlaf" },
+      { value: "bath", label: "Baden" },
     ],
   },
   {
@@ -96,6 +97,17 @@ const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
 const temperatureDc = ref<number | null>(null);
+
+/**
+ * Ob das Ende schon feststeht.
+ *
+ * Standardmäßig NEIN: Einen Zeitraum trägt man ein, wenn er beginnt — beim Einschlafen
+ * nach dem Aufwachzeitpunkt zu fragen ist genau die Rückfrage, die eine Eingabe
+ * verhindert. Läuft der Eintrag, taucht er unter "Läuft gerade" auf und wird dort mit
+ * einem Tap beendet.
+ */
+const hasEnd = ref(false);
+const PERIOD_TYPES = new Set<EntryType>(["sleep", "illness", "absence"]);
 
 /* ── Ort bei Abwesenheiten ────────────────────────────────────────────────── */
 
@@ -150,6 +162,7 @@ watch(open, (isOpen) => {
     note.value = existing.note ?? "";
     spatUp.value = existing.spatUp === true;
     temperatureDc.value = existing.temperatureDc;
+    hasEnd.value = existing.endedAt !== null;
     place.value =
       existing.latitude !== null && existing.longitude !== null
         ? {
@@ -173,6 +186,7 @@ watch(open, (isOpen) => {
   note.value = "";
   spatUp.value = false;
   temperatureDc.value = null;
+  hasEnd.value = false;
   place.value = null;
   placeQuery.value = "";
   placeResults.value = [];
@@ -187,11 +201,14 @@ const canSave = computed(() => {
     case "note":
       return note.value.trim().length > 0;
     case "sleep":
-      return endAt.value.getTime() > at.value.getTime();
+      // Ohne Ende gilt der Schlaf als laufend — das ist der Normalfall beim Anlegen.
+      return !hasEnd.value || endAt.value.getTime() > at.value.getTime();
     case "illness":
-      return label.value.trim().length > 0;
     case "absence":
-      return label.value.trim().length > 0 && endAt.value.getTime() > at.value.getTime();
+      return (
+        label.value.trim().length > 0 &&
+        (!hasEnd.value || endAt.value.getTime() > at.value.getTime())
+      );
     default:
       return true;
   }
@@ -220,9 +237,7 @@ function fields() {
     spatUp: type.value === "feed" ? spatUp.value : false,
     diaper: type.value === "diaper" ? diaper.value : null,
     endedAt:
-      type.value === "sleep" || type.value === "absence" || type.value === "illness"
-        ? endAt.value.toISOString()
-        : null,
+      PERIOD_TYPES.has(type.value) && hasEnd.value ? endAt.value.toISOString() : null,
     temperatureDc: type.value === "illness" ? temperatureDc.value : null,
     latitude: type.value === "absence" ? (place.value?.latitude ?? null) : null,
     longitude: type.value === "absence" ? (place.value?.longitude ?? null) : null,
@@ -416,10 +431,31 @@ async function save() {
       <!-- Ein Zeitraum darf in der Zukunft beginnen: Einen Urlaub trägt man vorher ein. -->
       <TimeField v-model="at" :allow-future="type === 'absence'" />
 
-      <div v-if="type === 'sleep' || type === 'absence' || type === 'illness'" class="field">
-        <span class="field__label">
-          {{ type === "illness" ? "Bis wann? (leer lassen wenn noch nicht vorbei)" : "Ende" }}
-        </span>
+      <div v-if="PERIOD_TYPES.has(type)" class="field">
+        <button
+          type="button"
+          class="ends"
+          :class="{ 'ends--on': hasEnd }"
+          role="switch"
+          :aria-checked="hasEnd"
+          @click="hasEnd = !hasEnd"
+        >
+          <span class="ends__box" aria-hidden="true">
+            <svg v-if="hasEnd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="ends__text">
+            <span class="ends__label">Ende ist schon bekannt</span>
+            <span class="ends__hint">
+              {{ hasEnd ? "Zeitpunkt unten wählen" : "Läuft noch — später mit einem Tap beenden" }}
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <div v-if="PERIOD_TYPES.has(type) && hasEnd" class="field">
+        <span class="field__label">Ende</span>
         <TimeField v-model="endAt" allow-future />
       </div>
 
@@ -518,6 +554,63 @@ async function save() {
   color: var(--bm-ink);
   font: inherit;
   font-size: 1rem;
+}
+
+.ends {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 1.125rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ends--on {
+  border-color: color-mix(in srgb, var(--bm-sleep) 55%, transparent);
+  background: var(--bm-sleep-soft);
+}
+
+.ends__box {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--bm-hairline);
+  border-radius: 0.5rem;
+  background: var(--bm-surface);
+  color: #fff;
+}
+
+.ends--on .ends__box {
+  background: var(--bm-sleep);
+  border-color: var(--bm-sleep);
+}
+
+.ends__box svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.ends__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.ends__label {
+  font-weight: 600;
+}
+
+.ends__hint {
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
 }
 
 .chips {

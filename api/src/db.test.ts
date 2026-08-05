@@ -356,11 +356,15 @@ describe("Alle bekannten Eintragsarten", () => {
   });
 
   it("lässt einen einzelnen unbrauchbaren Eintrag den Rest nicht mitreißen", () => {
+    // Die Bedingung auf `type` ist bewusst entfallen (Migration 007) — sie hat nie
+    // einen Fehler verhindert, aber für jede neue Art einen Tabellen-Neubau
+    // erzwungen. Die Widerstandsfähigkeit wird hier über `diaper` geprüft, wo eine
+    // kleine, stabile Aufzählung sinnvoll bleibt.
     const result = store.applyChanges(
       CHILD_ID,
       [
         entry({ id: "gut1" }),
-        entry({ id: "kaputt", type: "voellig-unbekannt" as never }),
+        entry({ id: "kaputt", type: "diaper", amountMl: null, diaper: "explodiert" as never }),
         entry({ id: "gut2" }),
       ],
       null,

@@ -32,6 +32,7 @@ const TYPE_LABEL: Record<string, string> = {
   illness: "Krankheit",
   absence: "Abwesenheit",
   supply: "Gekauft",
+  bath: "Baden",
 };
 
 const DIAPER_LABEL: Record<string, string> = {
@@ -335,6 +336,9 @@ async function remove(entry: LocalEntry) {
 }
 .entry__dot--supply {
   background: var(--bm-growth);
+}
+.entry__dot--bath {
+  background: var(--bm-sleep);
 }
 
 .entry__body {

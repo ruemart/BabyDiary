@@ -11,6 +11,7 @@ import AppHeader from "../components/AppHeader.vue";
 import { useAlerts, ALERT_DISCLAIMER } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
 import { useDailyIntake, INTAKE_NOTE } from "../composables/useDailyIntake.ts";
+import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
 import { ageInDays, localDayKey } from "@babymonitor/shared";
 import { onMounted } from "vue";
 
@@ -27,6 +28,21 @@ const { alerts } = useAlerts(
 );
 
 const intake = useDailyIntake(() => data.entries, () => data.timezone);
+
+/** Alles, was gerade läuft — Schlaf, Krankheit, Urlaub. Mehrere gleichzeitig möglich. */
+const openPeriods = useOpenPeriods(() => data.entries, () => now.value);
+
+async function endPeriod(id: string) {
+  const entry = data.entries.find((e) => e.id === id);
+  if (!entry) return;
+  await data.update({ ...entry, endedAt: new Date().toISOString() });
+}
+
+async function logBath() {
+  const entry = data.draft("bath", new Date());
+  await data.add(entry);
+  confirmWithUndo("Baden eingetragen", entry.id);
+}
 
 const { byDay, load: loadWeather } = useWeather();
 onMounted(() => void loadWeather());
@@ -112,12 +128,7 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   confirmWithUndo(`Windel ${DIAPER_LABEL[kind]} eingetragen`, result.id);
 }
 
-async function toggleSleep() {
-  const running = data.activeSleep;
-  if (running) {
-    await data.update({ ...running, endedAt: new Date().toISOString() });
-    return;
-  }
+async function startSleep() {
   const entry = data.draft("sleep", new Date());
   await data.add(entry);
   confirmWithUndo("Schlaf gestartet", entry.id);
@@ -164,9 +175,21 @@ async function toggleSleep() {
         Heute bis {{ todayWeather.tmax }} °C · {{ todayWeather.label }}
       </div>
 
-      <div v-if="sleepSince" class="status__row status__row--sleep">
-        <span class="status__dot status__dot--pulse" :style="{ background: 'var(--bm-sleep)' }" />
-        Schläft seit {{ sleepSince }}
+    </section>
+
+    <!-- Was gerade läuft. Ein Tap beendet es zum jetzigen Zeitpunkt — ohne dass
+         beim Starten schon nach dem Ende gefragt werden musste. -->
+    <section v-if="openPeriods.length" class="running" aria-label="Läuft gerade">
+      <p class="running__title">Läuft gerade</p>
+      <div v-for="period in openPeriods" :key="period.id" class="running__item">
+        <span class="running__dot" :class="`running__dot--${period.kind}`" aria-hidden="true" />
+        <span class="running__body">
+          <span class="running__label">{{ period.title }}</span>
+          <span class="running__since">{{ period.since }}</span>
+        </span>
+        <button class="running__stop" type="button" @click="endPeriod(period.id)">
+          Beenden
+        </button>
       </div>
     </section>
 
@@ -197,12 +220,21 @@ async function toggleSleep() {
         </button>
       </div>
 
-      <button class="sleep" :class="{ 'sleep--running': data.activeSleep }" type="button" @click="toggleSleep">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-          <path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5Z" stroke-linejoin="round" />
-        </svg>
-        {{ data.activeSleep ? "Schlaf beenden" : "Schlaf starten" }}
-      </button>
+      <div class="secondary-row">
+        <button v-if="!data.activeSleep" class="sleep" type="button" @click="startSleep">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5Z" stroke-linejoin="round" />
+          </svg>
+          Schlaf starten
+        </button>
+        <button class="bath" type="button" @click="logBath">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M4 12h16v2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-2Z" stroke-linejoin="round" />
+            <path d="M7 12V6a2 2 0 0 1 3.6-1.2" stroke-linecap="round" />
+          </svg>
+          Baden
+        </button>
+      </div>
     </section>
 
     <!-- Hinweise: beobachtend formuliert, nie beurteilend. -->
@@ -455,6 +487,114 @@ async function toggleSleep() {
 
 .diaper:active {
   transform: scale(0.97);
+}
+
+.running {
+  background: var(--bm-surface);
+  border-radius: 1.25rem;
+  padding: 0.9rem 1rem;
+  box-shadow: var(--bm-shadow-card);
+}
+
+.running__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bm-ink-soft);
+}
+
+.running__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.running__item + .running__item {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--bm-hairline);
+}
+
+.running__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: none;
+  border-radius: 50%;
+  animation: sleep-pulse 2.6s ease-in-out infinite;
+}
+
+.running__dot--sleep {
+  background: var(--bm-sleep);
+}
+.running__dot--illness {
+  background: var(--bm-photo);
+}
+.running__dot--absence {
+  background: var(--bm-growth);
+}
+
+.running__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.running__label {
+  font-weight: 600;
+}
+
+.running__since {
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
+}
+
+.running__stop {
+  flex: none;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 62.5rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.secondary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+/* Wenn der Schlaf läuft, steht sein Knopf oben in "Läuft gerade" — dann bekommt
+   Baden die volle Breite statt einer Lücke daneben. */
+.secondary-row:has(.bath:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.bath {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 1.125rem;
+  background: var(--bm-growth-soft);
+  color: var(--bm-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bath svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .sleep {

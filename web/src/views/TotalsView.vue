@@ -51,6 +51,10 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
           <p class="stat__value bm-tabular">{{ totals.photos }}</p>
           <p class="stat__label">Wochenfotos</p>
         </div>
+        <div class="stat">
+          <p class="stat__value bm-tabular">{{ totals.baths }}</p>
+          <p class="stat__label">Badetage</p>
+        </div>
       </section>
 
       <section class="card">

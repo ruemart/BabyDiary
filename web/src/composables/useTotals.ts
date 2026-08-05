@@ -48,6 +48,7 @@ export function useTotals(
       soiled: diapers.value.filter((d) => d.diaper === "soiled" || d.diaper === "both").length,
       sleepHours: Math.round(sleepMinutes / 60),
       photos: entries().filter((e) => e.type === "photo").length,
+      baths: entries().filter((e) => e.type === "bath").length,
       milestones: entries().filter((e) => e.type === "milestone").length,
       daysTracked: activeDays.value,
       ageDays: birth ? ageInDays(birth, new Date(), tz) : null,
