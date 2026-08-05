@@ -1,0 +1,174 @@
+{
+  "alerts": {
+    "disclaimer": "Diese Hinweise beschreiben nur, was in euren Einträgen steht — sie sind keine ärztliche Beurteilung. Wenn ihr euch Sorgen macht, ruft die Kinderarztpraxis an; im Zweifel lieber einmal zu früh.",
+    "fewWetToday": {
+      "detail": "Als Richtwert gelten etwa sechs am Tag. Ein einzelner Tag darunter ist meist harmlos, mehrere hintereinander sind ein Grund nachzufragen.",
+      "title": "Heute erst {n} nasse Windel | Heute erst {n} nasse Windeln"
+    },
+    "intakeDown": {
+      "detail": "{amount} ml gegenüber sonst rund {average} ml. Ein einzelner Tag schwankt oft; bleibt es mehrere Tage so, lohnt eine Nachfrage.",
+      "title": "Gestern {percent} % weniger getrunken"
+    },
+    "intakeUp": {
+      "detail": "{amount} ml gegenüber sonst rund {average} ml. Bei Hitze oder in einem Wachstumsschub ist das ganz normal.",
+      "title": "Gestern {percent} % mehr getrunken"
+    },
+    "longSinceFeed": {
+      "detail": "Sonst sind es etwa {typical} Stunden. Junge Säuglinge, die eine Mahlzeit auslassen und schwer wach zu bekommen sind, gehören ärztlich angesehen.",
+      "title": "Letzte Flasche vor {hours} Stunden"
+    },
+    "noWetDiaper": {
+      "detail": "Nasse Windeln sind das verlässlichste Zeichen dafür, dass genug ankommt.",
+      "detailTypical": "Sonst kommt im Schnitt alle {hours} Stunden eine. Nasse Windeln sind das verlässlichste Zeichen dafür, dass genug ankommt.",
+      "title": "Seit {hours} Stunden keine nasse Windel"
+    }
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "noteLabel": "Notiz (optional)",
+    "notePlaceholder": "z. B. hat gespuckt",
+    "optional": "optional",
+    "save": "Speichern",
+    "today": "heute",
+    "undo": "Rückgängig",
+    "week": "Woche",
+    "weekN": "Woche {n}",
+    "yesterday": "gestern"
+  },
+  "diaper": {
+    "empty": "leer",
+    "soiled": "voll",
+    "wet": "feucht"
+  },
+  "duration": {
+    "hours": "{n} Std",
+    "hoursMinutes": "{h} Std {m} Min",
+    "minutes": "{n} Min"
+  },
+  "entry": {
+    "absence": "Abwesenheit",
+    "bath": "Baden",
+    "diaper": "Windel",
+    "feed": "Flasche",
+    "growth": "Wachstum",
+    "illness": "Krankheit",
+    "milestone": "Meilenstein",
+    "note": "Notiz",
+    "photo": "Foto",
+    "sleep": "Schlaf",
+    "supply": "Gekauft"
+  },
+  "feed": {
+    "saved": "Flasche {amount} ml gespeichert",
+    "savedSpatUp": "Flasche {amount} ml — ausgespuckt",
+    "spatUp": {
+      "hint": "Zählt nicht zur Tagesmenge",
+      "label": "Alles wieder ausgespuckt"
+    },
+    "vitaminD": {
+      "hint": "Die tägliche Gabe — einmal am Tag genügt",
+      "hintLocked": "An diesem Tag schon eingetragen",
+      "label": "Vitamin D gegeben"
+    }
+  },
+  "intake": {
+    "note": "Grobe Orientierung: etwa ein Sechstel des Körpergewichts an Milch pro Tag, vor der Beikost. Wie viel sie tatsächlich braucht, entscheidet sie selbst — Hunger- und Sättigungszeichen sagen mehr als jede Zahl.",
+    "praiseGood": "Heute gut getrunken.",
+    "praiseUsual": "Heute schon so viel wie an einem gewöhnlichen Tag."
+  },
+  "nav": {
+    "charts": "Kurven",
+    "main": "Hauptnavigation",
+    "milestones": "Schritte",
+    "more": "Mehr",
+    "today": "Heute",
+    "weeks": "Wochen"
+  },
+  "period": {
+    "generic": "Zeitraum",
+    "sleep": "Schlaf"
+  },
+  "photo": {
+    "loading": "Lädt …",
+    "savedForWeek": "Foto für Woche {week} gespeichert",
+    "failed": {
+      "offline": "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen.",
+      "retry": "Bitte noch einmal versuchen.",
+      "title": "Foto konnte nicht gespeichert werden"
+    },
+    "nudge": {
+      "action": "Hinzufügen",
+      "text": "Foto für Woche {week} fehlt noch"
+    }
+  },
+  "stepper": {
+    "less": "{step} {unit} weniger",
+    "more": "{step} {unit} mehr"
+  },
+  "sync": {
+    "error": "Abgleich gestört",
+    "offline": "offline",
+    "pendingOffline": "{n} wartet offline",
+    "syncing": "gleicht ab",
+    "unauthorized": "nicht angemeldet"
+  },
+  "time": {
+    "back": "Zurück",
+    "days": "vor {n} Tag | vor {n} Tagen",
+    "earlierAria": "{label} früher",
+    "exactLabel": "Datum und Uhrzeit",
+    "hourShort": "1 Std",
+    "hours": "vor {n} Std",
+    "hoursMinutes": "vor {h} Std {m} Min",
+    "laterAria": "{label} später",
+    "minutes": "vor {n} Min",
+    "nMinutes": "{n} Minuten",
+    "now": "gerade eben",
+    "now2": "auf jetzt",
+    "oneHour": "Eine Stunde",
+    "otherMoment": "Anderer Zeitpunkt"
+  },
+  "today": {
+    "alertsRegion": "Hinweise",
+    "bath": "Baden",
+    "bathLogged": "Baden eingetragen",
+    "changedDetail": "Der Eintrag von gerade eben wurde angepasst.",
+    "changedTitle": "Windel geändert",
+    "diaperAlready": "Windel {kind} war schon eingetragen",
+    "diaperChangedTo": "Auf {kind} geändert",
+    "diaperLogged": "Windel {kind} eingetragen",
+    "diaperRegion": "Windel eintragen",
+    "duplicateDetail": "Gerade eben erfasst — kein zweiter Eintrag angelegt.",
+    "duplicateTitle": "Schon eingetragen",
+    "endPeriod": "Beenden",
+    "entryRegion": "Eintragen",
+    "feedHint": "{amount} ml vorgeschlagen",
+    "historyLink": "Verlauf ansehen und nachtragen",
+    "intake": "Heute {amount} ml",
+    "lastDiaper": "Windel {since} · {detail}",
+    "lastFeed": "Letzte Flasche",
+    "noDiaperYet": "Noch keine Windel eingetragen",
+    "none": "noch keine",
+    "orientation": " · Richtwert etwa {amount} ml",
+    "running": "Läuft gerade",
+    "sleepStarted": "Schlaf gestartet",
+    "spatUp": "ausgespuckt",
+    "startSleep": "Schlaf starten",
+    "statusRegion": "Aktueller Stand",
+    "vitaminDone": "Vitamin D gegeben · {time}",
+    "vitaminDoneAction": "Erledigt",
+    "vitaminHint": "Beim Fläschchen ankreuzen oder hier eintragen.",
+    "vitaminHintNoFeed": "Beim nächsten Fläschchen mit ankreuzen.",
+    "vitaminHintUrgent": "Der Tag wird knapp.",
+    "vitaminOpen": "Vitamin D heute noch offen",
+    "vitaminUndo": "Rückgängig",
+    "weather": "Heute bis {tmax} °C · {label}",
+    "diaperButton": {
+      "empty": "Leer",
+      "soiled": "Voll",
+      "wet": "Feucht"
+    }
+  }
+}

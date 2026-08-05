@@ -165,40 +165,97 @@ export function correctedWeek(
 
 /* ── Anzeige ────────────────────────────────────────────────────────────────── */
 
-/** "vor 2 Std 15 Min" — die Statuszeile auf dem Startbildschirm. */
-export function relativeSince(iso: string, now: Date = new Date()): string {
-  const mins = Math.floor((now.getTime() - Date.parse(iso)) / 60_000);
-  if (mins < 0) return "gerade eben";
-  if (mins < 1) return "gerade eben";
-  if (mins < 60) return `vor ${mins} Min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h < 24) return m === 0 ? `vor ${h} Std` : `vor ${h} Std ${m} Min`;
-  const d = Math.floor(h / 24);
-  return d === 1 ? "vor 1 Tag" : `vor ${d} Tagen`;
+/**
+ * Sprache für alle Datums- und Zeitangaben.
+ *
+ * Modulweit statt als Parameter an 23 Aufrufstellen: Die Anzeigesprache ist eine
+ * einzige Eigenschaft der laufenden Anwendung, kein Merkmal des einzelnen Aufrufs.
+ * Wird beim Sprachwechsel einmal gesetzt.
+ */
+let displayLocale = "en";
+
+export function setDisplayLocale(locale: string): void {
+  displayLocale = locale;
 }
 
-/** "14:05" in der Zielzone. */
+export function getDisplayLocale(): string {
+  return displayLocale;
+}
+
+/**
+ * Verstrichene Zeit, in Bestandteile zerlegt — OHNE Worte.
+ *
+ * Absichtlich kein fertiger Text: "vor 2 Std 15 Min" ist eine Formulierung, und
+ * Formulierungen gehören in die Sprachdateien, nicht in ein Modul, das auch der Server
+ * benutzt. Wer eine Sprache ergänzt, soll eine JSON-Datei anlegen müssen und nicht
+ * hier im Code suchen.
+ */
+export type Elapsed =
+  | { unit: "now" }
+  | { unit: "minutes"; minutes: number }
+  | { unit: "hours"; hours: number }
+  | { unit: "hoursMinutes"; hours: number; minutes: number }
+  | { unit: "days"; days: number };
+
+export function elapsedSince(iso: string, now: Date = new Date()): Elapsed {
+  const total = Math.floor((now.getTime() - Date.parse(iso)) / 60_000);
+  if (total < 1) return { unit: "now" };
+  if (total < 60) return { unit: "minutes", minutes: total };
+
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  if (hours < 24) {
+    return minutes === 0 ? { unit: "hours", hours } : { unit: "hoursMinutes", hours, minutes };
+  }
+  return { unit: "days", days: Math.floor(hours / 24) };
+}
+
+/**
+ * Uhrzeit in der Zielzone — in der Schreibweise der eingestellten Sprache.
+ *
+ * Also "22:08" im Deutschen und "10:08 PM" im amerikanischen Englisch. Die Versuchung
+ * wäre groß, überall die 24-Stunden-Zählung zu erzwingen, weil sie nachts schmaler und
+ * eindeutiger ist — aber wer eine Uhrzeit in der ihm fremden Schreibweise liest,
+ * verrechnet sich, und das ist der teurere Fehler.
+ */
 export function localTimeLabel(iso: string | Date, timeZone: string): string {
-  const p = localParts(iso, timeZone);
-  return `${pad(p.hour)}:${pad(p.minute)}`;
+  return new Intl.DateTimeFormat(displayLocale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone,
+  }).format(typeof iso === "string" ? new Date(iso) : iso);
 }
 
-const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
-const MONTHS = [
-  "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
-  "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
-] as const;
-
-/** "Mo, 4. Aug" */
+/** Wochentag und Tag, kurz: "Mo., 4. Aug." bzw. "Mon, Aug 4". */
 export function localDateLabel(iso: string | Date, timeZone: string): string {
-  const p = localParts(iso, timeZone);
-  const weekday = WEEKDAYS[new Date(anchor(`${p.year}-${pad(p.month)}-${pad(p.day)}`)).getUTCDay()];
-  return `${weekday}, ${p.day}. ${MONTHS[p.month - 1]}`;
+  return new Intl.DateTimeFormat(displayLocale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone,
+  }).format(typeof iso === "string" ? new Date(iso) : iso);
 }
 
-/** "4. Aug 2026" aus einem reinen Kalenderdatum. */
+/**
+ * Vollständiges Datum aus einem reinen Kalendertag: "4. Aug. 2026" bzw. "Aug 4, 2026".
+ *
+ * Der Tag wird auf 12:00 UTC verankert — derselbe Grund wie bei `anchor()`: So kippt
+ * keine Zeitzone den Kalendertag.
+ */
 export function calendarDateLabel(date: string): string {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return `${d}. ${MONTHS[m - 1]} ${y}`;
+  return new Intl.DateTimeFormat(displayLocale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(anchor(date)));
+}
+
+/** Nur Tag und Monat, für enge Stellen: "4. Aug." bzw. "Aug 4". */
+export function shortDateLabel(date: string): string {
+  return new Intl.DateTimeFormat(displayLocale, {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(anchor(date)));
 }

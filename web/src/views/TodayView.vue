@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { localTimeLabel, relativeSince } from "@babymonitor/shared";
+import { localTimeLabel } from "@babymonitor/shared";
+import { useElapsed } from "../i18n/format.ts";
 import { useToast } from "sit-onyx";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
 import PhotoNudge from "../components/PhotoNudge.vue";
 import AppHeader from "../components/AppHeader.vue";
-import { useAlerts, ALERT_DISCLAIMER } from "../composables/useAlerts.ts";
+import { useAlerts } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
-import { useDailyIntake, INTAKE_NOTE } from "../composables/useDailyIntake.ts";
+import { useDailyIntake } from "../composables/useDailyIntake.ts";
 import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
 import { useVitaminD } from "../composables/useVitaminD.ts";
 import { ageInDays, localDayKey } from "@babymonitor/shared";
 import { onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
+const { since: elapsedSinceLabel } = useElapsed();
 const data = useData();
 const confirmWithUndo = useUndo();
 const toast = useToast();
@@ -57,7 +62,7 @@ async function endPeriod(id: string) {
 async function logBath() {
   const entry = data.draft("bath", new Date());
   await data.add(entry);
-  confirmWithUndo("Baden eingetragen", entry.id);
+  confirmWithUndo(t("today.bathLogged"), entry.id);
 }
 
 const { byDay, load: loadWeather } = useWeather();
@@ -83,7 +88,7 @@ const lastFeedText = computed(() => {
   const feed = data.lastFeed;
   if (!feed) return null;
   return {
-    since: relativeSince(feed.startedAt, now.value),
+    since: elapsedSinceLabel(feed.startedAt, now.value),
     detail: `${feed.amountMl} ml um ${localTimeLabel(feed.startedAt, data.timezone)}`,
     // Ohne diesen Hinweis liest die Statuszeile wie eine erfolgte Aufnahme.
     spatUp: feed.spatUp === true,
@@ -94,26 +99,27 @@ const lastDiaperText = computed(() => {
   const diaper = data.lastDiaper;
   if (!diaper) return null;
   return {
-    since: relativeSince(diaper.startedAt, now.value),
-    detail: DIAPER_LABEL[diaper.diaper ?? "empty"],
+    since: elapsedSinceLabel(diaper.startedAt, now.value),
+    detail: t(DIAPER_KEY[diaper.diaper ?? "empty"]!),
   };
 });
 
 const sleepSince = computed(() =>
-  data.activeSleep ? relativeSince(data.activeSleep.startedAt, now.value) : null,
+  data.activeSleep ? elapsedSinceLabel(data.activeSleep.startedAt, now.value) : null,
 );
 
-const DIAPER_LABEL: Record<string, string> = {
-  empty: "leer",
-  wet: "feucht",
-  soiled: "voll",
-  both: "voll",
+/** "both" gibt es in alten Einträgen noch — es zählt wie "voll". */
+const DIAPER_KEY: Record<string, string> = {
+  empty: "diaper.empty",
+  wet: "diaper.wet",
+  soiled: "diaper.soiled",
+  both: "diaper.soiled",
 };
 
 const DIAPER_BUTTONS = [
-  { kind: "empty" as const, label: "Leer" },
-  { kind: "wet" as const, label: "Feucht" },
-  { kind: "soiled" as const, label: "Voll" },
+  { kind: "empty" as const, key: "today.diaperButton.empty" },
+  { kind: "wet" as const, key: "today.diaperButton.wet" },
+  { kind: "soiled" as const, key: "today.diaperButton.soiled" },
 ];
 
 async function logDiaper(kind: "empty" | "wet" | "soiled") {
@@ -123,8 +129,8 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   // sein zweiter Tap verworfen wurde, tippt ein drittes Mal.
   if (result.action === "duplicate") {
     toast.show({
-      headline: `Windel ${DIAPER_LABEL[kind]} war schon eingetragen`,
-      description: "Gerade eben erfasst — kein zweiter Eintrag angelegt.",
+      headline: t("today.diaperAlready", { kind: t(DIAPER_KEY[kind]!) }),
+      description: t("today.duplicateDetail"),
       color: "neutral",
       duration: 4000,
     });
@@ -133,21 +139,21 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
 
   if (result.action === "corrected") {
     toast.show({
-      headline: `Auf ${DIAPER_LABEL[kind]} geändert`,
-      description: "Der Eintrag von gerade eben wurde angepasst.",
+      headline: t("today.diaperChangedTo", { kind: t(DIAPER_KEY[kind]!) }),
+      description: t("today.changedDetail"),
       color: "success",
       duration: 4000,
     });
     return;
   }
 
-  confirmWithUndo(`Windel ${DIAPER_LABEL[kind]} eingetragen`, result.id);
+  confirmWithUndo(t("today.diaperLogged", { kind: t(DIAPER_KEY[kind]!) }), result.id);
 }
 
 async function startSleep() {
   const entry = data.draft("sleep", new Date());
   await data.add(entry);
-  confirmWithUndo("Schlaf gestartet", entry.id);
+  confirmWithUndo(t("today.sleepStarted"), entry.id);
 }
 </script>
 
@@ -156,23 +162,23 @@ async function startSleep() {
     <AppHeader />
 
     <!-- Statuszeile: das, wofür man das Telefon nachts überhaupt anschaltet. -->
-    <section class="status" aria-label="Aktueller Stand">
+    <section class="status" :aria-label="$t('today.statusRegion')">
       <div class="status__primary">
-        <p class="status__label">Letzte Flasche</p>
+        <p class="status__label">{{ $t("today.lastFeed") }}</p>
         <p v-if="lastFeedText" class="status__value bm-tabular">{{ lastFeedText.since }}</p>
-        <p v-else class="status__value status__value--empty">noch keine</p>
+        <p v-else class="status__value status__value--empty">{{ $t("today.none") }}</p>
         <p v-if="lastFeedText" class="status__detail bm-tabular">
           {{ lastFeedText.detail }}
-          <span v-if="lastFeedText.spatUp" class="status__flag">ausgespuckt</span>
+          <span v-if="lastFeedText.spatUp" class="status__flag">{{ $t("today.spatUp") }}</span>
         </p>
       </div>
 
       <div class="status__row">
         <span class="status__dot" :style="{ background: 'var(--bm-diaper)' }" />
         <template v-if="lastDiaperText">
-          Windel {{ lastDiaperText.since }} · {{ lastDiaperText.detail }}
+          {{ $t("today.lastDiaper", { since: lastDiaperText.since, detail: lastDiaperText.detail }) }}
         </template>
-        <template v-else>Noch keine Windel eingetragen</template>
+        <template v-else>{{ $t("today.noDiaperYet") }}</template>
       </div>
 
       <!-- Tagesmenge als Einordnung, nicht als Sollvorgabe: Wie viel sie braucht,
@@ -180,15 +186,15 @@ async function startSleep() {
       <div class="status__row status__row--intake">
         <span class="status__dot" :style="{ background: 'var(--bm-feed)' }" />
         <span>
-          Heute <strong class="bm-tabular">{{ intake.todayMl }} ml</strong>
-          <template v-if="intake.orientationMl"> · Richtwert etwa {{ intake.orientationMl }} ml</template>
+          {{ $t("today.intake", { amount: intake.todayMl }) }}
+          <template v-if="intake.orientationMl">{{ $t("today.orientation", { amount: intake.orientationMl }) }}</template>
           <span v-if="intake.praise" class="status__praise">{{ intake.praise }}</span>
         </span>
       </div>
 
       <div v-if="todayWeather" class="status__row">
         <span class="status__dot" :style="{ background: 'var(--bm-growth)' }" />
-        Heute bis {{ todayWeather.tmax }} °C · {{ todayWeather.label }}
+        {{ $t("today.weather", { tmax: todayWeather.tmax, label: todayWeather.label }) }}
       </div>
 
     </section>
@@ -213,13 +219,13 @@ async function startSleep() {
       </span>
       <span class="vitamin__text">
         <span class="vitamin__label">
-          {{ vitaminD.given ? `Vitamin D gegeben · ${vitaminD.atLabel}` : "Vitamin D heute noch offen" }}
+          {{ vitaminD.given ? $t("today.vitaminDone", { time: vitaminD.atLabel }) : $t("today.vitaminOpen") }}
         </span>
         <span v-if="!vitaminD.given && !vitaminD.latestFeedId" class="vitamin__hint">
-          Beim nächsten Fläschchen mit ankreuzen.
+          {{ $t("today.vitaminHintNoFeed") }}
         </span>
         <span v-else-if="!vitaminD.given" class="vitamin__hint">
-          {{ vitaminD.urgent ? "Der Tag wird knapp." : "Beim Fläschchen ankreuzen oder hier eintragen." }}
+          {{ vitaminD.urgent ? $t("today.vitaminHintUrgent") : $t("today.vitaminHint") }}
         </span>
       </span>
       <button
@@ -228,14 +234,14 @@ async function startSleep() {
         type="button"
         @click="toggleVitaminD"
       >
-        {{ vitaminD.given ? "Rückgängig" : "Erledigt" }}
+        {{ vitaminD.given ? $t("today.vitaminUndo") : $t("today.vitaminDoneAction") }}
       </button>
     </section>
 
     <!-- Was gerade läuft. Ein Tap beendet es zum jetzigen Zeitpunkt — ohne dass
          beim Starten schon nach dem Ende gefragt werden musste. -->
-    <section v-if="openPeriods.length" class="running" aria-label="Läuft gerade">
-      <p class="running__title">Läuft gerade</p>
+    <section v-if="openPeriods.length" class="running" :aria-label="$t('today.running')">
+      <p class="running__title">{{ $t("today.running") }}</p>
       <div v-for="period in openPeriods" :key="period.id" class="running__item">
         <span class="running__dot" :class="`running__dot--${period.kind}`" aria-hidden="true" />
         <span class="running__body">
@@ -243,13 +249,13 @@ async function startSleep() {
           <span class="running__since">{{ period.since }}</span>
         </span>
         <button class="running__stop" type="button" @click="endPeriod(period.id)">
-          Beenden
+          {{ $t("today.endPeriod") }}
         </button>
       </div>
     </section>
 
     <!-- Eingabe. Reihenfolge nach Häufigkeit, Größe nach Wichtigkeit. -->
-    <section class="actions" aria-label="Eintragen">
+    <section class="actions" :aria-label="$t('today.entryRegion')">
       <button class="feed" type="button" @click="feedSheetOpen = true">
         <span class="feed__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -258,12 +264,12 @@ async function startSleep() {
           </svg>
         </span>
         <span class="feed__text">
-          <span class="feed__title">Flasche</span>
-          <span class="feed__hint bm-tabular">{{ data.suggestedAmountMl }} ml vorgeschlagen</span>
+          <span class="feed__title">{{ $t("entry.feed") }}</span>
+          <span class="feed__hint bm-tabular">{{ $t("today.feedHint", { amount: data.suggestedAmountMl }) }}</span>
         </span>
       </button>
 
-      <div class="diapers" role="group" aria-label="Windel eintragen">
+      <div class="diapers" role="group" :aria-label="$t('today.diaperRegion')">
         <button
           v-for="button in DIAPER_BUTTONS"
           :key="button.kind"
@@ -271,7 +277,7 @@ async function startSleep() {
           type="button"
           @click="logDiaper(button.kind)"
         >
-          {{ button.label }}
+          {{ $t(button.key) }}
         </button>
       </div>
 
@@ -280,33 +286,33 @@ async function startSleep() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5Z" stroke-linejoin="round" />
           </svg>
-          Schlaf starten
+          {{ $t("today.startSleep") }}
         </button>
         <button class="bath" type="button" @click="logBath">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M4 12h16v2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-2Z" stroke-linejoin="round" />
             <path d="M7 12V6a2 2 0 0 1 3.6-1.2" stroke-linecap="round" />
           </svg>
-          Baden
+          {{ $t("today.bath") }}
         </button>
       </div>
     </section>
 
     <!-- Hinweise: beobachtend formuliert, nie beurteilend. -->
-    <section v-if="alerts.length" class="alerts" aria-label="Hinweise">
+    <section v-if="alerts.length" class="alerts" :aria-label="$t('today.alertsRegion')">
       <div v-for="alert in alerts" :key="alert.id" class="alert" :class="`alert--${alert.level}`">
         <p class="alert__title">{{ alert.title }}</p>
         <p class="alert__detail">{{ alert.detail }}</p>
       </div>
-      <p class="alerts__note">{{ ALERT_DISCLAIMER }}</p>
+      <p class="alerts__note">{{ $t("alerts.disclaimer") }}</p>
     </section>
 
     <PhotoNudge v-if="!data.currentWeekHasPhoto" />
 
-    <p v-if="intake.orientationMl" class="intake-note">{{ INTAKE_NOTE }}</p>
+    <p v-if="intake.orientationMl" class="intake-note">{{ $t("intake.note") }}</p>
 
     <RouterLink to="/verlauf" class="history-link">
-      Verlauf ansehen und nachtragen
+      {{ $t("today.historyLink") }}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
         <path d="m9 18 6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
       </svg>

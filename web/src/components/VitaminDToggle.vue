@@ -51,11 +51,11 @@ function toggle() {
       </svg>
     </span>
     <span class="vit__text">
-      <span class="vit__label">Vitamin D gegeben</span>
+      <span class="vit__label">{{ $t("feed.vitaminD.label") }}</span>
       <span class="vit__hint">
         <!-- "An diesem Tag" statt "heute": Beim Nachtragen ist der gemeinte Tag nicht
              zwingend heute, und ein falsches "heute" wäre schlimmer als kein Hinweis. -->
-        {{ locked ? "An diesem Tag schon eingetragen" : "Die tägliche Gabe — einmal am Tag genügt" }}
+        {{ locked ? $t("feed.vitaminD.hintLocked") : $t("feed.vitaminD.hint") }}
       </span>
     </span>
   </button>

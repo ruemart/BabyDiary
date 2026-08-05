@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 /**
  * Mengeneingabe mit großen Schaltflächen statt Tastatur.
  *
@@ -9,6 +11,8 @@
  * aussieht, muss man zweimal lernen.
  */
 const model = defineModel<number>({ required: true });
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -36,7 +40,7 @@ function adjust(delta: number) {
       <button
         class="stepper__step"
         type="button"
-        :aria-label="`${step} ${unit} weniger`"
+        :aria-label="t("stepper.less", { step, unit })"
         @click="adjust(-step)"
       >
         −
@@ -50,7 +54,7 @@ function adjust(delta: number) {
       <button
         class="stepper__step"
         type="button"
-        :aria-label="`${step} ${unit} mehr`"
+        :aria-label="t("stepper.more", { step, unit })"
         @click="adjust(step)"
       >
         +

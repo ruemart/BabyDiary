@@ -1,7 +1,10 @@
 import { computed } from "vue";
 import { localDayKey } from "@babymonitor/shared";
 import type { LocalEntry } from "../db/local.ts";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Hinweise auf Auffälligkeiten.
  *
@@ -82,13 +85,13 @@ export function useAlerts(
 
   const alerts = computed<Alert[]>(() => {
     const result: Alert[] = [];
-    const t = now();
+    const nowMs = now();
 
     /* ── Windeln: der wichtigste Beobachtungspunkt ─────────────────────────── */
 
     const lastWet = diapers.value.find((d) => d.diaper === "wet" || d.diaper === "soiled");
     if (lastWet) {
-      const hours = (t - Date.parse(lastWet.startedAt)) / HOUR;
+      const hours = (nowMs - Date.parse(lastWet.startedAt)) / HOUR;
       const typical = medianGapHours(diapers.value);
 
       // Richtwert: Nach den ersten Lebenstagen gilt eine Pause von mehr als sechs
@@ -101,10 +104,10 @@ export function useAlerts(
         result.push({
           id: "no-wet-diaper",
           level: "watch",
-          title: `Seit ${Math.floor(hours)} Stunden keine nasse Windel`,
+          title: t("alerts.noWetDiaper.title", { hours: Math.floor(hours) }),
           detail: typical
-            ? `Sonst kommt im Schnitt alle ${typical.toFixed(1)} Stunden eine. Nasse Windeln sind das verlässlichste Zeichen dafür, dass genug ankommt.`
-            : "Nasse Windeln sind das verlässlichste Zeichen dafür, dass genug ankommt.",
+            ? t("alerts.noWetDiaper.detailTypical", { hours: typical.toFixed(1) })
+            : t("alerts.noWetDiaper.detail"),
         });
       }
     }
@@ -120,9 +123,8 @@ export function useAlerts(
       result.push({
         id: "few-wet-today",
         level: "watch",
-        title: `Heute erst ${wetToday} ${wetToday === 1 ? "nasse Windel" : "nasse Windeln"}`,
-        detail:
-          "Als Richtwert gelten etwa sechs am Tag. Ein einzelner Tag darunter ist meist harmlos, mehrere hintereinander sind ein Grund nachzufragen.",
+        title: t("alerts.fewWetToday.title", { n: wetToday }, wetToday),
+        detail: t("alerts.fewWetToday.detail"),
       });
     }
 
@@ -130,14 +132,14 @@ export function useAlerts(
 
     const lastFeed = feeds.value[0];
     if (lastFeed) {
-      const hours = (t - Date.parse(lastFeed.startedAt)) / HOUR;
+      const hours = (nowMs - Date.parse(lastFeed.startedAt)) / HOUR;
       const typical = medianGapHours(feeds.value);
       if (typical && hours > typical * 2.5 && hours > 5) {
         result.push({
           id: "long-since-feed",
           level: "watch",
-          title: `Letzte Flasche vor ${Math.floor(hours)} Stunden`,
-          detail: `Sonst sind es etwa ${typical.toFixed(1)} Stunden. Junge Säuglinge, die eine Mahlzeit auslassen und schwer wach zu bekommen sind, gehören ärztlich angesehen.`,
+          title: t("alerts.longSinceFeed.title", { hours: Math.floor(hours) }),
+          detail: t("alerts.longSinceFeed.detail", { typical: typical.toFixed(1) }),
         });
       }
     }
@@ -153,15 +155,15 @@ export function useAlerts(
           result.push({
             id: "intake-down",
             level: "watch",
-            title: `Gestern ${Math.round(Math.abs(change) * 100)} % weniger getrunken`,
-            detail: `${yesterday} ml gegenüber sonst rund ${Math.round(average)} ml. Ein einzelner Tag schwankt oft; bleibt es mehrere Tage so, lohnt eine Nachfrage.`,
+            title: t("alerts.intakeDown.title", { percent: Math.round(Math.abs(change) * 100) }),
+            detail: t("alerts.intakeDown.detail", { amount: yesterday, average: Math.round(average) }),
           });
         } else if (change > 0.3) {
           result.push({
             id: "intake-up",
             level: "info",
-            title: `Gestern ${Math.round(change * 100)} % mehr getrunken`,
-            detail: `${yesterday} ml gegenüber sonst rund ${Math.round(average)} ml. Bei Hitze oder in einem Wachstumsschub ist das ganz normal.`,
+            title: t("alerts.intakeUp.title", { percent: Math.round(change * 100) }),
+            detail: t("alerts.intakeUp.detail", { amount: yesterday, average: Math.round(average) }),
           });
         }
       }
@@ -173,7 +175,3 @@ export function useAlerts(
   return { alerts };
 }
 
-export const ALERT_DISCLAIMER =
-  "Diese Hinweise beschreiben nur, was in euren Einträgen steht — sie sind keine " +
-  "ärztliche Beurteilung. Wenn ihr euch Sorgen macht, ruft die Kinderarztpraxis an; " +
-  "das ist nie die falsche Entscheidung.";

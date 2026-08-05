@@ -1,6 +1,8 @@
 import { computed } from "vue";
-import { relativeSince, type EntryType } from "@babymonitor/shared";
+import type { EntryType } from "@babymonitor/shared";
+import { useElapsed } from "../i18n/format.ts";
 import type { LocalEntry } from "../db/local.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Alles, was gerade läuft — Schlaf, Krankheit, Abwesenheit.
@@ -28,6 +30,9 @@ export type OpenPeriod = {
 const PERIOD_TYPES = new Set<EntryType>(["sleep", "illness", "absence"]);
 
 export function useOpenPeriods(entries: () => LocalEntry[], now: () => Date) {
+  const { t } = useI18n();
+  const { since } = useElapsed();
+
   return computed<OpenPeriod[]>(() =>
     entries()
       .filter((e) => PERIOD_TYPES.has(e.type) && e.endedAt === null)
@@ -38,9 +43,9 @@ export function useOpenPeriods(entries: () => LocalEntry[], now: () => Date) {
         type: e.type,
         title:
           e.type === "sleep"
-            ? "Schlaf"
-            : [e.label, e.placeName].filter(Boolean).join(" · ") || "Zeitraum",
-        since: relativeSince(e.startedAt, now()),
+            ? t("period.sleep")
+            : [e.label, e.placeName].filter(Boolean).join(" · ") || t("period.generic"),
+        since: since(e.startedAt, now()),
         kind: e.type as OpenPeriod["kind"],
       })),
   );

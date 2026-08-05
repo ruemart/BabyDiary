@@ -1,7 +1,10 @@
 import { computed } from "vue";
 import { localDayKey } from "@babymonitor/shared";
 import type { LocalEntry } from "../db/local.ts";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Einordnung der heutigen Trinkmenge — bewusst KEIN Tagesziel.
  *
@@ -76,16 +79,12 @@ export function useDailyIntake(
     // Bestätigen, sobald einer der beiden Bezugswerte erreicht ist. Nie das Gegenteil.
     let praise: string | null = null;
     if (usualMl !== null && todayMl >= usualMl) {
-      praise = "Heute schon so viel wie an einem gewöhnlichen Tag.";
+      praise = t("intake.praiseUsual");
     } else if (orientationMl !== null && todayMl >= orientationMl) {
-      praise = "Heute gut getrunken.";
+      praise = t("intake.praiseGood");
     }
 
     return { todayMl, orientationMl, usualMl, praise };
   });
 }
 
-export const INTAKE_NOTE =
-  "Grobe Orientierung: etwa ein Sechstel des Körpergewichts an Milch pro Tag, vor der " +
-  "Beikost. Wie viel sie tatsächlich braucht, entscheidet sie selbst — Hunger- und " +
-  "Sättigungszeichen sagen mehr als jede Zahl.";

@@ -27,9 +27,9 @@ async function onPick(event: Event) {
     <div class="nudge__ring" aria-hidden="true">
       <span class="bm-tabular">{{ data.currentWeek }}</span>
     </div>
-    <p class="nudge__text">Foto für Woche {{ data.currentWeek }} fehlt noch</p>
+    <p class="nudge__text">{{ $t("photo.nudge.text", { week: data.currentWeek }) }}</p>
     <button class="nudge__action" type="button" :disabled="busy" @click="input?.click()">
-      {{ busy ? "Lädt …" : "Hinzufügen" }}
+      {{ busy ? $t("photo.loading") : $t("photo.nudge.action") }}
     </button>
     <!-- Bewusst OHNE `capture`: Mit dem Attribut springt das Handy direkt in die
          Kamera, und ein bereits vorhandenes Foto lässt sich gar nicht auswählen.

@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { createOnyx } from "sit-onyx";
 import onyxDeDE from "sit-onyx/locales/de-DE.json";
+import onyxEnUS from "sit-onyx/locales/en-US.json";
 
 import "sit-onyx/style.css";
 import "sit-onyx/global.css";
@@ -12,6 +13,7 @@ import "./styles/theme.css";
 
 import App from "./App.vue";
 import { router } from "./router.ts";
+import { i18n, currentLocale } from "./i18n/index.ts";
 import { startAppearanceWatcher } from "./composables/useAppearance.ts";
 
 startAppearanceWatcher();
@@ -37,9 +39,20 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+/**
+ * Onyx bekommt dieselbe Sprache wie die App.
+ *
+ * Sonst stünden fremde Bedienelemente mitten in der eigenen Oberfläche — ein deutsches
+ * "Schließen" neben einem englischen "Close" fällt sofort unangenehm auf.
+ */
+const ONYX_LOCALES = { en: "en-US", de: "de-DE" } as const;
+
 const onyx = createOnyx({
-  i18n: { locale: "de-DE", messages: { "de-DE": onyxDeDE } },
+  i18n: {
+    locale: ONYX_LOCALES[currentLocale()],
+    messages: { "en-US": onyxEnUS, "de-DE": onyxDeDE },
+  },
   router,
 });
 
-createApp(App).use(createPinia()).use(onyx).use(router).mount("#app");
+createApp(App).use(createPinia()).use(i18n).use(onyx).use(router).mount("#app");

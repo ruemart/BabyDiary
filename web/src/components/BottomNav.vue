@@ -18,18 +18,18 @@ import { RouterLink } from "vue-router";
  * Ein `d` darf mehrere Teilstrecken enthalten — deshalb genügt weiterhin ein <path>.
  */
 const items = [
-  { to: "/", label: "Heute", icon: "M4 12h16M4 6h16M4 18h10" },
+  { to: "/", key: "nav.today", icon: "M4 12h16M4 6h16M4 18h10" },
   // Kalenderblatt: die Woche als Zeitraum.
-  { to: "/wochen", label: "Wochen", icon: "M4 7h16v13H4zM4 11h16M9 4v4M15 4v4" },
+  { to: "/wochen", key: "nav.weeks", icon: "M4 7h16v13H4zM4 11h16M9 4v4M15 4v4" },
   // Treppe: was sie nacheinander schon kann.
-  { to: "/meilensteine", label: "Schritte", icon: "M4 19h5v-5h5v-5h6" },
-  { to: "/kurven", label: "Kurven", icon: "M4 19V5m0 14h16M8 15l3-4 3 3 4-6" },
-  { to: "/einstellungen", label: "Mehr", icon: "M12 6h.01M12 12h.01M12 18h.01" },
+  { to: "/meilensteine", key: "nav.milestones", icon: "M4 19h5v-5h5v-5h6" },
+  { to: "/kurven", key: "nav.charts", icon: "M4 19V5m0 14h16M8 15l3-4 3 3 4-6" },
+  { to: "/einstellungen", key: "nav.more", icon: "M12 6h.01M12 12h.01M12 18h.01" },
 ] as const;
 </script>
 
 <template>
-  <nav class="nav" aria-label="Hauptnavigation">
+  <nav class="nav" :aria-label="$t('nav.main')">
     <RouterLink
       v-for="item in items"
       :key="item.to"
@@ -49,7 +49,7 @@ const items = [
       >
         <path :d="item.icon" />
       </svg>
-      <span class="nav__label">{{ item.label }}</span>
+      <span class="nav__label">{{ $t(item.key) }}</span>
     </RouterLink>
   </nav>
 </template>

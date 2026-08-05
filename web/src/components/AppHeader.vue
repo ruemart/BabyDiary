@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useData } from "../stores/data.ts";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 const data = useData();
 
 /**
@@ -9,14 +12,14 @@ const data = useData();
  * Kinderärzte rechnen im ersten Jahr in Wochen, nicht in Monaten. Deshalb steht sie
  * hier statt eines Datums.
  */
-const weekLabel = computed(() => `Woche ${data.currentWeek}`);
+const weekLabel = computed(() => t("common.weekN", { n: data.currentWeek }));
 
 const syncLabel = computed(() => {
-  if (data.pending > 0 && data.syncState === "offline") return `${data.pending} wartet offline`;
-  if (data.syncState === "offline") return "offline";
-  if (data.syncState === "syncing") return "gleicht ab";
-  if (data.syncState === "unauthorized") return "nicht angemeldet";
-  if (data.syncState === "error") return "Abgleich gestört";
+  if (data.pending > 0 && data.syncState === "offline") return t("sync.pendingOffline", { n: data.pending });
+  if (data.syncState === "offline") return t("sync.offline");
+  if (data.syncState === "syncing") return t("sync.syncing");
+  if (data.syncState === "unauthorized") return t("sync.unauthorized");
+  if (data.syncState === "error") return t("sync.error");
   if (data.pending > 0) return `${data.pending} wartet`;
   return null;
 });

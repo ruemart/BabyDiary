@@ -9,7 +9,10 @@ import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import SpatUpToggle from "./SpatUpToggle.vue";
 import VitaminDToggle from "./VitaminDToggle.vue";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 const open = defineModel<boolean>("open", { required: true });
 
 const data = useData();
@@ -55,14 +58,16 @@ async function save() {
   await data.add(entry);
   open.value = false;
   confirmWithUndo(
-    spatUp.value ? `Flasche ${amount.value} ml — ausgespuckt` : `Flasche ${amount.value} ml gespeichert`,
+    spatUp.value
+      ? t("feed.savedSpatUp", { amount: amount.value })
+      : t("feed.saved", { amount: amount.value }),
     entry.id,
   );
 }
 </script>
 
 <template>
-  <SheetDialog v-model:open="open" title="Flasche">
+  <SheetDialog v-model:open="open" :title="$t('entry.feed')">
     <div class="feed-sheet">
       <AmountStepper v-model="amount" />
 
@@ -72,15 +77,15 @@ async function save() {
       <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
 
       <label class="note">
-        <span class="note__label">Notiz (optional)</span>
+        <span class="note__label">{{ $t("common.noteLabel") }}</span>
         <!-- Kein eigenes Spracherkennungs-Feld: die Mikrofontaste der Systemtastatur
              diktiert hier zuverlässiger als die Web Speech API, auf beiden Plattformen. -->
-        <textarea v-model="note" rows="2" placeholder="z. B. hat gespuckt" />
+        <textarea v-model="note" rows="2" :placeholder="$t('common.notePlaceholder')" />
       </label>
     </div>
 
     <template #actions>
-      <button class="save" type="button" @click="save">Speichern</button>
+      <button class="save" type="button" @click="save">{{ $t("common.save") }}</button>
     </template>
   </SheetDialog>
 </template>

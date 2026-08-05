@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { getDisplayLocale } from "@babymonitor/shared";
 
+
+const { t } = useI18n();
 /**
  * Zeitpunkt eines Eintrags.
  *
@@ -9,7 +13,7 @@ import { computed, ref } from "vue";
  *  - Der Normalfall ist "gerade eben". Dafür genügen die Minus-Chips — ohne Tastatur,
  *    ohne Datumsauswahl, einhändig.
  *  - Der Nachtragefall ("gestern Abend haben wir vergessen einzutragen") braucht ein
- *    freies Datum. Das steckt hinter "Anderer Zeitpunkt", damit es den Normalfall
+ *    freies Datum. Das steckt hinter "{{ $t("time.otherMoment") }}", damit es den Normalfall
  *    nicht verlangsamt.
  */
 const model = defineModel<Date>({ required: true });
@@ -31,19 +35,19 @@ const props = withDefaults(
 const showExact = ref(false);
 
 const timeLabel = computed(() =>
-  model.value.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+  model.value.toLocaleTimeString(getDisplayLocale(), { hour: "2-digit", minute: "2-digit" }),
 );
 
 const dayLabel = computed(() => {
   const today = new Date();
   const isToday = model.value.toDateString() === today.toDateString();
-  if (isToday) return "heute";
+  if (isToday) return t("common.today");
 
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
-  if (model.value.toDateString() === yesterday.toDateString()) return "gestern";
+  if (model.value.toDateString() === yesterday.toDateString()) return t("common.yesterday");
 
-  return model.value.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+  return model.value.toLocaleDateString(getDisplayLocale(), { day: "numeric", month: "short" });
 });
 
 /** Wert für <input type="datetime-local"> — der erwartet LOKALE Zeit ohne Zone. */
@@ -69,7 +73,7 @@ const exactValue = computed({
 const STEPS = [5, 10, 15, 30, 60] as const;
 
 function stepLabel(minutes: number): string {
-  return minutes === 60 ? "1 Std" : String(minutes);
+  return minutes === 60 ? t("time.hourShort") : String(minutes);
 }
 
 function shift(minutes: number) {
@@ -89,8 +93,8 @@ function reset() {
     <div class="time__head">
       <span class="time__value bm-tabular">{{ timeLabel }}</span>
       <span class="time__day">{{ dayLabel }}</span>
-      <button v-if="dayLabel !== 'heute' || showExact" class="time__reset" type="button" @click="reset">
-        auf jetzt
+      <button v-if="dayLabel !== $t('common.today') || showExact" class="time__reset" type="button" @click="reset">
+        {{ $t("time.now2") }}
       </button>
     </div>
 
@@ -103,7 +107,7 @@ function reset() {
           :key="`minus-${step}`"
           class="chip"
           type="button"
-          :aria-label="`${step === 60 ? 'Eine Stunde' : step + ' Minuten'} früher`"
+          :aria-label="$t('time.earlierAria', { label: step === 60 ? $t('time.oneHour') : $t('time.nMinutes', { n: step }) })"
           @click="shift(-step)"
         >
           −{{ stepLabel(step) }}
@@ -115,7 +119,7 @@ function reset() {
           :key="`plus-${step}`"
           class="chip"
           type="button"
-          :aria-label="`${step === 60 ? 'Eine Stunde' : step + ' Minuten'} später`"
+          :aria-label="$t('time.laterAria', { label: step === 60 ? $t('time.oneHour') : $t('time.nMinutes', { n: step }) })"
           @click="shift(step)"
         >
           +{{ stepLabel(step) }}
@@ -124,11 +128,11 @@ function reset() {
     </div>
 
     <button class="chip chip--ghost" type="button" @click="showExact = !showExact">
-      {{ showExact ? "Zurück" : "Anderer Zeitpunkt" }}
+      {{ showExact ? "{{ $t("time.back") }}" : "Anderer Zeitpunkt" }}
     </button>
 
     <label v-if="showExact" class="time__exact">
-      <span class="time__exact-label">Datum und Uhrzeit</span>
+      <span class="time__exact-label">{{ $t("time.exactLabel") }}</span>
       <input v-model="exactValue" type="datetime-local" />
     </label>
   </div>

@@ -3,7 +3,10 @@ import { useToast } from "sit-onyx";
 import { useData } from "../stores/data.ts";
 import { uploadImage } from "../sync.ts";
 import { shrinkImage } from "../utils/image.ts";
+import { useI18n } from "vue-i18n";
 
+
+const { t } = useI18n();
 /**
  * Foto für eine Lebenswoche aufnehmen und speichern.
  *
@@ -38,11 +41,11 @@ export function usePhotoUpload() {
 
   function reportFailure(error: unknown) {
     toast.show({
-      headline: "Foto konnte nicht gespeichert werden",
+      headline: t("photo.failed.title"),
       description:
         error instanceof Error && error.message.includes("fehlgeschlagen")
-          ? "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen."
-          : "Bitte noch einmal versuchen.",
+          ? t("photo.failed.offline")
+          : t("photo.failed.retry"),
       color: "danger",
       duration: 8000,
     });
@@ -62,7 +65,7 @@ export function usePhotoUpload() {
         }),
       );
 
-      toast.show({ headline: `Foto für Woche ${lifeWeek} gespeichert`, color: "success" });
+      toast.show({ headline: t("photo.savedForWeek", { week: lifeWeek }), color: "success" });
       return true;
     } catch (error) {
       reportFailure(error);

@@ -1,0 +1,174 @@
+{
+  "alerts": {
+    "disclaimer": "These notes only describe what your own entries say — they are not a medical assessment. If you are worried, call your paediatric practice; when in doubt, rather once too early.",
+    "fewWetToday": {
+      "detail": "About six a day is the usual guide. A single day below that is mostly harmless; several in a row are worth asking about.",
+      "title": "Only {n} wet nappy today | Only {n} wet nappies today"
+    },
+    "intakeDown": {
+      "detail": "{amount} ml against the usual {average} ml. A single day varies often; if it stays that way for several days, it is worth asking.",
+      "title": "{percent} % less to drink yesterday"
+    },
+    "intakeUp": {
+      "detail": "{amount} ml against the usual {average} ml. In hot weather or during a growth spurt that is perfectly normal.",
+      "title": "{percent} % more to drink yesterday"
+    },
+    "longSinceFeed": {
+      "detail": "Usually it is about {typical} hours. Young infants who skip a feed and are hard to wake should be seen by a doctor.",
+      "title": "Last bottle {hours} hours ago"
+    },
+    "noWetDiaper": {
+      "detail": "Wet nappies are the most reliable sign that enough is getting through.",
+      "detailTypical": "Usually there is one about every {hours} hours. Wet nappies are the most reliable sign that enough is getting through.",
+      "title": "No wet nappy for {hours} hours"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "e.g. spat up",
+    "optional": "optional",
+    "save": "Save",
+    "today": "today",
+    "undo": "Undo",
+    "week": "Week",
+    "weekN": "Week {n}",
+    "yesterday": "yesterday"
+  },
+  "diaper": {
+    "empty": "empty",
+    "soiled": "soiled",
+    "wet": "wet"
+  },
+  "duration": {
+    "hours": "{n} h",
+    "hoursMinutes": "{h} h {m} min",
+    "minutes": "{n} min"
+  },
+  "entry": {
+    "absence": "Away",
+    "bath": "Bath",
+    "diaper": "Nappy",
+    "feed": "Bottle",
+    "growth": "Growth",
+    "illness": "Illness",
+    "milestone": "Milestone",
+    "note": "Note",
+    "photo": "Photo",
+    "sleep": "Sleep",
+    "supply": "Purchase"
+  },
+  "feed": {
+    "saved": "Bottle {amount} ml saved",
+    "savedSpatUp": "Bottle {amount} ml — brought back up",
+    "spatUp": {
+      "hint": "Not counted towards the daily total",
+      "label": "Brought it all back up"
+    },
+    "vitaminD": {
+      "hint": "The daily dose — once a day is enough",
+      "hintLocked": "Already recorded for this day",
+      "label": "Vitamin D given"
+    }
+  },
+  "intake": {
+    "note": "A rough guide: about one sixth of body weight in milk per day, before solids. How much she actually needs she decides herself — hunger and fullness cues say more than any number.",
+    "praiseGood": "Drinking well today.",
+    "praiseUsual": "Already as much as on an ordinary day."
+  },
+  "nav": {
+    "charts": "Charts",
+    "main": "Main navigation",
+    "milestones": "Steps",
+    "more": "More",
+    "today": "Today",
+    "weeks": "Weeks"
+  },
+  "period": {
+    "generic": "Period",
+    "sleep": "Sleep"
+  },
+  "photo": {
+    "loading": "Uploading …",
+    "savedForWeek": "Photo for week {week} saved",
+    "failed": {
+      "offline": "No connection to the server. Please try again on Wi-Fi.",
+      "retry": "Please try again.",
+      "title": "Photo could not be saved"
+    },
+    "nudge": {
+      "action": "Add",
+      "text": "Photo for week {week} still missing"
+    }
+  },
+  "stepper": {
+    "less": "{step} {unit} less",
+    "more": "{step} {unit} more"
+  },
+  "sync": {
+    "error": "sync problem",
+    "offline": "offline",
+    "pendingOffline": "{n} waiting offline",
+    "syncing": "syncing",
+    "unauthorized": "not signed in"
+  },
+  "time": {
+    "back": "Back",
+    "days": "{n} day ago | {n} days ago",
+    "earlierAria": "{label} earlier",
+    "exactLabel": "Date and time",
+    "hourShort": "1 h",
+    "hours": "{n} h ago",
+    "hoursMinutes": "{h} h {m} min ago",
+    "laterAria": "{label} later",
+    "minutes": "{n} min ago",
+    "nMinutes": "{n} minutes",
+    "now": "just now",
+    "now2": "set to now",
+    "oneHour": "One hour",
+    "otherMoment": "Another time"
+  },
+  "today": {
+    "alertsRegion": "Notes",
+    "bath": "Bath",
+    "bathLogged": "Bath recorded",
+    "changedDetail": "The entry from a moment ago was updated.",
+    "changedTitle": "Nappy changed",
+    "diaperAlready": "A {kind} nappy was already recorded",
+    "diaperChangedTo": "Changed to {kind}",
+    "diaperLogged": "Nappy {kind} recorded",
+    "diaperRegion": "Record a nappy",
+    "duplicateDetail": "Just recorded — no second entry created.",
+    "duplicateTitle": "Already recorded",
+    "endPeriod": "End",
+    "entryRegion": "Record",
+    "feedHint": "{amount} ml suggested",
+    "historyLink": "View history and add past entries",
+    "intake": "Today {amount} ml",
+    "lastDiaper": "Nappy {since} · {detail}",
+    "lastFeed": "Last bottle",
+    "noDiaperYet": "No nappy recorded yet",
+    "none": "none yet",
+    "orientation": " · roughly {amount} ml expected",
+    "running": "Currently running",
+    "sleepStarted": "Sleep started",
+    "spatUp": "brought back up",
+    "startSleep": "Start sleep",
+    "statusRegion": "Current status",
+    "vitaminDone": "Vitamin D given · {time}",
+    "vitaminDoneAction": "Done",
+    "vitaminHint": "Tick it with a bottle, or record it here.",
+    "vitaminHintNoFeed": "Tick it with the next bottle.",
+    "vitaminHintUrgent": "The day is running out.",
+    "vitaminOpen": "Vitamin D still open today",
+    "vitaminUndo": "Undo",
+    "weather": "Today up to {tmax} °C · {label}",
+    "diaperButton": {
+      "empty": "Empty",
+      "soiled": "Soiled",
+      "wet": "Wet"
+    }
+  }
+}

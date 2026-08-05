@@ -24,8 +24,8 @@ const model = defineModel<boolean>({ required: true });
       </svg>
     </span>
     <span class="spat__text">
-      <span class="spat__label">Alles wieder ausgespuckt</span>
-      <span class="spat__hint">Zählt nicht zur Tagesmenge</span>
+      <span class="spat__label">{{ $t("feed.spatUp.label") }}</span>
+      <span class="spat__hint">{{ $t("feed.spatUp.hint") }}</span>
     </span>
   </button>
 </template>
