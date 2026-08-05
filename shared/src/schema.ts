@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 /**
- * Ein einziges Eintrags-Schema für alle Typen, diskriminiert über `type`.
+ * A single entry schema for every type, discriminated by `type`.
  *
- * Bewusst flach gehalten (statt einer discriminated union), weil die Zeile 1:1 auf die
- * SQLite-Tabelle abgebildet wird — das erspart eine Mapping-Schicht in beide Richtungen.
- * Die typabhängigen Pflichtfelder erzwingt `superRefine` weiter unten.
+ * Deliberately kept flat (rather than a discriminated union) because the row maps 1:1
+ * onto the SQLite table — which saves a mapping layer in both directions. The
+ * type-dependent required fields are enforced by `superRefine` further down.
  */
 
 export const ENTRY_TYPES = [
@@ -49,29 +49,28 @@ export const entrySchema = z
     childId: z.string().min(1).max(64),
     type: z.enum(ENTRY_TYPES),
 
-    /** Zeitpunkt des Ereignisses (nicht der Erfassung!) — frei wählbar zum Nachtragen. */
+    /** When the event happened (not when it was recorded!) — freely chosen when adding later. */
     startedAt: isoDateTime,
-    /** Nur bei `sleep`: Ende. Null solange der Schlaf noch läuft. */
+    /** Only for `sleep`: the end. Null while the sleep is still running. */
     endedAt: isoDateTime.nullable().default(null),
 
     /** feed */
     amountMl: z.number().int().min(0).max(2000).nullable().default(null),
     /**
-     * Vollständig wieder ausgespuckt.
+     * Brought all of it back up.
      *
-     * Die Mahlzeit bleibt als Ereignis bestehen — sie hat getrunken, und der Zeitpunkt
-     * zählt für den Rhythmus und für "wann war die letzte Flasche". Nur die Milliliter
-     * gehen nicht in die Tagesmenge ein, sonst weist die Auswertung eine Aufnahme aus,
-     * die nie im Kind angekommen ist.
+     * The feed remains as an event — she did drink, and the moment counts towards the
+     * rhythm and towards "when was the last bottle". Only the millilitres stay out of
+     * the daily total; otherwise the charts would report an intake that never made it
+     * into the child.
      */
     spatUp: z.boolean().default(false),
     /**
-     * Vitamin D zu dieser Mahlzeit gegeben.
+     * Vitamin D given with this feed.
      *
-     * Die tägliche Prophylaxe hat keinen eigenen Anlass — sie hängt an einer Mahlzeit.
-     * Deshalb ein Kennzeichen am Eintrag statt eines eigenen Typs: So wird sie dort
-     * erfasst, wo sie im Alltag stattfindet, und die App kann sagen, ob es heute schon
-     * passiert ist.
+     * The daily prophylaxis has no occasion of its own — it hangs off a feed. Hence a
+     * flag on the entry rather than a type of its own: it gets recorded where it
+     * actually happens, and the app can say whether it has been done today.
      */
     vitaminD: z.boolean().default(false),
     /** diaper */
@@ -85,40 +84,39 @@ export const entrySchema = z
     /** milestone / photo / illness / absence */
     label: z.string().max(200).nullable().default(null),
     /**
-     * Verweis auf einen Eintrag der festen Meilenstein-Liste.
+     * Reference to an entry in the fixed milestone list.
      *
-     * Freitext war der falsche Ansatz: Man kann nur abhaken, was man kennt — und die
-     * Meilensteine erst nachschlagen zu müssen, um sie eintragen zu können, stellt
-     * die Sache auf den Kopf.
+     * Free text was the wrong approach: you can only tick off what you know — and
+     * having to look the milestones up before you can record them puts the whole thing
+     * back to front.
      */
     milestoneKey: z.string().max(64).nullable().default(null),
     /** illness: Fieber in Zehntelgrad (385 = 38,5 °C). */
     temperatureDc: z.number().int().min(300).max(430).nullable().default(null),
     /**
-     * absence: Wo ihr in dieser Zeit wart.
+     * absence: where you were during that time.
      *
-     * Für die abgedeckten Tage holt der Server das Wetter von HIER statt vom
-     * Heimatort. Damit braucht es keine tägliche Ortsangabe — der Urlaubs-Eintrag
-     * hat Anfang und Ende ohnehin schon.
+     * For the days it covers the server fetches the weather from HERE instead of from
+     * home. That removes the need for a daily location — the away entry already has a
+     * start and an end.
      */
     latitude: z.number().min(-90).max(90).nullable().default(null),
     longitude: z.number().min(-180).max(180).nullable().default(null),
     placeName: z.string().max(120).nullable().default(null),
 
     /**
-     * supply: Was wir kaufen.
+     * supply: what we buy.
      *
-     * Der jeweils NEUESTE Eintrag je Kategorie ist der aktuelle Stand, alle älteren
-     * sind automatisch die Wechsel-Historie — "seit wann Größe 3?" beantwortet sich
-     * dadurch von selbst. Bei Milchnahrung ist genau dieser Verlauf der Punkt: Ein
-     * Markenwechsel soll nicht beiläufig passieren, und wenn etwas nicht bekommt,
-     * will man wissen, was und ab wann.
+     * The NEWEST entry per category is the current one; all older ones are automatically
+     * the switch history — which answers "since when size 3?" by itself. For formula
+     * that history is the entire point: a brand change should not happen casually, and
+     * if something disagrees with her, you want to know what changed and when.
      */
     supplyCategory: z.enum(SUPPLY_CATEGORIES).nullable().default(null),
     supplySize: z.string().max(60).nullable().default(null),
     supplyShop: z.string().max(80).nullable().default(null),
 
-    /** photo: die Lebenswoche, für die das Foto zählt (0 = erste Lebenswoche) */
+    /** photo: the week of life the photo counts for (0 = first week of life) */
     lifeWeek: z.number().int().min(0).max(1000).nullable().default(null),
     mediaId: z.string().max(64).nullable().default(null),
 
@@ -127,8 +125,8 @@ export const entrySchema = z
     /** Anzeigename des Geräts, das den Eintrag angelegt hat ("Mama"/"Papa"). */
     createdBy: z.string().min(1).max(40),
     /**
-     * Client-Zeitpunkt der letzten Änderung. Entscheidet Konflikte (Last-Write-Wins).
-     * Bewusst NICHT der Server-Zeitstempel: der Client kann offline editieren.
+     * Client time of the last change. Decides conflicts (last-write-wins).
+     * Deliberately NOT the server timestamp: the client can edit offline.
      */
     editedAt: isoDateTime,
     deleted: z.boolean().default(false),
@@ -172,8 +170,8 @@ export const entrySchema = z
         break;
       case "absence":
         require(!!e.label?.trim(), "label", "Art fehlt");
-        // Kein Pflicht-Ende: Ein Urlaub, der gerade läuft, hat noch keines. Beendet
-        // wird er über "Läuft gerade" auf dem Startbildschirm — genau wie Schlaf.
+        // No mandatory end: a holiday that is currently running does not have one yet.
+        // It gets ended from "Currently running" on the home screen — just like sleep.
         break;
       case "supply":
         require(e.supplyCategory !== null, "supplyCategory", "Kategorie fehlt");
@@ -194,7 +192,7 @@ export const entrySchema = z
   });
 
 export type Entry = z.infer<typeof entrySchema>;
-/** Was der Server zusätzlich vergibt — der Sync-Cursor. */
+/** What the server adds on top — the sync cursor. */
 export type StoredEntry = Entry & { rev: number };
 
 export const childSchema = z.object({
@@ -203,8 +201,8 @@ export const childSchema = z.object({
   sex: z.enum(SEXES),
   birthDate: calendarDate,
   /**
-   * Errechneter Geburtstermin. Die Entwicklungssprünge rechnen ab HIER, nicht ab
-   * `birthDate` — bei einem Frühchen verschiebt das den ganzen Zeitstrahl um Wochen.
+   * Due date. The developmental leaps count from HERE, not from `birthDate` — for a
+   * premature baby that shifts the whole timeline by weeks.
    */
   dueDate: calendarDate.nullable().default(null),
   birthWeightG: z.number().int().min(0).max(10000).nullable().default(null),
@@ -213,15 +211,14 @@ export const childSchema = z.object({
   /** IANA-Zone; steuert Tagesgrenzen und Uhrzeit-Achsen in den Auswertungen. */
   timezone: z.string().min(1).max(64).default("Europe/Berlin"),
   /**
-   * Land des Haushalts — steuert Vorsorgetermine und Impfkalender.
+   * The household's country — drives check-ups and the vaccination schedule.
    *
-   * Absichtlich frei als Zeichenkette und nicht als Aufzählung: Ein neues Land ist
-   * eine JSON-Datei im Frontend, und dafür soll niemand das gemeinsame Schema und
-   * damit den Server anfassen müssen. Unbekannte Werte fallen in der App auf
-   * "keine Termine" zurück.
+   * Deliberately a free string rather than an enum: a new country is a JSON file in the
+   * frontend, and nobody should have to touch the shared schema — and thereby the
+   * server — for that. Unknown values fall back to "no appointments" in the app.
    */
   region: z.string().max(8).default("none"),
-  /** Ort für die Wetterabfrage. Ohne Angabe bleibt die Wetterspur leer. */
+  /** Location for the weather lookup. Without one the weather track stays empty. */
   latitude: z.number().min(-90).max(90).nullable().default(null),
   longitude: z.number().min(-180).max(180).nullable().default(null),
   placeName: z.string().max(120).nullable().default(null),
@@ -232,12 +229,12 @@ export type Child = z.infer<typeof childSchema>;
 /* ── Sync-Protokoll ─────────────────────────────────────────────────────────── */
 
 /**
- * Der Umschlag wird zuerst geprüft, die einzelnen Einträge danach getrennt.
+ * The envelope is validated first, the individual entries separately afterwards.
  *
- * Absichtlich `unknown` für `changes`: Ein einziger fehlerhafter Eintrag darf nicht das
- * gesamte Paket zu Fall bringen — sonst blockiert er den Abgleich dauerhaft, weil der
- * Ausgangskorb des Geräts sich nie leert und jeder danach angelegte Eintrag mit
- * liegenbleibt. Der Server prüft jeden Eintrag einzeln und meldet die schlechten zurück.
+ * `changes` is deliberately `unknown`: a single bad entry must not bring down the whole
+ * batch — otherwise it blocks syncing permanently, because the device's outbox never
+ * drains and every entry created after it is stuck too. The server validates each entry
+ * on its own and reports the bad ones back.
  */
 export const syncEnvelopeSchema = z.object({
   childId: z.string().min(1).max(64),
@@ -248,7 +245,7 @@ export const syncEnvelopeSchema = z.object({
 });
 export type SyncEnvelope = z.infer<typeof syncEnvelopeSchema>;
 
-/** Ein Eintrag, den der Server dauerhaft nicht annehmen kann. */
+/** An entry the server can never accept. */
 export type InvalidEntry = { id: string; reason: string };
 
 export type SyncResponse = {
@@ -256,11 +253,11 @@ export type SyncResponse = {
   rev: number;
   entries: StoredEntry[];
   child: Child | null;
-  /** Ids, die der Server verworfen hat, weil seine Version neuer war (LWW). */
+  /** Ids the server discarded because its own version was newer (LWW). */
   rejected: string[];
   /**
-   * Einträge, die dem Schema widersprechen. Anders als `rejected` hilft hier kein
-   * erneuter Versuch — das Gerät muss sie aus dem Ausgangskorb nehmen und melden.
+   * Entries that contradict the schema. Unlike `rejected`, retrying does not help here —
+   * the device has to take them out of the outbox and report them.
    */
   invalid: InvalidEntry[];
 };

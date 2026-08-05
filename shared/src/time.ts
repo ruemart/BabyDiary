@@ -1,11 +1,11 @@
 /**
- * Zeit-Helfer. Alles wird als UTC gespeichert und in einer IANA-Zone dargestellt.
+ * Time helpers. Everything is stored as UTC and displayed in an IANA zone.
  *
- * WARUM DIESE DATEI EXISTIERT: Tagesgrenzen dürfen NICHT über `getTime() / 86400000`
- * gerechnet werden. Am 26.10. hat der Tag in Europe/Berlin 25 Stunden, am 29.03. nur 23.
- * Wer in Epoch-Millisekunden rechnet, verschiebt genau die Nachtmahlzeiten um eine Stunde
- * über die Zeitumstellung — also exakt die Daten, die in den Auswertungen interessieren.
- * Deshalb läuft jede Tag-/Uhrzeit-Zuordnung über Intl.DateTimeFormat mit fester Zone.
+ * WHY THIS FILE EXISTS: day boundaries must NOT be computed with `getTime() / 86400000`.
+ * On 26 October a day in Europe/Berlin has 25 hours, on 29 March only 23. Computing in
+ * epoch milliseconds shifts exactly the night feeds by an hour across the changeover —
+ * precisely the data the charts are about. So every day/time mapping goes through
+ * Intl.DateTimeFormat with a fixed zone.
  */
 
 const partsCache = new Map<string, Intl.DateTimeFormat>();
@@ -37,13 +37,13 @@ export type LocalParts = {
   second: number;
 };
 
-/** Zerlegt einen UTC-Zeitstempel in die Wanduhr-Bestandteile der Zielzone. */
+/** Splits a UTC timestamp into the wall-clock parts of the target zone. */
 export function localParts(iso: string | Date, timeZone: string): LocalParts {
   const date = typeof iso === "string" ? new Date(iso) : iso;
   const parts = formatter(timeZone).formatToParts(date);
   const get = (t: Intl.DateTimeFormatPartTypes) =>
     Number(parts.find((p) => p.type === t)?.value ?? "0");
-  // en-CA liefert "24" für Mitternacht in manchen Runtimes — auf 0 normalisieren.
+  // en-CA reports "24" for midnight in some runtimes — normalise it to 0.
   const hour = get("hour") % 24;
   return {
     year: get("year"),
@@ -55,7 +55,7 @@ export function localParts(iso: string | Date, timeZone: string): LocalParts {
   };
 }
 
-/** Der Kalendertag in der Zielzone, als "YYYY-MM-DD" — der Gruppierungsschlüssel. */
+/** The calendar day in the target zone as "YYYY-MM-DD" — the grouping key. */
 export function localDayKey(iso: string | Date, timeZone: string): string {
   const p = localParts(iso, timeZone);
   return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
@@ -71,11 +71,11 @@ function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-/* ── Kalenderdatum-Arithmetik (DST-frei, weil auf UTC-Mittag verankert) ─────── */
+/* ── Calendar-date arithmetic (DST-free, anchored at UTC noon) ──────────────── */
 
 /**
- * Verankert "YYYY-MM-DD" auf 12:00 UTC. Der Mittag ist bewusst gewählt: er liegt weit
- * genug von jeder Zonengrenze entfernt, dass ±14 h Offset den Kalendertag nie kippen.
+ * Anchors "YYYY-MM-DD" at 12:00 UTC. Noon is chosen deliberately: it sits far enough
+ * from any zone boundary that a ±14 h offset can never tip the calendar day.
  */
 function anchor(date: string): number {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
@@ -97,9 +97,9 @@ export function addDays(date: string, days: number): string {
 }
 
 /**
- * Addiert Kalendermonate. Läuft ein Tag über das Monatsende hinaus (31.01. + 1 Monat),
- * wird auf den letzten Tag des Zielmonats geklemmt statt in den Folgemonat zu rutschen.
- * Wichtig für die U-Fenster, die in Lebensmonaten definiert sind.
+ * Adds calendar months. If a day runs past the end of the month (31 Jan + 1 month) it
+ * is clamped to the last day of the target month rather than sliding into the next one.
+ * Matters for the check-up windows, which are defined in months of life.
  */
 export function addMonths(date: string, months: number): string {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
@@ -114,17 +114,16 @@ export function addMonths(date: string, months: number): string {
 /* ── Kalenderwochen ─────────────────────────────────────────────────────────── */
 
 /**
- * Wochentag als 0 = Montag … 6 = Sonntag.
+ * Weekday as 0 = Monday … 6 = Sunday.
  *
- * Nicht `getDay()` (0 = Sonntag): Hier fängt die Woche am Montag an, wie überall in
- * Deutschland. Ein rohes `getDay()` würde den Sonntag an den Wochenanfang setzen und
- * die Wochenauswahl im Verlauf um einen Tag verschieben.
+ * Not `getDay()` (0 = Sunday): here the week starts on Monday. A raw `getDay()` would
+ * put Sunday at the start of the week and shift the week picker in the history by a day.
  */
 export function weekdayIndex(date: string): number {
   return (new Date(anchor(date)).getUTCDay() + 6) % 7;
 }
 
-/** Montag der Woche, in der `date` liegt. */
+/** The Monday of the week that `date` falls in. */
 export function startOfWeek(date: string): string {
   return addDays(date, -weekdayIndex(date));
 }
@@ -137,8 +136,8 @@ export function ageInDays(birthDate: string, at: string | Date, timeZone: string
 }
 
 /**
- * Lebenswoche. Die ersten sieben Tage sind Woche 0 — dieselbe Zählung, die auch der
- * Zeitstrahl und die Wochenfotos benutzen.
+ * Week of life. The first seven days are week 0 — the same counting the timeline and
+ * the weekly photos use.
  */
 export function lifeWeek(birthDate: string, at: string | Date, timeZone: string): number {
   return Math.floor(ageInDays(birthDate, at, timeZone) / 7);
@@ -150,9 +149,9 @@ export function lifeWeekStart(birthDate: string, week: number): string {
 }
 
 /**
- * Lebenswoche relativ zum errechneten Termin — die Zählung der Entwicklungssprünge.
- * Bei einem Frühchen ist das kleiner als die Lebenswoche ab Geburt, bei einer späten
- * Geburt größer. Fällt auf das Geburtsdatum zurück, wenn kein ET hinterlegt ist.
+ * Week of life relative to the due date — the counting the developmental leaps use.
+ * For a premature baby this is smaller than the week counted from birth, for a late
+ * birth larger. Falls back to the date of birth when no due date is recorded.
  */
 export function correctedWeek(
   dueDate: string | null,
@@ -166,11 +165,11 @@ export function correctedWeek(
 /* ── Anzeige ────────────────────────────────────────────────────────────────── */
 
 /**
- * Sprache für alle Datums- und Zeitangaben.
+ * Language for all dates and times.
  *
- * Modulweit statt als Parameter an 23 Aufrufstellen: Die Anzeigesprache ist eine
- * einzige Eigenschaft der laufenden Anwendung, kein Merkmal des einzelnen Aufrufs.
- * Wird beim Sprachwechsel einmal gesetzt.
+ * Module-wide rather than a parameter at 23 call sites: the display language is a single
+ * property of the running application, not a trait of the individual call. Set once when
+ * the language changes.
  */
 let displayLocale = "en";
 
@@ -183,12 +182,11 @@ export function getDisplayLocale(): string {
 }
 
 /**
- * Verstrichene Zeit, in Bestandteile zerlegt — OHNE Worte.
+ * Elapsed time, broken into parts — WITHOUT words.
  *
- * Absichtlich kein fertiger Text: "vor 2 Std 15 Min" ist eine Formulierung, und
- * Formulierungen gehören in die Sprachdateien, nicht in ein Modul, das auch der Server
- * benutzt. Wer eine Sprache ergänzt, soll eine JSON-Datei anlegen müssen und nicht
- * hier im Code suchen.
+ * Deliberately not a finished string: "2 h 15 min ago" is a phrasing, and phrasings
+ * belong in the language files, not in a module the server also uses. Adding a language
+ * should mean writing a JSON file, not hunting through code.
  */
 export type Elapsed =
   | { unit: "now" }
@@ -211,12 +209,12 @@ export function elapsedSince(iso: string, now: Date = new Date()): Elapsed {
 }
 
 /**
- * Uhrzeit in der Zielzone — in der Schreibweise der eingestellten Sprache.
+ * Time of day in the target zone — written the way the chosen language writes it.
  *
- * Also "22:08" im Deutschen und "10:08 PM" im amerikanischen Englisch. Die Versuchung
- * wäre groß, überall die 24-Stunden-Zählung zu erzwingen, weil sie nachts schmaler und
- * eindeutiger ist — aber wer eine Uhrzeit in der ihm fremden Schreibweise liest,
- * verrechnet sich, und das ist der teurere Fehler.
+ * So "22:08" in German and "10:08 PM" in US English. It would be tempting to force the
+ * 24-hour clock everywhere because it is narrower and less ambiguous at night — but
+ * someone reading a time in a notation foreign to them miscalculates, and that is the
+ * more expensive mistake.
  */
 export function localTimeLabel(iso: string | Date, timeZone: string): string {
   return new Intl.DateTimeFormat(displayLocale, {
@@ -237,10 +235,10 @@ export function localDateLabel(iso: string | Date, timeZone: string): string {
 }
 
 /**
- * Vollständiges Datum aus einem reinen Kalendertag: "4. Aug. 2026" bzw. "Aug 4, 2026".
+ * A full date from a plain calendar day: "4 Aug 2026" or "Aug 4, 2026".
  *
- * Der Tag wird auf 12:00 UTC verankert — derselbe Grund wie bei `anchor()`: So kippt
- * keine Zeitzone den Kalendertag.
+ * The day is anchored at 12:00 UTC — same reason as in `anchor()`: no time zone can
+ * tip the calendar day.
  */
 export function calendarDateLabel(date: string): string {
   return new Intl.DateTimeFormat(displayLocale, {
@@ -251,7 +249,7 @@ export function calendarDateLabel(date: string): string {
   }).format(new Date(anchor(date)));
 }
 
-/** Nur Tag und Monat, für enge Stellen: "4. Aug." bzw. "Aug 4". */
+/** Day and month only, for tight spots: "4 Aug" or "Aug 4". */
 export function shortDateLabel(date: string): string {
   return new Intl.DateTimeFormat(displayLocale, {
     day: "numeric",

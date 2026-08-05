@@ -10,15 +10,14 @@ import { supplyPeriods, type SupplyPeriod } from "../utils/supplyPeriods.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
 
 /**
- * Was wir kaufen — zum Nachschlagen im Laden.
+ * What we buy — to look up at the shop.
  *
- * Der jeweils NEUESTE Eintrag je Kategorie ist der aktuelle Stand, alle älteren sind
- * automatisch die Wechsel-Historie. Dadurch beantwortet sich "seit wann Größe 3?"
- * von selbst, ohne dass irgendwo zusätzlich Buch geführt werden müsste.
+ * The NEWEST entry per category is the current one; all older ones are automatically the
+ * switch history. That answers "since when size 3?" by itself, without keeping a second
+ * record anywhere.
  *
- * Bei Milchnahrung ist genau dieser Verlauf der Punkt: Ein Markenwechsel soll nicht
- * beiläufig passieren, und wenn doch etwas nicht bekommt, will man wissen, was und
- * ab wann.
+ * For formula that history is the entire point: a brand change should not happen
+ * casually, and if something does disagree with her, you want to know what and from when.
  */
 const { t } = useI18n();
 const data = useData();
@@ -39,10 +38,10 @@ const supplies = computed(() =>
 );
 
 /**
- * Je Kategorie die Kette der Stände, neueste zuerst — mit Geltungszeitraum.
+ * Per category the chain of entries, newest first — with the period each one covers.
  *
- * Einmal berechnet statt pro Aufruf: Die Vorlage fragt sonst für jede Zeile erneut,
- * und der aktuelle Stand ist schlicht der erste Eintrag der Kette.
+ * Computed once rather than per call: otherwise the template asks again for every row,
+ * and the current entry is simply the first of the chain.
  */
 const byCategory = computed(() => {
   const today = localDayKey(new Date(), data.timezone);
@@ -95,18 +94,18 @@ const at = ref(new Date());
 /* ── Foto der Verpackung ──────────────────────────────────────────────────── */
 
 /**
- * Ein Bild sagt im Laden mehr als "Aptamil Pronutra Pre".
+ * At the shop a picture says more than "Aptamil Pronutra Pre".
  *
- * Regale sind voll von fast gleich aussehenden Packungen derselben Marke, die sich nur
- * in einer Ziffer unterscheiden — und genau die ist die wichtige. Wer die Packung
- * abfotografiert hat, vergleicht im Laden Bild mit Regal statt Erinnerung mit Regal.
+ * Shelves are full of near-identical packs of the same brand differing in a single
+ * digit — and that digit is the important one. With a photo of the pack you compare
+ * picture with shelf instead of memory with shelf.
  *
- * Das Hochladen braucht als einziger Weg in dieser App das Netz. Scheitert es, wird der
- * Eintrag trotzdem gespeichert — ohne Bild ist er immer noch nützlich.
+ * Uploading is the only path in this app that needs the network. If it fails the entry
+ * is saved anyway — without a picture it is still useful.
  */
 const { uploadPhoto, busy: photoBusy } = usePhotoUpload();
 const mediaId = ref<string | null>(null);
-/** Sofortige Vorschau aus der lokalen Datei, noch bevor der Server geantwortet hat. */
+/** Instant preview from the local file, before the server has even answered. */
 const localPreview = ref<string | null>(null);
 
 function releasePreview() {
@@ -139,12 +138,12 @@ function dropPhoto() {
 }
 
 /**
- * Das Bild des bisherigen Standes — zum Übernehmen angeboten, nicht still übernommen.
+ * The previous entry's photo — offered for reuse, not reused silently.
  *
- * Bei einem Stufenwechsel sieht die Packung fast gleich aus, nur eine Ziffer ist anders.
- * Genau die ist die wichtige. Automatisch mitgeschleppt hätte man irgendwann ein Foto,
- * das die falsche Zahl zeigt — das wäre schlimmer als gar keines. Ein Tap ist der
- * richtige Preis für "ja, dieselbe Packung".
+ * On a stage change the pack looks almost the same, only one digit differs. That digit
+ * is the important one. Carried over automatically you would eventually have a photo
+ * showing the wrong number — which would be worse than none. One tap is the right price
+ * for "yes, the same pack".
  */
 const previousMediaId = computed(() =>
   editing.value ? null : (current(category.value)?.mediaId ?? null),
@@ -156,8 +155,8 @@ function reusePreviousPhoto() {
 }
 
 /**
- * Großansicht. Hält immer eine FERTIGE Bildquelle, nie eine halbe Medien-Id — sonst
- * muss jede Aufrufstelle wissen, ob noch ein Pfad davor gehört.
+ * Enlarged view. Always holds a COMPLETE image source, never half a media id — otherwise
+ * every call site has to know whether a path still belongs in front of it.
  */
 const zoomed = ref<string | null>(null);
 
@@ -167,8 +166,8 @@ const categoryMeta = computed(
 
 watch(sheetOpen, (open) => {
   if (!open) {
-    // Die Vorschau-URL zeigt auf einen Blob im Speicher. Ohne Freigabe bleibt der
-    // liegen, bis die Seite neu geladen wird.
+    // The preview URL points at a blob in memory. Without releasing it, it stays
+    // there until the page is reloaded.
     if (zoomed.value === localPreview.value) zoomed.value = null;
     releasePreview();
     return;
@@ -185,7 +184,7 @@ watch(sheetOpen, (open) => {
     mediaId.value = existing.mediaId;
     return;
   }
-  // Bei einem Wechsel das Bisherige vorbelegen — meist ändert sich nur die Größe.
+  // On a switch, prefill with the previous one — usually only the size changes.
   const previous = current(category.value);
   product.value = previous?.label ?? "";
   size.value = previous?.supplySize ?? "";
@@ -193,8 +192,8 @@ watch(sheetOpen, (open) => {
   note.value = "";
   at.value = new Date();
   releasePreview();
-  // Das Bild wird NICHT vom vorigen Stand übernommen: Ein Wechsel ist meist genau die
-  // andere Packung, und ein falsches Foto ist schlimmer als keines.
+  // The photo is NOT carried over from the previous entry: a switch is usually exactly
+  // the other pack, and a wrong photo is worse than none.
   mediaId.value = null;
 });
 
@@ -205,11 +204,11 @@ function startNew(next: SupplyCategory) {
 }
 
 /**
- * Aus einer Korrektur doch einen Wechsel machen.
+ * Turn a correction into a switch after all.
  *
- * Der Ausweg für den Fall, dass jemand den falschen Weg erwischt hat: Die eingegebenen
- * Werte bleiben stehen, nur der bestehende Eintrag wird in Ruhe gelassen und ein neuer
- * angelegt. Ohne diesen Knopf müsste man das Blatt schließen und alles neu tippen.
+ * The way out for someone who took the wrong path: the values typed in stay, only the
+ * existing entry is left alone and a new one is created. Without this button you would
+ * have to close the sheet and type everything again.
  */
 function convertToChange() {
   editing.value = null;
@@ -259,12 +258,12 @@ async function remove() {
       <h2 class="card__title">{{ $t(cat.key) }}</h2>
 
       <template v-if="periods(cat.value).length">
-        <!-- Der aktuelle Stand ist reine Anzeige. Ihn anzutippen hat früher den
-             Eintrag ÜBERSCHRIEBEN — der naheliegendste Griff war ausgerechnet der,
-             der die Historie zerstört. Beide Wege stehen jetzt benannt darunter. -->
+        <!-- The current entry is display only. Tapping it used to OVERWRITE the entry —
+             the most obvious grab was precisely the one that destroys the history.
+             Both paths are now named underneath. -->
         <div class="current">
-          <!-- Das Bild steht neben den Angaben, nicht darunter: Im Laden schaut man
-               zuerst darauf und liest den Namen nur zur Bestätigung. -->
+          <!-- The picture sits next to the details, not under them: at the shop you look at
+               it first and only read the name to confirm. -->
           <button
             v-if="periods(cat.value)[0]!.entry.mediaId"
             class="thumb"
@@ -296,8 +295,8 @@ async function remove() {
           </button>
         </div>
 
-        <!-- Zugeklappt: Was gerade gekauft wird, ist die Frage im Laden. Die Historie
-             braucht man selten — aber dann genau. -->
+        <!-- Collapsed: what is being bought right now is the question at the shop. The
+             history is needed rarely — but then precisely. -->
         <details v-if="history(cat.value).length" class="history">
           <summary>{{ $t("supply.earlier", { n: history(cat.value).length }) }}</summary>
           <ul>
@@ -336,8 +335,8 @@ async function remove() {
       :title="editing ? $t('supply.titleEdit') : $t('supply.titleNew', { category: $t(categoryMeta.key) })"
     >
       <div class="form">
-        <!-- Sagt vor dem Tippen, was der Knopf am Ende tut. Genau diese Unterscheidung
-             ist vorher untergegangen. -->
+        <!-- Says before you type what the button will do at the end. Exactly this
+             distinction was lost before. -->
         <p class="explain">
           <template v-if="editing">
             {{ $t("supply.explainEdit") }}
@@ -391,8 +390,8 @@ async function remove() {
             </button>
 
             <div class="photo__deeds">
-              <!-- Ohne `capture`: Damit lässt sich auch ein Bild aus der Galerie
-                   wählen, etwa das vom letzten Einkauf. -->
+              <!-- Without `capture`: this also allows picking an image from the gallery, for
+                   instance the one from the last shopping trip. -->
               <label class="photo__pick">
                 <input type="file" accept="image/*" @change="pickPhoto" />
                 <span>{{ photoBusy ? $t("supply.photoUploading") : previewSrc ? $t("supply.photoOther") : $t("supply.photoTake") }}</span>
@@ -425,7 +424,7 @@ async function remove() {
 
         <label class="field">
           <span class="field__label">{{ $t("common.noteLabel") }}</span>
-          <textarea v-model="note" rows="2" placeholder="z. B. verträgt sie gut" />
+          <textarea v-model="note" rows="2" :placeholder="$t('supply.notePlaceholder')" />
         </label>
       </div>
 
@@ -439,8 +438,8 @@ async function remove() {
       </template>
     </SheetDialog>
 
-    <!-- Großansicht. Ein Bild von 3 rem beantwortet die Frage im Laden nicht. -->
-    <div v-if="zoomed" class="zoom" role="dialog" aria-label="Foto" @click="zoomed = null">
+    <!-- Enlarged view. A 3 rem image does not answer the question at the shelf. -->
+    <div v-if="zoomed" class="zoom" role="dialog" :aria-label="$t('supply.photoDialog')" @click="zoomed = null">
       <img :src="zoomed" :alt="$t('supply.photoAlt')" />
       <button class="zoom__close" type="button" :aria-label="$t('common.close')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -501,7 +500,7 @@ async function remove() {
   min-width: 0;
 }
 
-/* ── Foto der Verpackung ─────────────────────────────────────────────────── */
+/* ── Photo of the packaging ──────────────────────────────────────────────── */
 
 .thumb {
   position: relative;
@@ -517,8 +516,8 @@ async function remove() {
 }
 
 .thumb img {
-  /* Absolut gespannt statt prozentual: Eine Prozenthöhe kann unbestimmt sein und
-     fällt dann auf die Eigenhöhe des Bildes zurück — siehe WeekRibbon.vue. */
+  /* Stretched absolutely instead of by percentage: a percentage height can be
+     indefinite and then falls back to the image's own height — see WeekRibbon.vue. */
   position: absolute;
   inset: 0;
   width: 100%;
@@ -556,8 +555,8 @@ async function remove() {
 }
 
 .photo__preview img {
-  /* Absolut gespannt statt prozentual: Eine Prozenthöhe kann unbestimmt sein und
-     fällt dann auf die Eigenhöhe des Bildes zurück — siehe WeekRibbon.vue. */
+  /* Stretched absolutely instead of by percentage: a percentage height can be
+     indefinite and then falls back to the image's own height — see WeekRibbon.vue. */
   position: absolute;
   inset: 0;
   width: 100%;
@@ -676,8 +675,8 @@ async function remove() {
   color: var(--bm-ink-soft);
 }
 
-/* Der Wechsel ist die Handlung, die es fast immer ist — also bekommt er die Fläche.
-   Das Korrigieren bleibt erreichbar, tritt aber zurück. */
+/* Switching is the action it almost always is — so it gets the surface area.
+   Correcting stays reachable but steps back. */
 .deeds {
   display: flex;
   align-items: center;

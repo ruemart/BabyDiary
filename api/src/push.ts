@@ -5,15 +5,14 @@ import type { Db } from "./db.ts";
 import type { Store } from "./db.ts";
 
 /**
- * Erinnerung, wenn die nächste Flasche fällig sein könnte.
+ * A reminder when the next bottle might be due.
  *
- * Der erwartete Zeitpunkt kommt NICHT aus einer Tabelle, sondern aus dem eigenen
- * Rhythmus des Kindes: der Median der letzten Abstände. Ein Bevölkerungsmittelwert
- * wäre hier wertlos — jedes Kind hat seinen eigenen Takt, und der verschiebt sich
- * über die Monate ohnehin.
+ * The expected moment does NOT come from a table but from the child's own rhythm: the
+ * median of recent gaps. A population average would be worthless here — every child has
+ * their own pace, and it shifts over the months anyway.
  *
- * Median statt Mittelwert, weil eine einzelne lange Nacht den Mittelwert kippt und
- * die Erinnerung danach systematisch zu spät käme.
+ * Median rather than mean, because a single long night tips the mean and the reminder
+ * would then be systematically late.
  */
 
 export type PushSubscriptionRow = {
@@ -22,7 +21,7 @@ export type PushSubscriptionRow = {
   auth: string;
   device_name: string;
   lead_minutes: number;
-  /** Sprache dieses Geräts für die Meldungstexte. */
+  /** This device's language for the notification texts. */
   locale: string;
   quiet_from_hour: number | null;
   quiet_to_hour: number | null;
@@ -30,7 +29,7 @@ export type PushSubscriptionRow = {
   failures: number;
 };
 
-/** Ab so vielen Fehlschlägen gilt eine Anmeldung als tot und wird entfernt. */
+/** From this many failures on, a subscription counts as dead and is removed. */
 const MAX_FAILURES = 5;
 
 /** Weniger Mahlzeiten ergeben keinen belastbaren Rhythmus. */
@@ -41,12 +40,12 @@ export function isPushConfigured(): boolean {
 }
 
 /**
- * Schlüssel erst beim ersten Versand einrichten, nicht beim Import.
+ * Set the keys up on the first send, not on import.
  *
- * Ein Modul, das beim Laden Geheimnisse liest und nebenbei eine Bibliothek
- * konfiguriert, lässt sich nicht mehr testen, ohne die ganze Umgebung aufzubauen —
- * obwohl die eigentliche Logik hier (Rhythmus, Ruhezeiten, Fälligkeit) pure
- * Rechnerei ohne jedes Geheimnis ist. Der Testlauf hat genau das aufgedeckt.
+ * A module that reads secrets on load and configures a library as a side effect cannot
+ * be tested without standing up the whole environment — even though the actual logic
+ * here (rhythm, quiet hours, due times) is pure arithmetic without any secret at all.
+ * The test run uncovered exactly that.
  */
 let vapidReady = false;
 
@@ -114,12 +113,12 @@ export type PushStore = ReturnType<typeof createPushStore>;
 /* ── Vorhersage ─────────────────────────────────────────────────────────────── */
 
 export type NextFeed = {
-  /** Die letzte Mahlzeit, auf der die Schätzung beruht. */
+  /** The last feed the estimate is based on. */
   lastFeedId: string;
   lastFeedAt: number;
   /** Typischer Abstand in Minuten. */
   typicalGapMinutes: number;
-  /** Wann die nächste erwartet wird. */
+  /** When the next one is expected. */
   dueAt: number;
 };
 
@@ -135,7 +134,7 @@ export function predictNextFeed(store: Store, childId: string): NextFeed | null 
   const gaps: number[] = [];
   for (let i = 1; i < feeds.length; i++) {
     const gap = Date.parse(feeds[i - 1]!.startedAt) - Date.parse(feeds[i]!.startedAt);
-    // Zwei Einträge in derselben Minute sind eine Korrektur, kein Rhythmus.
+    // Two entries in the same minute are a correction, not a rhythm.
     if (gap > 15 * 60_000) gaps.push(gap);
   }
   if (gaps.length < 3) return null;
@@ -152,7 +151,7 @@ export function predictNextFeed(store: Store, childId: string): NextFeed | null 
   };
 }
 
-/** Liegt die Uhrzeit in der Ruhezeit dieses Geräts? */
+/** Does this time of day fall into this device's quiet hours? */
 export function isQuietHour(
   sub: Pick<PushSubscriptionRow, "quiet_from_hour" | "quiet_to_hour">,
   at: Date,
@@ -184,8 +183,8 @@ export async function sendTo(
     return true;
   } catch (error) {
     const status = (error as { statusCode?: number }).statusCode;
-    // 404/410 heißt: Diese Anmeldung existiert nicht mehr. Sofort entfernen statt
-    // sie fünf Runden lang weiter anzuschreiben.
+    // 404/410 means this subscription no longer exists. Remove it at once rather than
+    // writing to it for another five rounds.
     if (status === 404 || status === 410) {
       pushStore.remove(sub.endpoint);
     } else {
@@ -196,17 +195,17 @@ export async function sendTo(
 }
 
 /**
- * Ein Durchgang des Zeitgebers: Wer soll jetzt eine Erinnerung bekommen?
+ * One pass of the scheduler: who should get a reminder now?
  *
- * Als reine Funktion über den aktuellen Zeitpunkt gebaut, damit sie testbar ist,
- * ohne eine Stunde zu warten.
+ * Built as a pure function of the current moment so it can be tested without waiting
+ * an hour.
  */
 /**
- * Meldungstexte des Servers.
+ * The server's notification texts.
  *
- * Absichtlich klein und hier statt in den Sprachdateien des Frontends: Der Server soll
- * für zwei Sätze nicht dessen JSON laden müssen. Eine unbekannte Sprache fällt auf
- * Englisch zurück.
+ * Deliberately small and kept here rather than in the frontend's language files: the
+ * server should not have to load that JSON for two sentences. An unknown language falls
+ * back to English.
  */
 const PUSH_TEXTS: Record<string, Record<string, string>> = {
   en: {
@@ -238,15 +237,15 @@ export function dueNotifications(
   const result: { sub: PushSubscriptionRow; notification: Notification }[] = [];
 
   for (const sub of subs) {
-    // Für diese Mahlzeit wurde schon erinnert — sonst ginge es im Minutentakt raus.
+    // Already reminded for this feed — otherwise it would go out every minute.
     if (sub.last_notified_for === next.lastFeedId) continue;
 
     const notifyAt = next.dueAt - sub.lead_minutes * 60_000;
     if (now.getTime() < notifyAt) continue;
 
-    // Nicht mehr erinnern, wenn der erwartete Zeitpunkt lange vorbei ist: Dann ist
-    // entweder gefüttert und nicht eingetragen worden, oder der Rhythmus hat sich
-    // verschoben. Eine Erinnerung an eine drei Stunden alte Erwartung hilft nicht.
+    // Stop reminding once the expected moment is long past: by then either a feed
+    // happened and was not recorded, or the rhythm has shifted. A reminder about a
+    // three-hour-old expectation does not help.
     if (now.getTime() > next.dueAt + 90 * 60_000) continue;
 
     if (isQuietHour(sub, now, timezone)) continue;

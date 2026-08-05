@@ -12,14 +12,14 @@ export function openDatabase(path: string): Db {
   mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
 
-  // WAL: Leser blockieren den Schreiber nicht. Bei zwei Handys, die gleichzeitig
-  // syncen während die Galerie lädt, ist das der Unterschied zwischen flüssig und "database is locked".
+  // WAL: readers do not block the writer. With two phones syncing while the gallery
+  // loads, that is the difference between smooth and "database is locked".
   db.pragma("journal_mode = WAL");
-  // NORMAL statt FULL: bei WAL ist das crashsicher (nur bei Stromausfall kann die
-  // letzte Transaktion fehlen) und spart auf SD-/NVMe-Speicher enorm viele fsyncs.
+  // NORMAL rather than FULL: with WAL this is crash-safe (only a power cut can lose
+  // the last transaction) and saves an enormous number of fsyncs on SD/NVMe storage.
   db.pragma("synchronous = NORMAL");
   db.pragma("foreign_keys = ON");
-  // Falls doch mal parallel geschrieben wird: 5 s warten statt sofort zu scheitern.
+  // In case something does write in parallel: wait 5 s instead of failing at once.
   db.pragma("busy_timeout = 5000");
 
   migrate(db);
@@ -27,15 +27,14 @@ export function openDatabase(path: string): Db {
 }
 
 /**
- * Migrationen.
+ * Migrations.
  *
- * Alle .sql-Dateien unter migrations/ in Namensreihenfolge, jede genau einmal, jede in
- * einer eigenen Transaktion. Angewandte Dateien stehen in `schema_migrations`.
+ * Every .sql file under migrations/ in name order, each exactly once, each in its own
+ * transaction. Applied files are recorded in `schema_migrations`.
  *
- * Notwendig geworden, sobald die erste Spalte zu einer Tabelle kam, die auf dem Pi
- * schon Daten hielt: `CREATE TABLE IF NOT EXISTS` allein hätte die neue Spalte
- * stillschweigend übersprungen, und der Server wäre erst beim ersten Schreibzugriff
- * gescheitert.
+ * Became necessary the moment the first column was added to a table that already held
+ * data on the Pi: `CREATE TABLE IF NOT EXISTS` alone would have skipped the new column
+ * silently, and the server would only have failed on the first write.
  */
 function migrate(db: Db): void {
   db.exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -131,11 +130,11 @@ function toEntry(row: EntryRow): StoredEntry {
 }
 
 /**
- * Normalisiert jeden Zeitstempel auf UTC mit `Z` und Millisekunden.
+ * Normalises every timestamp to UTC with `Z` and milliseconds.
  *
- * Nicht kosmetisch: die Konfliktauflösung vergleicht `edited_at` als STRING. Käme ein
- * Client mit "+02:00"-Offset an, wäre der lexikografische Vergleich falsch und das
- * ältere Gerät könnte das neuere überschreiben.
+ * Not cosmetic: conflict resolution compares `edited_at` as a STRING. If a client sent
+ * a "+02:00" offset, the lexicographic comparison would be wrong and the older device
+ * could overwrite the newer one.
  */
 function normalizeInstant(iso: string): string {
   return new Date(iso).toISOString();
@@ -148,9 +147,8 @@ export type ApplyResult = {
   /** Vom Server überstimmt (LWW) — der andere Stand war neuer. */
   rejected: string[];
   /**
-   * An der Datenbank gescheitert. Anders als `rejected` hilft hier kein erneuter
-   * Versuch: Ein Wiederholen würde nur wieder scheitern und die Warteschlange
-   * blockieren.
+   * Failed at the database. Unlike `rejected`, retrying does not help here: it would
+   * only fail again and block the queue.
    */
   failed: { id: string; reason: string }[];
 };
@@ -208,8 +206,8 @@ export function createStore(db: Db) {
       deleted = excluded.deleted
   `);
 
-  // ORDER BY, nicht bloß LIMIT 1: Ohne Sortierung greift SQLite eine beliebige Zeile.
-// Sollten je zwei Datensätze existieren, gewinnt der zuletzt geänderte.
+  // ORDER BY, not just LIMIT 1: without sorting SQLite picks an arbitrary row.
+// Should two records ever exist, the most recently edited one wins.
 const selectChild = db.prepare<[], Record<string, unknown>>(
   "SELECT * FROM child ORDER BY edited_at DESC LIMIT 1",
 );
@@ -260,10 +258,10 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
   }
 
   /**
-   * Push und Pull in einer Transaktion.
+   * Push and pull in one transaction.
    *
-   * Konflikte: Last-Write-Wins über `editedAt`. Bei Gleichstand gewinnt der Server —
-   * sonst würde ein Client mit falsch gestellter Uhr endlos hin- und herschreiben.
+   * Conflicts: last-write-wins on `editedAt`. On a tie the server wins — otherwise a
+   * client with a wrongly set clock would write back and forth forever.
    */
   const applyChanges = db.transaction(
     (childId: string, changes: Entry[], child: Child | null): ApplyResult => {
@@ -276,12 +274,11 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
         if (!existing || incomingEditedAt > normalizeInstant(existing.editedAt)) {
           upsertChild.run({
             /**
-             * Ein Haushalt, ein Kind.
+             * One household, one child.
              *
-             * Wenn schon ein Datensatz existiert, wird DESSEN Id beibehalten, auch
-             * wenn das Gerät eine andere schickt. Sonst legt ein Gerät, das die Id
-             * noch nicht kennt, eine zweite Zeile an — und `getChild` greift danach
-             * mal die eine, mal die andere.
+             * If a record already exists, ITS id is kept even when the device sends a
+             * different one. Otherwise a device that does not know the id yet creates a
+             * second row — and `getChild` then picks now one, now the other.
              */
             id: existing?.id ?? child.id,
             name: child.name,
@@ -342,13 +339,12 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
           });
         } catch (error) {
           /**
-           * Ein einzelner Eintrag, den die Datenbank nicht annimmt, darf niemals die
-           * ganze Transaktion und damit die Warteschlange des Geräts zu Fall bringen.
+           * A single entry the database refuses must never bring down the whole
+           * transaction, and with it the device's queue.
            *
-           * Genau das ist einmal passiert: Die CHECK-Bedingung auf `type` kannte neue
-           * Eintragsarten nicht, der Fehler wurde zum 500er, und das Gerät versuchte
-           * es endlos erneut. Ein Fehler in EINEM Datensatz ist ein Problem mit diesem
-           * Datensatz, nicht mit allen anderen.
+           * That happened once: the CHECK constraint on `type` did not know about new
+           * entry types, the error became a 500, and the device retried forever. A
+           * fault in ONE record is a problem with that record, not with all the others.
            */
           failed.push({
             id: entry.id,
@@ -370,7 +366,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
     currentRev(): number {
       return currentRev.get()!.value;
     },
-    /** Abwesenheiten mit Ort — bestimmen, welches Wetter für welche Tage gilt. */
+    /** Away periods with a location — they decide which weather applies to which days. */
     locatedAbsences(): { from: string; to: string; latitude: number; longitude: number }[] {
       return db
         .prepare<[], EntryRow>(

@@ -32,12 +32,11 @@ await app.register(multipart, {
 await app.register(buildApp, { store, weather, push });
 
 /**
- * Zeitgeber für die Fläschchen-Erinnerung.
+ * Scheduler for the bottle reminder.
  *
- * Jede Minute nachsehen, statt einen Auftrag je Mahlzeit einzuplanen: Einträge
- * kommen offline herein und werden nachgetragen, ein einmal gesetzter Termin wäre
- * also ständig falsch. Ein Blick pro Minute auf ein paar Dutzend Zeilen kostet auf
- * dem Pi nichts.
+ * Check every minute rather than scheduling one job per feed: entries arrive offline
+ * and get backdated, so a job set once would be wrong most of the time. One look at a
+ * few dozen rows per minute costs nothing on the Pi.
  */
 let notifyTimer: ReturnType<typeof setInterval> | null = null;
 

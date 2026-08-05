@@ -22,31 +22,31 @@ export const config = {
 
   /** Wer diesen Wert im Einladungs-Link kennt, darf ein Gerät registrieren. */
   householdSecret: required("HOUSEHOLD_SECRET"),
-  /** Signiert das Sitzungs-Cookie. Ändern setzt alle Geräte zurück. */
+  /** Signs the session cookie. Changing it signs out every device. */
   cookieSecret: required("COOKIE_SECRET"),
   /**
-   * Hinter dem Cloudflare-Tunnel sieht der Browser HTTPS, der Container HTTP —
-   * `secure` gehört also auf true. Nur für lokale Entwicklung auf http://localhost
-   * abschalten, sonst sendet der Browser das Cookie nie.
+   * Behind the Cloudflare tunnel the browser sees HTTPS while the container sees HTTP —
+   * so `secure` belongs on true. Only turn it off for local development on
+   * http://localhost, otherwise the browser never sends the cookie.
    */
   cookieSecure: process.env["COOKIE_SECURE"] !== "false",
 
   /**
-   * Vorgeschlagenes Land für Vorsorge- und Impftermine, gesetzt beim Einrichten.
+   * Suggested country for check-ups and vaccinations, set during installation.
    *
-   * Nur ein Vorschlag für den Einrichtungs-Assistenten. Die verbindliche Angabe steht
-   * am Kind und wird mit beiden Geräten abgeglichen — ein Wert in der Umgebung wäre
-   * dafür der falsche Ort, weil man ihn nur mit Serverzugriff ändern könnte.
+   * Only a suggestion for the setup screen. The binding value lives with the child and
+   * syncs to both devices — an environment variable would be the wrong home for
+   * something you must be able to change without server access.
    */
   defaultRegion: process.env["DEFAULT_REGION"] ?? "none",
 
   /**
-   * Schlüsselpaar für Web Push (VAPID). Fehlt es, sind Benachrichtigungen einfach
-   * aus — die App funktioniert vollständig ohne. Erzeugen mit:
+   * Key pair for web push (VAPID). Without it notifications are simply off — the app
+   * works fully without them. Generate with:
    *   node -e "console.log(require('web-push').generateVAPIDKeys())"
    */
   vapidPublicKey: process.env["VAPID_PUBLIC_KEY"] ?? "",
   vapidPrivateKey: process.env["VAPID_PRIVATE_KEY"] ?? "",
-  /** Kontaktadresse, die der Push-Dienst im Fehlerfall ansprechen kann. */
+  /** Contact address the push service can reach in case of trouble. */
   vapidSubject: process.env["VAPID_SUBJECT"] ?? "mailto:admin@example.invalid",
 } as const;

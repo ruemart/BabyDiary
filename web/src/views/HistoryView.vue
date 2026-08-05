@@ -24,12 +24,12 @@ const data = useData();
 const addOpen = ref(false);
 
 /**
- * Ein Tag auf einmal, wählbar über Woche und Wochentag.
+ * One day at a time, chosen by week and weekday.
  *
- * Vorher stand hier alles untereinander. Das funktioniert vier Wochen lang und wird
- * danach zusehends unbrauchbar: "Was war letzten Mittwoch" beantwortet sich nur noch
- * durch Scrollen. Die Wochenleiste zeigt außerdem die Zahlen aller sieben Tage, ohne
- * dass man einen einzigen öffnen muss.
+ * Everything used to sit underneath each other. That works for four weeks and then
+ * becomes steadily less usable: "what happened last Wednesday" can only be answered by
+ * scrolling. The day strip also shows the numbers for all seven days without having to
+ * open a single one.
  */
 const today = computed(() => localDayKey(new Date(), data.timezone));
 const selectedDay = ref(today.value);
@@ -48,8 +48,8 @@ const day = computed(
 const ordinals = computed(() => numberWithinDay(day.value.entries));
 
 /**
- * Beim Wochenwechsel den Wochentag behalten — so lassen sich Wochen vergleichen.
- * Steht der Tag in der Zukunft, wird auf heute geklemmt.
+ * Keep the weekday when switching weeks — that makes weeks comparable. If the day would
+ * be in the future, it is clamped to today.
  */
 function goToWeek(start: string) {
   selectedDay.value = dayAfterWeekChange(start, weekdayIndex(selectedDay.value), today.value);
@@ -65,10 +65,10 @@ const hasOlder = computed(
   () => weeks.value.indexOf(weekStart.value) < weeks.value.length - 1,
 );
 
-/** "3. Aug – 9. Aug 2026" — die Spanne, nicht die Kalenderwochennummer. Die kennt niemand auswendig. */
+/** "3 Aug – 9 Aug 2026" — the span, not the ISO week number. Nobody knows those by heart. */
 function weekLabel(start: string): string {
-  // Nicht das Jahr aus dem vollen Datum schneiden: Im Englischen steht dort ein Komma
-  // ("Aug 3, 2026"), und übrig bliebe "Aug 3, – Aug 9". Dafür gibt es shortDateLabel.
+  // Do not cut the year out of the full date: in English there is a comma there
+  // ("Aug 3, 2026") and "Aug 3, – Aug 9" would be left. That is what shortDateLabel is for.
   return `${shortDateLabel(start)} – ${calendarDateLabel(addDays(start, 6))}`;
 }
 
@@ -76,13 +76,13 @@ function weekLabel(start: string): string {
 const weekdayShort = (i: number) => t(`weekday.short.${i}`);
 const weekdayLong = (i: number) => t(`weekday.long.${i}`);
 
-/** Überschrift des gewählten Tages: "Mittwoch, 5. Aug 2026" — plus "heute", wenn er es ist. */
+/** Heading of the chosen day: "Wednesday, 5 Aug 2026" — plus "today" when it is. */
 const dayTitle = computed(() => {
   const label = `${weekdayLong(day.value.weekday)}, ${calendarDateLabel(day.value.key)}`;
   return day.value.key === today.value ? t("history.dayTitleToday", { day: label }) : label;
 });
 
-/** Die Zahlen des Tages in Worten — die Leiste zeigt sie knapp, hier stehen sie ausgeschrieben. */
+/** The day's numbers in words — the strip shows them tersely, here they are spelled out. */
 const dayFacts = computed(() => {
   const d = day.value;
   const facts: string[] = [];
@@ -93,7 +93,7 @@ const dayFacts = computed(() => {
   return facts;
 });
 
-/** Für die Vorlesehilfe: Die Leiste ist sonst nur eine Zahlenwand. */
+/** For screen readers: the strip is otherwise just a wall of numbers. */
 function tabLabel(d: { weekday: number; key: string; totalMl: number; diapers: number }): string {
   const parts = [`${weekdayLong(d.weekday)}, ${calendarDateLabel(d.key)}`];
   if (d.totalMl > 0) parts.push(t("history.tabMl", { n: d.totalMl }));
@@ -103,16 +103,16 @@ function tabLabel(d: { weekday: number; key: string; totalMl: number; diapers: n
 }
 
 /**
- * Nach einem Neustart über Mitternacht hinweg stünde sonst der gestrige Tag gewählt da.
+ * Without this, a restart across midnight would leave yesterday selected.
  */
 watch(today, (now, before) => {
   if (selectedDay.value === before) selectedDay.value = now;
 });
 
 /**
- * Änderungsblatt. Hierüber lässt sich unter anderem die Zeit einer Windel korrigieren:
- * Der Ein-Tap-Weg auf dem Startbildschirm setzt bewusst "jetzt", weil jede Rückfrage
- * dort den nächtlichen Fall verlangsamen würde — die Korrektur gehört hierher.
+ * The edit sheet. Among other things this is how the time of a nappy gets corrected:
+ * the one-tap path on the home screen deliberately sets "now", because any prompt there
+ * would slow down the night-time case — the correction belongs here.
  */
 const editing = ref<LocalEntry | null>(null);
 const editOpen = ref(false);
@@ -187,8 +187,8 @@ async function remove(entry: LocalEntry) {
   <div class="history">
     <header class="history__head">
       <h1>{{ $t("history.title") }}</h1>
-      <!-- Nur sichtbar, wenn man wirklich weg ist. Ein Knopf, der immer dasteht und
-           meistens nichts tut, ist schlimmer als keiner. -->
+      <!-- Only visible when you really are away. A button that always sits there and
+           mostly does nothing is worse than no button. -->
       <button
         v-if="weekStart !== startOfWeek(today)"
         class="history__now"
@@ -200,9 +200,8 @@ async function remove(entry: LocalEntry) {
       <button class="history__add" type="button" @click="addOpen = true">{{ $t("history.addEntry") }}</button>
     </header>
 
-    <!-- Einträge, die der Server dauerhaft ablehnt. Sie blockieren den Abgleich
-         nicht mehr, brauchen aber eine Korrektur — sonst gehen sie stillschweigend
-         nie auf das andere Gerät über. -->
+    <!-- Entries the server permanently rejects. They no longer block syncing, but they
+         do need correcting — otherwise they silently never reach the other device. -->
     <div v-if="data.invalidEntries.length > 0" class="warning" role="alert">
       <p class="warning__title">
         {{ data.invalidEntries.length === 1
@@ -215,8 +214,8 @@ async function remove(entry: LocalEntry) {
       <p class="warning__reason">{{ data.invalidEntries[0]!.reason }}</p>
     </div>
 
-    <!-- Wochenwahl. Die Spanne statt der Kalenderwochennummer: "3.–9. Aug" kann man
-         einordnen, "KW 32" muss man nachschlagen. -->
+    <!-- Week picker. The span rather than the ISO week number: "3–9 Aug" can be placed,
+         "week 32" has to be looked up. -->
     <div class="weekbar">
       <button
         class="weekbar__step"
@@ -250,8 +249,8 @@ async function remove(entry: LocalEntry) {
       </button>
     </div>
 
-    <!-- Tagesleiste: sieben feste Spalten, auch die leeren. Eine Lücke ist eine
-         Aussage; würde man sie weglassen, verschöben sich die Wochentage. -->
+    <!-- Day strip: seven fixed columns, including the empty ones. A gap is a statement;
+         leaving them out would shift the weekdays around. -->
     <div class="dayrow" role="tablist" :aria-label="$t('history.weekday')">
       <button
         v-for="d in week.days"
@@ -292,8 +291,8 @@ async function remove(entry: LocalEntry) {
 
       <ul v-else class="entries">
         <li v-for="entry in day.entries" :key="entry.id" class="entry">
-          <!-- Die ganze Zeile ist die Schaltfläche zum Ändern; nur das Löschkreuz
-               daneben liegt außerhalb. -->
+          <!-- The whole row is the edit button; only the delete cross next to it sits
+               outside. -->
           <button class="entry__open" type="button" @click="edit(entry)">
             <span class="entry__time bm-tabular">
               {{ localTimeLabel(entry.startedAt, data.timezone) }}
@@ -441,9 +440,9 @@ async function remove(entry: LocalEntry) {
   height: 1.1rem;
 }
 
-/* Die Beschriftung liegt sichtbar darunter, das echte <select> unsichtbar darüber.
-   So bleibt die Systemauswahl mit ihrer gewohnten Bedienung erhalten, ohne dass ihr
-   Standardaussehen die Leiste bestimmt. */
+/* The label sits visibly underneath, the real <select> invisibly on top. That keeps
+   the system picker with its familiar behaviour without letting its default look
+   dictate the bar. */
 .weekbar__pick {
   position: relative;
   flex: 1;
@@ -522,8 +521,8 @@ async function remove(entry: LocalEntry) {
   line-height: 1.1;
 }
 
-/* Die beiden Zahlen tragen ihre Bedeutung über dieselben Farben wie die Punkte in
-   der Liste — ausgeschrieben stehen sie unter der Überschrift. */
+/* The two numbers carry their meaning through the same colours as the dots in the
+   list — spelled out they sit under the heading. */
 .dayrow__ml,
 .dayrow__dp {
   font-size: 0.625rem;
@@ -581,7 +580,7 @@ async function remove(entry: LocalEntry) {
   padding-inline-end: 0.5rem;
 }
 
-/* Die Zeile selbst ist die Schaltfläche zum Ändern. */
+/* The row itself is the edit button. */
 .entry__open {
   display: grid;
   grid-template-columns: auto auto 1fr auto;
@@ -655,7 +654,7 @@ async function remove(entry: LocalEntry) {
   min-width: 0;
 }
 
-/* Die laufende Nummer tritt zurück: Sie ordnet ein, sie ist nicht die Hauptsache. */
+/* The running number steps back: it places the entry, it is not the main thing. */
 .entry__ordinal {
   color: var(--bm-ink-soft);
   font-weight: 500;

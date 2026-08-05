@@ -37,7 +37,7 @@ declare module "fastify" {
   }
 }
 
-/** Kurze, lesbare Begründung für die Rückmeldung ans Gerät. */
+/** Short, readable reason to hand back to the device. */
 function describeIssues(issues: { path: (string | number)[]; message: string }[]): string {
   return issues
     .slice(0, 3)
@@ -69,8 +69,8 @@ export async function buildApp(
 
     const session = verifySession(req.cookies[SESSION_COOKIE], config.cookieSecret);
     if (!session) {
-      // 401 als JSON, nie als Redirect: der Service Worker würde eine Login-HTML-Seite
-      // sonst als API-Antwort behandeln und der Sync liefe in einen Parse-Fehler.
+      // 401 as JSON, never as a redirect: the service worker would otherwise treat a
+      // login HTML page as an API response and syncing would run into a parse error.
       return reply.code(401).send({ error: "unauthorized" });
     }
     req.session = session;
@@ -81,11 +81,11 @@ export async function buildApp(
     rev: store.currentRev(),
     time: new Date().toISOString(),
     /**
-     * Voreinstellung für das Land, gesetzt beim Einrichten (siehe install.sh).
+     * Suggested country, set during installation (see install.sh).
      *
-     * Nur ein VORSCHLAG für den Einrichtungs-Assistenten — die verbindliche Angabe
-     * steht am Kind und lässt sich jederzeit in den Einstellungen ändern. Über
-     * /api/health, weil der Assistent läuft, bevor es ein Kind gibt.
+     * Only a SUGGESTION for the setup screen — the binding value lives with the child
+     * and can be changed in Settings at any time. Served from /api/health because the
+     * setup screen runs before a child exists.
      */
     defaultRegion: config.defaultRegion,
   }));
@@ -132,14 +132,13 @@ export async function buildApp(
     }
 
     /**
-     * Jede Änderung EINZELN prüfen, nicht das Paket als Ganzes.
+     * Validate every change INDIVIDUALLY, not the batch as a whole.
      *
-     * Vorher blockierte ein einziger ungültiger Eintrag den kompletten Abgleich —
-     * dauerhaft. Der Server wies das ganze Paket ab, der Ausgangskorb des Geräts
-     * leerte sich nie, und jeder danach angelegte Eintrag blieb ebenfalls liegen.
-     * Sichtbar war davon nur "Abgleich gestört".
+     * Previously a single invalid entry blocked the entire sync — permanently. The
+     * server rejected the whole batch, the device's outbox never drained, and every
+     * entry created afterwards was stuck as well. All the user saw was "sync problem".
      *
-     * Ein fehlerhafter Datensatz darf niemals die Warteschlange als Geisel nehmen.
+     * One bad record must never hold the queue hostage.
      */
     const changes: Entry[] = [];
     const invalid: { id: string; reason: string }[] = [];
@@ -172,23 +171,23 @@ export async function buildApp(
     const { childId, since } = envelope.data;
 
     /**
-     * Ein frisch eingeladenes zweites Gerät kennt die childId noch nicht und schickt
-     * einen Platzhalter. Der Server löst sie aus dem vorhandenen Datensatz auf, damit
-     * das Gerät Kind und Einträge bekommt — statt den Einrichtungsdialog zu zeigen und
-     * am Ende ein zweites Kind anzulegen.
+     * A freshly invited second device does not know the childId yet and sends a
+     * placeholder. The server resolves it from the existing record so the device gets
+     * the child and the entries — instead of showing the setup screen and ending up
+     * creating a second child.
      *
-     * Ein Haushalt, ein Kind: Wenn hier schon eines steht, gewinnt es.
+     * One household, one child: if there is one here already, it wins.
      */
     const effectiveChildId = store.getChild()?.id ?? childId;
 
-    // `createdBy` kommt aus dem Cookie, nicht aus dem Body — sonst könnte ein Gerät
-    // Einträge unter fremdem Namen anlegen.
+    // `createdBy` comes from the cookie, not from the body — otherwise a device could
+    // create entries under someone else's name.
     const stamped = changes.map((c) => ({ ...c, createdBy: req.session!.name }));
 
     const { rejected, failed } = store.applyChanges(effectiveChildId, stamped, child);
 
-    // Was die Datenbank abgelehnt hat, zählt wie ein Schemafehler: dauerhaft
-    // untauglich, also melden statt endlos wiederholen lassen.
+    // What the database rejected counts as a schema error: permanently unusable, so
+    // report it rather than letting it be retried forever.
     if (failed.length > 0) {
       req.log.error({ failed }, "Einträge von der Datenbank abgelehnt");
       invalid.push(...failed);
@@ -229,7 +228,7 @@ export async function buildApp(
 
   app.get<{ Params: { id: string } }>("/api/media/:id", async (req, reply) => {
     const id = req.params.id;
-    // Pfad-Traversal: nur die von uns vergebenen Namen zulassen.
+    // Path traversal: only allow the names we handed out ourselves.
     if (!/^[a-f0-9-]{36}\.(jpg|png|webp)$/.test(id)) {
       return reply.code(400).send({ error: "bad_id" });
     }
@@ -239,7 +238,7 @@ export async function buildApp(
       const mime = extname(id) === ".png" ? "image/png"
         : extname(id) === ".webp" ? "image/webp"
         : "image/jpeg";
-      // Bilder ändern sich nie — der Dateiname enthält die Id.
+      // Images never change — the file name contains the id.
       reply.header("cache-control", "private, max-age=31536000, immutable");
       reply.header("content-type", mime);
       reply.header("content-length", info.size);
@@ -252,10 +251,10 @@ export async function buildApp(
   /* ── Wetter ───────────────────────────────────────────────────────────────── */
 
   /**
-   * Höchstens einmal pro Stunde beim Dienst nachfragen.
+   * Ask the service at most once an hour.
    *
-   * Die Tageswerte ändern sich nicht im Minutentakt, und vier Geräte, die alle
-   * 30 Sekunden abgleichen, würden Open-Meteo sonst grundlos zumüllen.
+   * The daily values do not change by the minute, and four devices syncing every
+   * 30 seconds would otherwise flood Open-Meteo for no reason.
    */
   const REFRESH_AFTER_MS = 60 * 60 * 1000;
   let refreshing: Promise<void> | null = null;
@@ -268,10 +267,10 @@ export async function buildApp(
     const last = weather.lastFetchedAt();
     if (last && Date.now() - Date.parse(last) < REFRESH_AFTER_MS) return;
 
-    // Nur ein Abruf gleichzeitig, auch wenn mehrere Geräte parallel anfragen.
+    // Only one fetch at a time, even when several devices ask in parallel.
     refreshing ??= (async () => {
       try {
-        // Zuerst der Heimatort für das rollende Fenster …
+        // First the home location for the rolling window …
         const days = await fetchDailyTemperatures(
           child.latitude!,
           child.longitude!,
@@ -279,8 +278,8 @@ export async function buildApp(
         );
         weather.save(days);
 
-        // … danach die Urlaube, die den Heimatort für ihre Tage überschreiben.
-        // Reihenfolge ist wichtig: der spätere Aufruf gewinnt pro Tag.
+        // … then the trips, which override the home location for their days.
+        // Order matters: the later call wins per day.
         for (const away of store.locatedAbsences()) {
           try {
             const awayDays = await fetchDailyTemperatures(
@@ -315,7 +314,7 @@ export async function buildApp(
       const to = isDay(req.query.to) ? req.query.to : new Date().toISOString().slice(0, 10);
       const from = isDay(req.query.from) ? req.query.from : "1970-01-01";
 
-      // Nicht blockieren, wenn der Dienst hakt: erst ausliefern, was da ist.
+      // Do not block when the service is slow: serve what is there first.
       void refreshWeatherIfStale();
       return weather.range(from, to);
     },
@@ -335,8 +334,8 @@ export async function buildApp(
   /* ── Benachrichtigungen ───────────────────────────────────────────────────── */
 
   app.get("/api/push/key", async () => ({
-    // Leer heißt: Push ist auf diesem Server nicht eingerichtet. Die App blendet
-    // den Bereich dann aus, statt einen Knopf anzubieten, der nichts tut.
+    // Empty means push is not configured on this server. The app then hides the
+    // section rather than offering a button that does nothing.
     publicKey: isPushConfigured() ? config.vapidPublicKey : null,
   }));
 
@@ -344,7 +343,7 @@ export async function buildApp(
     endpoint: z.string().url().max(1000),
     keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(200) }),
     leadMinutes: z.number().int().min(0).max(120).default(10),
-    /** Sprache dieses Geräts — bestimmt die Sprache der Meldung. */
+    /** This device's language — decides the language of the notification. */
     locale: z.string().max(8).default("en"),
     /** Ruhezeit als Stundenpaar in Lokalzeit; null heißt rund um die Uhr. */
     quietFromHour: z.number().int().min(0).max(23).nullable().default(22),
@@ -392,7 +391,7 @@ export async function buildApp(
     return ok ? { ok: true } : reply.code(502).send({ error: "send_failed" });
   });
 
-  /** Wie die App den nächsten Zeitpunkt einschätzt — auch für die Anzeige nützlich. */
+  /** How the app estimates the next moment — also useful for display. */
   app.get("/api/push/next", async () => {
     const child = store.getChild();
     if (!child) return { next: null };

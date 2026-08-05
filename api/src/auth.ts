@@ -1,13 +1,13 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
- * Auth in einem Satz: Wer den Einladungs-Link einmal öffnet, bekommt ein signiertes
- * Cookie mit einem Jahr Laufzeit und sieht danach nie wieder eine Abfrage.
+ * Auth in one sentence: open the invite link once and you get a signed cookie valid for
+ * a year, and never see a prompt again.
  *
- * Das ist bewusst simpel. Die Alternative (echtes Login) kostet bei jedem abgelaufenen
- * Token einen Anmeldebildschirm — nachts um drei, mit Baby auf dem Arm, an genau der
- * Stelle, an der die App schnell sein muss. Für eine Familien-App auf einer Domain,
- * die niemand kennt, ist der Tausch richtig.
+ * That is deliberately simple. The alternative (a real login) costs a sign-in screen on
+ * every expired token — at three in the morning, with a baby on your arm, at exactly the
+ * point where the app has to be fast. For a family app on a domain nobody knows, the
+ * trade is the right one.
  */
 
 export type Session = {
