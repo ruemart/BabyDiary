@@ -4,7 +4,6 @@ import type { LocalEntry } from "../db/local.ts";
 import { useI18n } from "vue-i18n";
 
 
-const { t } = useI18n();
 /**
  * Hinweise auf Auffälligkeiten.
  *
@@ -41,6 +40,8 @@ export function useAlerts(
   timezone: () => string,
   ageDays: () => number,
 ) {
+  const { t } = useI18n();
+
   const now = () => Date.now();
 
   const feeds = computed(() =>

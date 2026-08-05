@@ -40,7 +40,7 @@ function adjust(delta: number) {
       <button
         class="stepper__step"
         type="button"
-        :aria-label="t("stepper.less", { step, unit })"
+        :aria-label="$t('stepper.less', { step, unit })"
         @click="adjust(-step)"
       >
         −
@@ -54,7 +54,7 @@ function adjust(delta: number) {
       <button
         class="stepper__step"
         type="button"
-        :aria-label="t("stepper.more", { step, unit })"
+        :aria-label="$t('stepper.more', { step, unit })"
         @click="adjust(step)"
       >
         +

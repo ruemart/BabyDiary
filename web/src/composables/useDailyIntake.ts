@@ -4,7 +4,6 @@ import type { LocalEntry } from "../db/local.ts";
 import { useI18n } from "vue-i18n";
 
 
-const { t } = useI18n();
 /**
  * Einordnung der heutigen Trinkmenge — bewusst KEIN Tagesziel.
  *
@@ -40,6 +39,8 @@ export function useDailyIntake(
   entries: () => LocalEntry[],
   timezone: () => string,
 ) {
+  const { t } = useI18n();
+
   return computed<IntakeStatus>(() => {
     const tz = timezone();
     const today = localDayKey(new Date(), tz);

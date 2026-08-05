@@ -1,4 +1,4 @@
-import { calendarDateLabel, daysBetween } from "@babymonitor/shared";
+import { calendarDateLabel, daysBetween, shortDateLabel } from "@babymonitor/shared";
 
 /**
  * Aus der Kette der Vorrats-Einträge wird die Wechsel-Historie.
@@ -63,13 +63,10 @@ function rangeLabel(from: string, until: string, isCurrent: boolean, days: numbe
   }
   // Am selben Tag gewechselt: eine Spanne zu zeigen wäre nur verwirrend.
   if (from === until) return calendarDateLabel(from);
-  return `${shortDate(from)} – ${calendarDateLabel(until)}`;
+  return `${shortDateLabel(from)} – ${calendarDateLabel(until)}`;
 }
 
-/** Ohne Jahr, weil es am Ende der Spanne ohnehin steht. */
-function shortDate(date: string): string {
-  return calendarDateLabel(date).replace(/ \d{4}$/, "");
-}
+
 
 /**
  * Grob, aber lesbar. Auf den Tag genau zu rechnen hilft hier niemandem — die Frage ist

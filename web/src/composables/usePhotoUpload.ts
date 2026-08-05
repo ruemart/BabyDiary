@@ -6,7 +6,6 @@ import { shrinkImage } from "../utils/image.ts";
 import { useI18n } from "vue-i18n";
 
 
-const { t } = useI18n();
 /**
  * Foto für eine Lebenswoche aufnehmen und speichern.
  *
@@ -16,6 +15,8 @@ const { t } = useI18n();
  * muss dann auch ehrlich benannt werden statt still zu scheitern.
  */
 export function usePhotoUpload() {
+  const { t } = useI18n();
+
   const data = useData();
   const toast = useToast();
   const busy = ref(false);

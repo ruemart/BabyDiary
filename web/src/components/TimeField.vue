@@ -13,7 +13,7 @@ const { t } = useI18n();
  *  - Der Normalfall ist "gerade eben". Dafür genügen die Minus-Chips — ohne Tastatur,
  *    ohne Datumsauswahl, einhändig.
  *  - Der Nachtragefall ("gestern Abend haben wir vergessen einzutragen") braucht ein
- *    freies Datum. Das steckt hinter "{{ $t("time.otherMoment") }}", damit es den Normalfall
+ *    freies Datum. Das steckt hinter "Anderer Zeitpunkt", damit es den Normalfall
  *    nicht verlangsamt.
  */
 const model = defineModel<Date>({ required: true });
@@ -128,7 +128,7 @@ function reset() {
     </div>
 
     <button class="chip chip--ghost" type="button" @click="showExact = !showExact">
-      {{ showExact ? "{{ $t("time.back") }}" : "Anderer Zeitpunkt" }}
+      {{ showExact ? $t("time.back") : $t("time.otherMoment") }}
     </button>
 
     <label v-if="showExact" class="time__exact">

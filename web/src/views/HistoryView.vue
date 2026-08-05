@@ -5,6 +5,7 @@ import {
   calendarDateLabel,
   localDayKey,
   localTimeLabel,
+  shortDateLabel,
   startOfWeek,
   weekdayIndex,
 } from "@babymonitor/shared";
@@ -66,8 +67,9 @@ const hasOlder = computed(
 
 /** "3. Aug – 9. Aug 2026" — die Spanne, nicht die Kalenderwochennummer. Die kennt niemand auswendig. */
 function weekLabel(start: string): string {
-  const from = calendarDateLabel(start).replace(/ \d{4}$/, "");
-  return `${from} – ${calendarDateLabel(addDays(start, 6))}`;
+  // Nicht das Jahr aus dem vollen Datum schneiden: Im Englischen steht dort ein Komma
+  // ("Aug 3, 2026"), und übrig bliebe "Aug 3, – Aug 9". Dafür gibt es shortDateLabel.
+  return `${shortDateLabel(start)} – ${calendarDateLabel(addDays(start, 6))}`;
 }
 
 /** Wochentagsnamen aus den Sprachdateien, Montag = 0 (siehe `weekdayIndex`). */
