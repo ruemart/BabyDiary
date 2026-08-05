@@ -10,5 +10,7 @@
       "@/*": ["./src/*"]
     }
   },
+  // sw.ts läuft im Service-Worker-Kontext (eigene Typen) und wird separat geprüft.
+  "exclude": ["src/sw.ts"],
   "include": ["src/**/*.ts", "src/**/*.vue", "vite.config.ts"]
 }

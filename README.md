@@ -18,11 +18,21 @@ Uhr nachts, ein Arm frei.** Daraus folgt fast alles andere.
 | **Wochenband** | Waagrechter Zeitstrahl über 80 Lebenswochen, beim Öffnen auf die aktuelle Woche gescrollt. Die Wochenfotos sitzen auf der Achse. Dazu Sprung-Bänder, U-Termine, Impfungen und eine „Demnächst“-Liste. |
 | **Kurven** | Trinkmenge pro Tag mit gleitendem Wochenmittel, Mahlzeiten-Rhythmus über Tageszeit, Windel-Raster nach Stunde, Wachstum gegen die WHO-Perzentile. |
 | **Verlauf** | Alles nach Tagen gruppiert, mit Tagessumme. Nachtragen für jede Eintragsart mit frei wählbarem Zeitpunkt. |
-| **Einstellungen** | Kind-Stammdaten, Darstellung, Zeitraffer-Export der Wochenfotos als MP4. |
+| **Einstellungen** | Kind-Stammdaten, Darstellung, Wetterort, Zeitraffer-Export der Wochenfotos als MP4, Benachrichtigungen. |
 
 **Offline benutzbar.** Jede Eingabe geht zuerst in die lokale Datenbank des Geräts und
 erscheint sofort. Der Abgleich läuft im Hintergrund. Ein Neustart des Pi, ein Funkloch
 im Kinderzimmer oder ein hängender Tunnel halten die Eingabe nie auf.
+
+**Erinnerung ans Fläschchen.** Auf Wunsch meldet sich das Handy, wenn die nächste
+Flasche fällig sein könnte — geschätzt aus dem eigenen Rhythmus des Kindes (Median der
+letzten Abstände), nicht aus einer Tabelle. Vorlaufzeit und Ruhezeit hängen am
+jeweiligen Gerät: Wer nachts ohnehin wach ist, will die Erinnerung auch nachts; wer
+daneben schläft, ganz sicher nicht.
+
+> **Auf iPhone und iPad geht Web Push nur, wenn die App auf dem Home-Bildschirm
+> liegt** (ab iOS 16.4) — in Safari selbst nicht. Auf Android funktioniert beides.
+> Ohne hinterlegte VAPID-Schlüssel ist der Bereich schlicht ausgeblendet.
 
 **Nachts warm und gedämpft.** Zwischen 20 und 7 Uhr schaltet die App selbstständig auf
 ein bernsteinfarbenes, kontrastreduziertes Erscheinungsbild. Das ist keine Spielerei:

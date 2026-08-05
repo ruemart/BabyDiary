@@ -8,6 +8,17 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: "autoUpdate",
+      /**
+       * Eigener Service Worker statt des erzeugten — ein erzeugter kann keinen
+       * `push`-Empfänger enthalten, und genau den braucht die Fläschchen-Erinnerung.
+       * Vorabspeichern und Bildzwischenspeicher stehen jetzt in web/src/sw.ts.
+       */
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,woff2,png,svg}"],
+      },
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "BabyMonitor",
@@ -27,29 +38,6 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,woff2,png,svg}"],
-        navigateFallbackDenylist: [/^\/api\//],
-        runtimeCaching: [
-          {
-            // Bilder sind unveränderlich (die Id steckt im Dateinamen), also dauerhaft
-            // cachen — dann ist die Galerie auch offline vollständig.
-            urlPattern: /^.*\/api\/media\/.*/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "bm-media",
-              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Der Sync bekommt BEWUSST kein Workbox-Background-Sync: die Warteschlange
-            // liegt in Dexie. Zwei Queues übereinander würden Einträge doppelt senden.
-            urlPattern: /^.*\/api\/.*/,
-            handler: "NetworkOnly",
           },
         ],
       },

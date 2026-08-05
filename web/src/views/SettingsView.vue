@@ -6,6 +6,8 @@ import { useData } from "../stores/data.ts";
 import { appearance, setAppearance, type AppearanceSetting } from "../composables/useAppearance.ts";
 import { wipeLocal } from "../db/local.ts";
 import ChildForm from "../components/ChildForm.vue";
+import { onMounted } from "vue";
+import { usePushNotifications } from "../composables/usePushNotifications.ts";
 import { RouterLink } from "vue-router";
 
 const data = useData();
@@ -22,6 +24,46 @@ const APPEARANCES: { value: AppearanceSetting; label: string; hint: string }[] =
 ];
 
 const photoCount = computed(() => data.photosByWeek.size);
+
+/* ── Benachrichtigungen ───────────────────────────────────────────────────── */
+
+const push = usePushNotifications();
+onMounted(() => void push.refresh());
+
+const LEAD_OPTIONS = [0, 5, 10, 15, 30];
+
+async function enablePush() {
+  const error = await push.enable();
+  if (error) {
+    toast.show({ headline: "Ging nicht", description: error, color: "warning", duration: 9000 });
+    return;
+  }
+  if (push.state.value === "on") {
+    toast.show({ headline: "Benachrichtigungen sind an", color: "success" });
+  }
+}
+
+async function testPush() {
+  const ok = await push.sendTest();
+  toast.show({
+    headline: ok ? "Testnachricht unterwegs" : "Testnachricht ging nicht raus",
+    description: ok ? "Sie sollte gleich ankommen." : "Bitte die Anmeldung noch einmal erneuern.",
+    color: ok ? "success" : "warning",
+  });
+}
+
+async function setLead(minutes: number) {
+  await push.saveSettings({ ...push.settings.value, leadMinutes: minutes });
+}
+
+async function toggleNight() {
+  const quiet = push.settings.value.quietFromHour === null;
+  await push.saveSettings({
+    ...push.settings.value,
+    quietFromHour: quiet ? 22 : null,
+    quietToHour: quiet ? 6 : null,
+  });
+}
 
 const childRejected = computed(() => data.invalidEntries.find((i) => i.id === "child"));
 
@@ -187,6 +229,92 @@ async function signOut() {
       </div>
     </section>
 
+    <section v-if="push.state.value !== 'unsupported'" class="card">
+      <h2 class="card__title">Erinnerung ans Fläschchen</h2>
+
+      <p v-if="push.state.value === 'needs-install'" class="card__lead">
+        Auf iPhone und iPad gehen Benachrichtigungen nur, wenn die App auf dem
+        Home-Bildschirm liegt — in Safari selbst nicht. Über das Teilen-Menü
+        „Zum Home-Bildschirm“ hinzufügen und die App von dort öffnen.
+      </p>
+
+      <p v-else-if="push.state.value === 'server-disabled'" class="card__lead">
+        Auf dem Server sind keine Schlüssel hinterlegt. Ohne die kann niemand
+        benachrichtigt werden.
+      </p>
+
+      <p v-else-if="push.state.value === 'denied'" class="card__lead">
+        Benachrichtigungen sind für diese Seite im Browser abgelehnt. Das lässt sich
+        nur dort wieder ändern, nicht in der App.
+      </p>
+
+      <template v-else>
+        <p class="card__lead">
+          Meldet sich, wenn die nächste Flasche fällig sein könnte — geschätzt aus
+          {{ data.child?.name ?? "ihrem" }} eigenem Rhythmus, nicht aus einer Tabelle.
+          Die Einstellung gilt nur für dieses Gerät.
+        </p>
+
+        <button
+          v-if="push.state.value === 'off'"
+          class="primary"
+          type="button"
+          :disabled="push.busy.value"
+          @click="enablePush"
+        >
+          {{ push.busy.value ? "Einen Moment …" : "Benachrichtigungen einschalten" }}
+        </button>
+
+        <template v-else>
+          <div class="field">
+            <span class="field__label">Wie früh vorher</span>
+            <div class="leads">
+              <button
+                v-for="minutes in LEAD_OPTIONS"
+                :key="minutes"
+                type="button"
+                class="lead"
+                :class="{ 'lead--active': push.settings.value.leadMinutes === minutes }"
+                @click="setLead(minutes)"
+              >
+                {{ minutes === 0 ? "pünktlich" : `${minutes} Min` }}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="option"
+            :class="{ 'option--active': push.settings.value.quietFromHour === null }"
+            @click="toggleNight"
+          >
+            <span class="option__label">
+              {{ push.settings.value.quietFromHour === null ? "Auch nachts" : "Nachts still (22–6 Uhr)" }}
+            </span>
+            <span class="option__hint">
+              {{
+                push.settings.value.quietFromHour === null
+                  ? "Rund um die Uhr — zum Umschalten tippen."
+                  : "Nachts ist das Kind ohnehin der Wecker. Zum Umschalten tippen."
+              }}
+            </span>
+          </button>
+
+          <div class="push-actions">
+            <button class="secondary" type="button" @click="testPush">Testnachricht</button>
+            <button class="danger" type="button" :disabled="push.busy.value" @click="push.disable">
+              Ausschalten
+            </button>
+          </div>
+        </template>
+
+        <p class="card__note">
+          Eine Erinnerung, kein Wecker: Wann sie wirklich Hunger hat, entscheidet sie —
+          die Schätzung ist nur der bisherige Abstand zwischen den Mahlzeiten.
+        </p>
+      </template>
+    </section>
+
     <section class="card">
       <h2 class="card__title">Wetter</h2>
       <p class="card__lead">
@@ -332,6 +460,49 @@ async function signOut() {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
+  color: var(--bm-ink-soft);
+}
+
+.leads {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+}
+
+.lead {
+  min-height: 2.5rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lead--active {
+  background: var(--bm-feed);
+  border-color: transparent;
+  color: #2a2028;
+}
+
+.push-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--bm-ink-soft);
 }
 

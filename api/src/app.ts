@@ -23,6 +23,7 @@ import {
 } from "./auth.ts";
 import type { Store } from "./db.ts";
 import { renderTimelapse } from "./timelapse.ts";
+import { isPushConfigured, predictNextFeed, sendTo, type PushStore } from "./push.ts";
 import {
   createWeatherStore,
   fetchDailyTemperatures,
@@ -52,10 +53,11 @@ const ALLOWED_IMAGE_TYPES = new Map([
 
 export async function buildApp(
   app: FastifyInstance,
-  opts: { store: Store; weather?: WeatherStore },
+  opts: { store: Store; weather?: WeatherStore; push?: PushStore },
 ) {
   const { store } = opts;
   const weather = opts.weather;
+  const push = opts.push;
 
   /** Alles unter /api/ braucht ein gültiges Cookie — außer den drei Ausnahmen. */
   const OPEN_ROUTES = new Set(["/api/health", "/api/session", "/api/session/check"]);
@@ -320,6 +322,70 @@ export async function buildApp(
       req.log.warn({ err }, "Ortssuche fehlgeschlagen");
       return reply.code(503).send({ error: "geocoding_unavailable" });
     }
+  });
+
+  /* ── Benachrichtigungen ───────────────────────────────────────────────────── */
+
+  app.get("/api/push/key", async () => ({
+    // Leer heißt: Push ist auf diesem Server nicht eingerichtet. Die App blendet
+    // den Bereich dann aus, statt einen Knopf anzubieten, der nichts tut.
+    publicKey: isPushConfigured() ? config.vapidPublicKey : null,
+  }));
+
+  const subscribeBody = z.object({
+    endpoint: z.string().url().max(1000),
+    keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(200) }),
+    leadMinutes: z.number().int().min(0).max(120).default(10),
+    /** Ruhezeit als Stundenpaar in Lokalzeit; null heißt rund um die Uhr. */
+    quietFromHour: z.number().int().min(0).max(23).nullable().default(22),
+    quietToHour: z.number().int().min(0).max(23).nullable().default(6),
+  });
+
+  app.post("/api/push/subscribe", async (req, reply) => {
+    if (!push || !isPushConfigured()) return reply.code(503).send({ error: "push_disabled" });
+    const parsed = subscribeBody.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: "bad_request" });
+
+    const d = parsed.data;
+    push.save({
+      endpoint: d.endpoint,
+      p256dh: d.keys.p256dh,
+      auth: d.keys.auth,
+      device_name: req.session!.name,
+      lead_minutes: d.leadMinutes,
+      quiet_from_hour: d.quietFromHour,
+      quiet_to_hour: d.quietToHour,
+    });
+    req.log.info({ device: req.session!.name }, "Push-Anmeldung gespeichert");
+    return { ok: true };
+  });
+
+  app.post<{ Body: { endpoint?: string } }>("/api/push/unsubscribe", async (req, reply) => {
+    if (!push) return reply.code(503).send({ error: "push_disabled" });
+    const endpoint = req.body?.endpoint;
+    if (typeof endpoint === "string") push.remove(endpoint);
+    return { ok: true };
+  });
+
+  app.post<{ Body: { endpoint?: string } }>("/api/push/test", async (req, reply) => {
+    if (!push || !isPushConfigured()) return reply.code(503).send({ error: "push_disabled" });
+    const sub = typeof req.body?.endpoint === "string" ? push.get(req.body.endpoint) : undefined;
+    if (!sub) return reply.code(404).send({ error: "not_subscribed" });
+
+    const ok = await sendTo(push, sub, {
+      title: "Benachrichtigungen sind an",
+      body: "So sieht die Erinnerung aus, wenn die nächste Flasche fällig sein könnte.",
+      tag: "test",
+      url: "/",
+    });
+    return ok ? { ok: true } : reply.code(502).send({ error: "send_failed" });
+  });
+
+  /** Wie die App den nächsten Zeitpunkt einschätzt — auch für die Anzeige nützlich. */
+  app.get("/api/push/next", async () => {
+    const child = store.getChild();
+    if (!child) return { next: null };
+    return { next: predictNextFeed(store, child.id) };
   });
 
   /* ── Zeitraffer ───────────────────────────────────────────────────────────── */

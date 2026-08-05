@@ -26,6 +26,10 @@ services:
       # Hinter dem Tunnel sieht der Browser HTTPS -> Cookie muss `secure` sein.
       COOKIE_SECURE: "true"
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Fehlen die Schlüssel, sind Benachrichtigungen einfach aus.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.invalid}
     volumes:
       # Bind-Mount statt benanntem Volume: Die SQLite-Datei soll im Dateisystem
       # liegen, wo `sqlite3 .backup` und ein Blick per `ls` ohne Umwege möglich sind.

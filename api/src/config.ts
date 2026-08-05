@@ -30,4 +30,14 @@ export const config = {
    * abschalten, sonst sendet der Browser das Cookie nie.
    */
   cookieSecure: process.env["COOKIE_SECURE"] !== "false",
+
+  /**
+   * Schlüsselpaar für Web Push (VAPID). Fehlt es, sind Benachrichtigungen einfach
+   * aus — die App funktioniert vollständig ohne. Erzeugen mit:
+   *   node -e "console.log(require('web-push').generateVAPIDKeys())"
+   */
+  vapidPublicKey: process.env["VAPID_PUBLIC_KEY"] ?? "",
+  vapidPrivateKey: process.env["VAPID_PRIVATE_KEY"] ?? "",
+  /** Kontaktadresse, die der Push-Dienst im Fehlerfall ansprechen kann. */
+  vapidSubject: process.env["VAPID_SUBJECT"] ?? "mailto:admin@example.invalid",
 } as const;
