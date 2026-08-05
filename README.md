@@ -77,13 +77,9 @@ whatever the language uses — `22:08` in German, `10:08 PM` in US English.
 
 ## Regional data
 
-Some of the reference data is **specific to Germany** and is labelled as such in the app:
-
-- **Check-ups (U1–U7)** — the German paediatric screening schedule (G-BA guideline).
-- **Vaccinations** — the German STIKO immunisation calendar.
-
-Everything else is not country-specific: the WHO growth standards are international,
-and the developmental leap weeks come from a model that is used well beyond Germany.
+Check-up and vaccination schedules are a national matter. Everything else is not:
+the WHO growth standards are international, and the developmental leap weeks come from
+a model used well beyond any one country.
 
 Each country lives in one JSON file under `web/src/data/regions/`. Shipped with the
 project: **Germany, Austria, Switzerland, United Kingdom, United States** and **None**.
