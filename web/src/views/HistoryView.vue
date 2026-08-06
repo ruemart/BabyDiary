@@ -138,6 +138,7 @@ function describe(entry: LocalEntry): string {
         `${entry.amountMl} ml`,
         entry.spatUp ? t("describe.spatUp") : null,
         entry.vitaminD ? t("describe.vitaminD") : null,
+        entry.colicDrops ? t("describe.colicDrops") : null,
       ]
         .filter(Boolean)
         .join(" · ");

@@ -8,8 +8,7 @@ import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
-import SpatUpToggle from "./SpatUpToggle.vue";
-import VitaminDToggle from "./VitaminDToggle.vue";
+import FlagToggle from "./FlagToggle.vue";
 import CmField from "./CmField.vue";
 import { useI18n } from "vue-i18n";
 
@@ -120,6 +119,7 @@ const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
 const vitaminD = ref(false);
+const colicDrops = ref(false);
 
 /**
  * Does ANOTHER feed on the SAME DAY already carry the vitamin D?
@@ -201,6 +201,7 @@ watch(open, (isOpen) => {
     note.value = existing.note ?? "";
     spatUp.value = existing.spatUp === true;
     vitaminD.value = existing.vitaminD === true;
+    colicDrops.value = existing.colicDrops === true;
     temperatureDc.value = existing.temperatureDc;
     hasEnd.value = existing.endedAt !== null;
     place.value =
@@ -228,6 +229,7 @@ watch(open, (isOpen) => {
   note.value = "";
   spatUp.value = false;
   vitaminD.value = false;
+  colicDrops.value = false;
   temperatureDc.value = null;
   hasEnd.value = false;
   place.value = null;
@@ -352,8 +354,23 @@ async function save() {
       <div v-if="type === 'feed'" class="field">
         <span class="field__label">{{ $t("add.amount") }}</span>
         <AmountStepper v-model="amountMl" />
-        <SpatUpToggle v-model="spatUp" />
-        <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
+        <FlagToggle
+          v-model="spatUp"
+          :label="$t('feed.spatUp.label')"
+          :hint="$t('feed.spatUp.hint')"
+        />
+        <FlagToggle
+          v-model="vitaminD"
+          :label="$t('feed.vitaminD.label')"
+          :hint="$t('feed.vitaminD.hint')"
+          :locked="vitaminAlreadyThatDay"
+          :locked-hint="$t('feed.vitaminD.hintLocked')"
+        />
+        <FlagToggle
+          v-model="colicDrops"
+          :label="$t('feed.colicDrops.label')"
+          :hint="$t('feed.colicDrops.hint')"
+        />
       </div>
 
       <template v-else-if="type === 'diaper'">

@@ -140,6 +140,7 @@
   },
   "describe": {
     "boughtAt": "bei {shop}",
+    "colicDrops": "Tropfen",
     "head": "KU {cm} cm",
     "running": "läuft noch",
     "spatUp": "ausgespuckt",
@@ -173,6 +174,10 @@
   "feed": {
     "saved": "Flasche {amount} ml gespeichert",
     "savedSpatUp": "Flasche {amount} ml — ausgespuckt",
+    "colicDrops": {
+      "hint": "z. B. Simeticon — ins Fläschchen gegeben",
+      "label": "Tropfen gegen Blähungen"
+    },
     "spatUp": {
       "hint": "Zählt nicht zur Tagesmenge",
       "label": "Alles wieder ausgespuckt"
@@ -534,9 +539,11 @@
     "alertsRegion": "Hinweise",
     "bath": "Baden",
     "bathLogged": "Baden eingetragen",
+    "byOther": "von {name}",
     "changedDetail": "Der Eintrag von gerade eben wurde angepasst.",
     "changedTitle": "Windel geändert",
     "diaperAlready": "Windel {kind} war schon eingetragen",
+    "diaperAlsoRecent": "{name} hat {since} schon eine eingetragen",
     "diaperChangedTo": "Auf {kind} geändert",
     "diaperLogged": "Windel {kind} eingetragen",
     "diaperRegion": "Windel eintragen",
@@ -548,6 +555,7 @@
     "historyLink": "Verlauf ansehen und nachtragen",
     "intake": "Heute {amount} ml",
     "lastDiaper": "Windel {since} · {detail}",
+    "lastDiaperLabel": "Letzte Windel",
     "lastFeed": "Letzte Flasche",
     "noDiaperYet": "Noch keine Windel eingetragen",
     "none": "noch keine",

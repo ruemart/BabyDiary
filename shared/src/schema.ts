@@ -84,6 +84,16 @@ export const entrySchema = z
     /** milestone / photo / illness / absence */
     label: z.string().max(200).nullable().default(null),
     /**
+     * Anti-colic drops given with this feed.
+     *
+     * Like the vitamin D flag: no occasion of its own, it goes into the bottle. Recording
+     * it costs one tap and makes the later question answerable — were the fussy evenings
+     * any different on the days it was given? Which product it was belongs under
+     * "What we buy", not on every single feed.
+     */
+    colicDrops: z.boolean().default(false),
+
+    /**
      * Reference to an entry in the fixed milestone list.
      *
      * Free text was the wrong approach: you can only tick off what you know — and

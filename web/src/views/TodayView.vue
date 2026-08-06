@@ -86,12 +86,25 @@ const now = ref(new Date());
 const tick = setInterval(() => (now.value = new Date()), 1000);
 onUnmounted(() => clearInterval(tick));
 
+/**
+ * Wer den Eintrag angelegt hat — aber NUR, wenn es jemand anderes war.
+ *
+ * Das ist der eigentliche Zweck: Der Name erscheint genau dann, wenn er etwas bedeutet.
+ * Stünde er immer da, wäre er nach zwei Tagen unsichtbar; so ist er ein Signal.
+ */
+function otherPerson(entry: { createdBy?: string | null } | null): string | null {
+  const who = entry?.createdBy?.trim();
+  if (!who || who === data.deviceName.trim()) return null;
+  return who;
+}
+
 const lastFeedText = computed(() => {
   const feed = data.lastFeed;
   if (!feed) return null;
   return {
     since: elapsedSinceLabel(feed.startedAt, now.value),
     detail: `${feed.amountMl} ml um ${localTimeLabel(feed.startedAt, data.timezone)}`,
+    by: otherPerson(feed),
     // Without this note the status line reads like an intake that happened.
     spatUp: feed.spatUp === true,
   };
@@ -102,7 +115,8 @@ const lastDiaperText = computed(() => {
   if (!diaper) return null;
   return {
     since: elapsedSinceLabel(diaper.startedAt, now.value),
-    detail: t(DIAPER_KEY[diaper.diaper ?? "empty"]!),
+    detail: `${t(DIAPER_KEY[diaper.diaper ?? "empty"]!)} um ${localTimeLabel(diaper.startedAt, data.timezone)}`,
+    by: otherPerson(diaper),
   };
 });
 
@@ -117,6 +131,15 @@ const DIAPER_KEY: Record<string, string> = {
   soiled: "diaper.soiled",
   both: "diaper.soiled",
 };
+
+/**
+ * So lange gilt eine Windel des anderen Geräts als "gerade eben".
+ *
+ * Deutlich länger als das Zeitfenster des Doppeltap-Schutzes (zwei Minuten), weil es
+ * hier nicht ums Blockieren geht, sondern ums Erwähnen. Zwanzig Minuten decken den
+ * Fall ab, der wirklich vorkommt: Zwei Eltern im selben Zimmer, beide tragen ein.
+ */
+const CROSS_DEVICE_HINT_MS = 20 * 60 * 1000;
 
 const DIAPER_BUTTONS = [
   { kind: "empty" as const, key: "today.diaperButton.empty" },
@@ -149,7 +172,31 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
     return;
   }
 
-  confirmWithUndo(t("today.diaperLogged", { kind: t(DIAPER_KEY[kind]!) }), result.id);
+  /**
+   * Hat das andere Gerät gerade eben schon eine Windel eingetragen?
+   *
+   * Dann NICHT blockieren — zwei Windeln zehn Minuten auseinander können echt sein, und
+   * ein Schutz, der so weit greift, verschluckt irgendwann richtige Einträge. Stattdessen
+   * beim Bestätigen sagen, was gerade passiert ist. Rückgängig ist es ohnehin ein Tap.
+   */
+  const recentByOther = data.byTimeDesc.find(
+    (e) =>
+      e.type === "diaper" &&
+      e.id !== result.id &&
+      Date.now() - Date.parse(e.startedAt) < CROSS_DEVICE_HINT_MS &&
+      !!otherPerson(e),
+  );
+
+  confirmWithUndo(
+    t("today.diaperLogged", { kind: t(DIAPER_KEY[kind]!) }),
+    result.id,
+    recentByOther
+      ? t("today.diaperAlsoRecent", {
+          name: otherPerson(recentByOther),
+          since: elapsedSinceLabel(recentByOther.startedAt, new Date()),
+        })
+      : undefined,
+  );
 }
 
 async function startSleep() {
@@ -165,6 +212,9 @@ async function startSleep() {
 
     <!-- Status line: the reason you switch the phone on at night at all. -->
     <section class="status" :aria-label="$t('today.statusRegion')">
+      <!-- Flasche und Windel gleichrangig. Vorher war die Windel eine graue Zeile
+           unter der großen Flaschen-Zahl — und genau deshalb ist zweimal dieselbe
+           Windel eingetragen worden: Man sah sie nicht, bevor man tippte. -->
       <div class="status__primary">
         <p class="status__label">{{ $t("today.lastFeed") }}</p>
         <p v-if="lastFeedText" class="status__value bm-tabular">{{ lastFeedText.since }}</p>
@@ -172,15 +222,20 @@ async function startSleep() {
         <p v-if="lastFeedText" class="status__detail bm-tabular">
           {{ lastFeedText.detail }}
           <span v-if="lastFeedText.spatUp" class="status__flag">{{ $t("today.spatUp") }}</span>
+          <span v-if="lastFeedText.by" class="status__by">{{ $t("today.byOther", { name: lastFeedText.by }) }}</span>
         </p>
       </div>
 
-      <div class="status__row">
-        <span class="status__dot" :style="{ background: 'var(--bm-diaper)' }" />
-        <template v-if="lastDiaperText">
-          {{ $t("today.lastDiaper", { since: lastDiaperText.since, detail: lastDiaperText.detail }) }}
-        </template>
-        <template v-else>{{ $t("today.noDiaperYet") }}</template>
+      <div class="status__primary status__primary--diaper">
+        <p class="status__label">{{ $t("today.lastDiaperLabel") }}</p>
+        <p v-if="lastDiaperText" class="status__value bm-tabular">{{ lastDiaperText.since }}</p>
+        <p v-else class="status__value status__value--empty">{{ $t("today.noDiaperYet") }}</p>
+        <p v-if="lastDiaperText" class="status__detail bm-tabular">
+          {{ lastDiaperText.detail }}
+          <!-- Der Name des anderen ist hier die wichtigste Information: Er beantwortet
+               "hat das schon jemand eingetragen?", bevor man es ein zweites Mal tut. -->
+          <span v-if="lastDiaperText.by" class="status__by">{{ $t("today.byOther", { name: lastDiaperText.by }) }}</span>
+        </p>
       </div>
 
       <!-- The daily amount as context, not as a target: how much she needs is her call.
@@ -356,8 +411,9 @@ async function startSleep() {
 .status__value {
   margin: 0.15rem 0 0;
   font-family: var(--bm-font-display);
-  /* Big enough to read from a metre away in half darkness. */
-  font-size: clamp(1.9rem, 8vw, 2.6rem);
+  /* Big enough to read from a metre away in half darkness. Slightly smaller since
+     there are two of these now — both still far above everything else on the screen. */
+  font-size: clamp(1.6rem, 6.6vw, 2.1rem);
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -403,6 +459,26 @@ async function startSleep() {
   font-size: 0.75rem;
   font-weight: 600;
   font-variant-numeric: normal;
+}
+
+/* Die zweite Karte bekommt eine Trennlinie statt einer eigenen Fläche — ein zweiter
+   Kasten würde die Karte zerreißen, eine Linie ordnet sie einander zu. */
+.status__primary--diaper {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--bm-hairline);
+}
+
+/* Der Name des anderen Geräts: farbig statt grau, weil er eine Handlung verhindern
+   soll und nicht bloß Beiwerk ist. */
+.status__by {
+  margin-inline-start: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 62.5rem;
+  background: var(--bm-diaper-soft);
+  color: color-mix(in srgb, var(--bm-diaper) 60%, var(--bm-ink));
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .status__row {

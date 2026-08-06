@@ -19,10 +19,15 @@ export function useUndo() {
   const toast = useToast();
   const data = useData();
 
-  return function confirmWithUndo(headline: string, entryId: string): void {
+  /**
+   * @param note Ersetzt den Standardhinweis, wenn es etwas Wichtigeres zu sagen gibt —
+   *   etwa dass das andere Gerät gerade dasselbe eingetragen hat. Rückgängig geht es
+   *   weiterhin durch Antippen; der Hinweis darauf tritt dann nur zurück.
+   */
+  return function confirmWithUndo(headline: string, entryId: string, note?: string): void {
     toast.show({
       headline,
-      description: t("undo.tapToUndo"),
+      description: note ?? t("undo.tapToUndo"),
       color: "success",
       clickable: true,
       // 4 s instead of the usual 6: recording three nappies in a row would otherwise

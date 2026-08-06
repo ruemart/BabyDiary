@@ -7,8 +7,7 @@ import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
-import SpatUpToggle from "./SpatUpToggle.vue";
-import VitaminDToggle from "./VitaminDToggle.vue";
+import FlagToggle from "./FlagToggle.vue";
 import { useI18n } from "vue-i18n";
 
 
@@ -23,6 +22,7 @@ const at = ref(new Date());
 const note = ref("");
 const spatUp = ref(false);
 const vitaminD = ref(false);
+const colicDrops = ref(false);
 
 /**
  * Does the day this entry falls on already carry the vitamin D somewhere?
@@ -46,6 +46,7 @@ watch(open, (isOpen) => {
   note.value = "";
   spatUp.value = false;
   vitaminD.value = false;
+  colicDrops.value = false;
 });
 
 async function save() {
@@ -53,6 +54,7 @@ async function save() {
     amountMl: amount.value,
     spatUp: spatUp.value,
     vitaminD: vitaminD.value,
+    colicDrops: colicDrops.value,
     note: note.value.trim() || null,
   });
   await data.add(entry);
@@ -73,8 +75,23 @@ async function save() {
 
       <TimeField v-model="at" />
 
-      <SpatUpToggle v-model="spatUp" />
-      <VitaminDToggle v-model="vitaminD" :already-given-that-day="vitaminAlreadyThatDay" />
+      <FlagToggle
+        v-model="spatUp"
+        :label="$t('feed.spatUp.label')"
+        :hint="$t('feed.spatUp.hint')"
+      />
+      <FlagToggle
+        v-model="vitaminD"
+        :label="$t('feed.vitaminD.label')"
+        :hint="$t('feed.vitaminD.hint')"
+        :locked="vitaminAlreadyThatDay"
+        :locked-hint="$t('feed.vitaminD.hintLocked')"
+      />
+      <FlagToggle
+        v-model="colicDrops"
+        :label="$t('feed.colicDrops.label')"
+        :hint="$t('feed.colicDrops.hint')"
+      />
 
       <label class="note">
         <span class="note__label">{{ $t("common.noteLabel") }}</span>

@@ -74,6 +74,7 @@ type EntryRow = {
   amount_ml: number | null;
   spat_up: number;
   vitamin_d: number;
+  colic_drops: number;
   diaper: string | null;
   weight_g: number | null;
   length_mm: number | null;
@@ -106,6 +107,7 @@ function toEntry(row: EntryRow): StoredEntry {
     amountMl: row.amount_ml,
     spatUp: row.spat_up === 1,
     vitaminD: row.vitamin_d === 1,
+    colicDrops: row.colic_drops === 1,
     diaper: row.diaper as Entry["diaper"],
     weightG: row.weight_g,
     lengthMm: row.length_mm,
@@ -169,11 +171,11 @@ export function createStore(db: Db) {
 
   const upsert = db.prepare(`
     INSERT INTO entries (
-      id, child_id, type, started_at, ended_at, amount_ml, spat_up, vitamin_d, diaper,
+      id, child_id, type, started_at, ended_at, amount_ml, spat_up, vitamin_d, colic_drops, diaper,
       weight_g, length_mm, head_mm, label, milestone_key, temperature_dc, latitude, longitude, place_name, supply_category, supply_size, supply_shop, life_week, media_id, note,
       created_by, edited_at, rev, deleted
     ) VALUES (
-      @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @vitamin_d, @diaper,
+      @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @vitamin_d, @colic_drops, @diaper,
       @weight_g, @length_mm, @head_mm, @label, @milestone_key, @temperature_dc, @latitude, @longitude, @place_name, @supply_category, @supply_size, @supply_shop, @life_week, @media_id, @note,
       @created_by, @edited_at, @rev, @deleted
     )
@@ -184,6 +186,7 @@ export function createStore(db: Db) {
       amount_ml = excluded.amount_ml,
       spat_up = excluded.spat_up,
       vitamin_d = excluded.vitamin_d,
+      colic_drops = excluded.colic_drops,
       diaper = excluded.diaper,
       weight_g = excluded.weight_g,
       length_mm = excluded.length_mm,
@@ -316,6 +319,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
           amount_ml: entry.amountMl,
           spat_up: entry.spatUp ? 1 : 0,
           vitamin_d: entry.vitaminD ? 1 : 0,
+          colic_drops: entry.colicDrops ? 1 : 0,
           diaper: entry.diaper,
           weight_g: entry.weightG,
           length_mm: entry.lengthMm,

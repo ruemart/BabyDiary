@@ -1,0 +1,12 @@
+-- Anti-colic drops given with a feed (simeticone and the like).
+--
+-- The same shape as the vitamin D flag, for the same reason: the drops have no occasion
+-- of their own, they go into the bottle. A flag ON the feed records them where they
+-- actually happen and keeps the moment — which is the interesting part, because the
+-- question later is whether the fussy evenings were any different on the days they were
+-- given.
+--
+-- Deliberately no brand: which product it was belongs under "What we buy", where a
+-- switch is already recorded with a date. A boolean per feed plus that history answers
+-- more than a product name repeated on every entry.
+ALTER TABLE entries ADD COLUMN colic_drops INTEGER NOT NULL DEFAULT 0;

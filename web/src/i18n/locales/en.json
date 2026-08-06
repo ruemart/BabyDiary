@@ -140,6 +140,7 @@
   },
   "describe": {
     "boughtAt": "at {shop}",
+    "colicDrops": "drops",
     "head": "head {cm} cm",
     "running": "still running",
     "spatUp": "brought back up",
@@ -173,6 +174,10 @@
   "feed": {
     "saved": "Bottle {amount} ml saved",
     "savedSpatUp": "Bottle {amount} ml — brought back up",
+    "colicDrops": {
+      "hint": "e.g. simeticone — given in the bottle",
+      "label": "Anti-colic drops"
+    },
     "spatUp": {
       "hint": "Not counted towards the daily total",
       "label": "Brought it all back up"
@@ -534,9 +539,11 @@
     "alertsRegion": "Notes",
     "bath": "Bath",
     "bathLogged": "Bath recorded",
+    "byOther": "by {name}",
     "changedDetail": "The entry from a moment ago was updated.",
     "changedTitle": "Nappy changed",
     "diaperAlready": "A {kind} nappy was already recorded",
+    "diaperAlsoRecent": "{name} already recorded one {since}",
     "diaperChangedTo": "Changed to {kind}",
     "diaperLogged": "Nappy {kind} recorded",
     "diaperRegion": "Record a nappy",
@@ -548,6 +555,7 @@
     "historyLink": "View history and add past entries",
     "intake": "Today {amount} ml",
     "lastDiaper": "Nappy {since} · {detail}",
+    "lastDiaperLabel": "Last nappy",
     "lastFeed": "Last bottle",
     "noDiaperYet": "No nappy recorded yet",
     "none": "none yet",
