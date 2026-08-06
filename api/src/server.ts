@@ -59,15 +59,15 @@ if (isPushConfigured()) {
         }
 
         const pruned = push.prune();
-        if (pruned > 0) app.log.info({ pruned }, "Tote Push-Anmeldungen entfernt");
+        if (pruned > 0) app.log.info({ pruned }, "removed dead push subscriptions");
       } catch (err) {
-        app.log.warn({ err }, "Erinnerungslauf fehlgeschlagen");
+        app.log.warn({ err }, "reminder run failed");
       }
     })();
   }, 60_000);
-  app.log.info("Fläschchen-Erinnerung aktiv");
+  app.log.info("bottle reminder active");
 } else {
-  app.log.info("Push nicht eingerichtet (VAPID-Schlüssel fehlen) — Erinnerungen aus");
+  app.log.info("push not configured (VAPID keys missing) — reminders off");
 }
 
 const shutdown = async (signal: string) => {

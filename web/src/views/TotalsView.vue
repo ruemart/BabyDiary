@@ -86,7 +86,7 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
         <ul class="rows">
           <li v-for="[name, count] in byPerson" :key="name">
             <span>{{ name }}</span>
-            <span class="bm-tabular">{{ count }} Einträge</span>
+            <span class="bm-tabular">{{ $t("totals.entriesCount", { n: count }) }}</span>
           </li>
         </ul>
         <p class="card__note">Reine Spielerei — aber jemand fragt ja doch irgendwann.</p>

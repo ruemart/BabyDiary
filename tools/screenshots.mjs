@@ -30,7 +30,7 @@ await page.getByRole("button", { name: "Papa", exact: true }).click();
 await page.getByRole("button", { name: /Loslegen/ }).click();
 await page.waitForTimeout(3500);
 
-// Tagdarstellung erzwingen, um beide Modi beurteilen zu können.
+// Force the day appearance so both modes can be judged.
 await page.evaluate(() => localStorage.setItem("bm.appearance", "day"));
 await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
 await page.waitForTimeout(1500);

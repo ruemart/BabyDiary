@@ -158,7 +158,7 @@ export const entrySchema = z
         require(
           e.weightG !== null || e.lengthMm !== null || e.headMm !== null,
           "weightG",
-          "Mindestens ein Messwert (Gewicht, Länge oder Kopfumfang) nötig",
+          "At least one measurement (weight, length or head) is required",
         );
         break;
       case "milestone":
@@ -178,7 +178,7 @@ export const entrySchema = z
         require(
           !!e.label?.trim() || !!e.supplySize?.trim(),
           "label",
-          "Produkt oder Größe angeben",
+          "Give a product or a size",
         );
         break;
       case "photo":
@@ -186,7 +186,7 @@ export const entrySchema = z
         require(e.lifeWeek !== null, "lifeWeek", "Lebenswoche fehlt");
         break;
       case "note":
-        require(!!e.note?.trim(), "note", "Notiz ist leer");
+        require(!!e.note?.trim(), "note", "The note is empty");
         break;
     }
   });

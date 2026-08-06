@@ -4,7 +4,7 @@ function required(name: string): string {
   const value = process.env[name];
   if (!value || value.length < 16) {
     throw new Error(
-      `${name} fehlt oder ist zu kurz (mindestens 16 Zeichen). ` +
+      `${name} is missing or too short (at least 16 characters). ` +
         `Erzeugen mit: openssl rand -hex 32`,
     );
   }

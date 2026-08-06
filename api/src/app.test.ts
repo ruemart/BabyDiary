@@ -219,7 +219,7 @@ describe("Sync over HTTP", () => {
         childId: CHILD_ID,
         since: 0,
         changes: [entry({ id: "a" })],
-        child: { id: CHILD_ID, name: "X", sex: "female", birthDate: "kein-datum" },
+        child: { id: CHILD_ID, name: "X", sex: "female", birthDate: "not-a-date" },
       },
     });
 
@@ -235,7 +235,7 @@ describe("Sync over HTTP", () => {
       method: "POST",
       url: "/api/sync",
       headers: { cookie: jar },
-      payload: { since: "nicht-numerisch", changes: [] },
+      payload: { since: "not-numeric", changes: [] },
     });
     expect(res.statusCode).toBe(400);
   });

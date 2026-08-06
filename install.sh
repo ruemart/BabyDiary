@@ -98,9 +98,9 @@ ok "Data directories ready"
 # setup screen. The binding choice lives with the child record and can be
 # changed in Settings at any time, on either phone.
 
-# Nur beim ERSTEN Lauf fragen. Die Vorlage bringt schon eine Zeile mit, ein
-# blosses grep würde die Frage also immer überspringen — und wer erneut
-# installiert, hat seine Wahl längst in der App getroffen.
+# Only ask on the FIRST run. The template already carries a line, so a plain grep would
+# always skip the question — and anyone reinstalling made their choice in the app long
+# ago.
 if [ -n "${fresh:-}" ]; then
   say ""
   say "  Which country's check-up and vaccination schedule should the timeline use?"
@@ -113,7 +113,7 @@ if [ -n "${fresh:-}" ]; then
   say "    6) None        ${DIM}(leaps, photos and your own entries only)${OFF}"
   say ""
   printf '  Choice [6]: '
-  # Nicht-interaktiv (Pipe, CI) fällt auf "keine Termine" zurück, statt zu hängen.
+  # Non-interactive (a pipe, CI) falls back to "no appointments" instead of hanging.
   if read -r -t 60 choice </dev/tty 2>/dev/null; then :; else choice=""; fi
   case "${choice:-6}" in
     1) region=de ;;

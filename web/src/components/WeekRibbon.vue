@@ -217,7 +217,7 @@ defineExpose({ scrollToWeek });
               <span
                 v-if="milestoneCount(week) > 0"
                 class="pin pin--milestone"
-                :title="`${milestoneCount(week)} Meilenstein(e) üblich ab dieser Woche`"
+                :title="$t('weeks.milestoneTitle', { n: milestoneCount(week) })"
               />
             </span>
           </button>

@@ -62,7 +62,7 @@ function run(cmd: string, args: string[]): Promise<void> {
       // Keep only the tail — ffmpeg writes a great deal of progress to stderr.
       stderr = (stderr + chunk.toString()).slice(-4000);
     });
-    child.on("error", (err) => reject(new Error(`${cmd} nicht startbar: ${err.message}`)));
+    child.on("error", (err) => reject(new Error(`${cmd} could not be started: ${err.message}`)));
     child.on("close", (code) => {
       if (code === 0) resolve();
       else reject(new Error(`${cmd} beendet mit Code ${code}\n${stderr}`));

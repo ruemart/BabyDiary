@@ -14,9 +14,9 @@ import { currentLocale } from "../i18n/index.ts";
  */
 
 export type PushState =
-  | "unsupported"      // Browser kann kein Push
-  | "needs-install"    // iOS: erst zum Home-Bildschirm hinzufügen
-  | "server-disabled"  // Auf dem Server sind keine Schlüssel hinterlegt
+  | "unsupported"      // the browser cannot do push
+  | "needs-install"    // iOS: add to the home screen first
+  | "server-disabled"  // no keys configured on the server
   | "denied"           // Vom Nutzer im Browser abgelehnt
   | "off"
   | "on";
@@ -130,7 +130,7 @@ export function usePushNotifications() {
         // language this device wants to read it in.
         body: JSON.stringify({ ...subscription.toJSON(), ...settings.value, locale: currentLocale() }),
       });
-      if (!res.ok) return "Die Anmeldung konnte nicht gespeichert werden.";
+      if (!res.ok) return t("push.saveFailed");
 
       state.value = "on";
       return null;

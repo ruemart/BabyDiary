@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-# Der Datenordner kommt als Bind-Mount vom Host herein und gehört dort typischerweise
-# root — die Rechte aus dem Abbild werden davon überdeckt. Deshalb hier einmalig
-# geradeziehen und erst dann die Rechte ablegen.
+# The data directory arrives as a bind mount from the host and typically belongs to root
+# there — the permissions from the image are covered by it. So straighten them out once
+# here and only then drop privileges.
 #
-# Die Alternative wäre, dem Nutzer vor dem ersten Start ein `chown` abzuverlangen.
-# Ein Deployment, das an einem vergessenen Handgriff scheitert, ist ein schlechtes
+# The alternative would be to demand a `chown` from the user before the first start. A
+# deployment that fails on a forgotten manual step is a bad
 # Deployment.
 if [ -d "${DATA_DIR:-/data}" ]; then
   chown -R node:node "${DATA_DIR:-/data}" 2>/dev/null || true

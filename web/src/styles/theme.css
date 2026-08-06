@@ -173,7 +173,7 @@ body {
   background: var(--bm-page);
   color: var(--bm-ink);
   font-family: var(--bm-font-body);
-  /* Verhindert, dass iOS beim Fokussieren eines Eingabefelds die Seite zoomt. */
+  /* Stops iOS from zooming the page when an input field is focused. */
   -webkit-text-size-adjust: 100%;
 }
 

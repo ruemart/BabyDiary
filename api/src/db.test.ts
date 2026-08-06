@@ -234,7 +234,7 @@ describe("Every entry type survives the round trip", () => {
           endedAt: "2026-08-04T12:30:00.000Z",
         }),
         entry({ id: "growth", type: "growth", amountMl: null, weightG: 5400, lengthMm: 610, headMm: 390 }),
-        entry({ id: "milestone", type: "milestone", amountMl: null, label: "Erstes Lächeln" }),
+        entry({ id: "milestone", type: "milestone", amountMl: null, label: "First smile" }),
         entry({ id: "note", type: "note", amountMl: null, note: "Unruhige Nacht" }),
         entry({
           id: "photo",
@@ -253,7 +253,7 @@ describe("Every entry type survives the round trip", () => {
     expect(byId.get("sleep")!.endedAt).toBe("2026-08-04T12:30:00.000Z");
     expect(byId.get("growth")!.weightG).toBe(5400);
     expect(byId.get("growth")!.headMm).toBe(390);
-    expect(byId.get("milestone")!.label).toBe("Erstes Lächeln");
+    expect(byId.get("milestone")!.label).toBe("First smile");
     expect(byId.get("note")!.note).toBe("Unruhige Nacht");
     expect(byId.get("photo")!.lifeWeek).toBe(7);
     expect(byId.get("photo")!.mediaId).toBe("abc.jpg");

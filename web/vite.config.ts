@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       /**
        * Eigener Service Worker statt des erzeugten — ein erzeugter kann keinen
-       * `push`-Empfänger enthalten, und genau den braucht die Fläschchen-Erinnerung.
-       * Vorabspeichern und Bildzwischenspeicher stehen jetzt in web/src/sw.ts.
+       * `push` listener, and that is exactly what the bottle reminder needs.
+       * Precaching and the image cache now live in web/src/sw.ts.
        */
       strategies: "injectManifest",
       srcDir: "src",
@@ -23,7 +23,7 @@ export default defineConfig({
       manifest: {
         name: "BabyMonitor",
         short_name: "Baby",
-        description: "Trinken, Windeln, Schlaf und Entwicklung festhalten",
+        description: "Track feeds, nappies, sleep and development",
         lang: "de",
         start_url: "/",
         display: "standalone",

@@ -448,7 +448,7 @@ async function save() {
                One entry instead of a daily location. -->
           <p v-if="place" class="place__chosen">
             {{ place.placeName }}
-            <button type="button" class="place__clear" @click="place = null">ändern</button>
+            <button type="button" class="place__clear" @click="place = null">{{ $t("add.changePlace") }}</button>
           </p>
           <template v-else>
             <div class="place">

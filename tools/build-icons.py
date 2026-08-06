@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
-"""Erzeugt die Symbole der App aus einer einzigen Zeichnung.
+"""Generates the app icons from a single drawing.
 
-Die Dateien waren im Manifest und in der index.html eingetragen, existierten aber nie —
-nginx lieferte für jede von ihnen die index.html aus, mit Status 200. Auf dem
-Startbildschirm blieb damit ein Platzhalter, und die Benachrichtigungen hatten kein Bild.
+The files were listed in the manifest and in index.html but never existed — nginx served
+index.html for each of them with status 200, so the home screen kept a placeholder and
+notifications had no image.
 
-Erzeugt statt eines Fotos eine Fläschchen-Silhouette: Bei 48 px auf einem
-Startbildschirm zählt allein der Umriss. Farben und Rundung stammen aus dem
-Erscheinungsbild der App (Honig auf Creme).
+Draws a bottle silhouette rather than a picture: at 48 px on a home screen only the
+outline counts. Colours and corner radius come from the app's own look (honey on cream).
 
     python3 tools/build-icons.py
 
-Legt die Dateien in web/public/ ab. Von dort übernimmt Vite sie unverändert.
+Writes the files into web/public/. Vite copies them from there unchanged.
 """
 
 from pathlib import Path
@@ -20,17 +19,17 @@ from PIL import Image, ImageDraw
 
 OUT = Path(__file__).resolve().parent.parent / "web" / "public"
 
-HONEY = (232, 163, 61, 255)  # --bm-feed, zugleich theme_color
+HONEY = (232, 163, 61, 255)  # --bm-feed, also the theme_color
 CREAM = (247, 244, 238, 255)  # background_color
 INK = (42, 32, 40, 255)
 
-# Auf 1024 gezeichnet und heruntergerechnet: Das glättet die Kanten besser als jede
-# Zeichnung direkt in Zielgröße.
+# Drawn at 1024 and scaled down: that smooths the edges better than drawing directly
+# at the target size.
 BASE = 1024
 
 
 def bottle(draw: ImageDraw.ImageDraw, size: int, colour: tuple[int, int, int, int]) -> None:
-    """Ein Fläschchen, mittig, an `size` als Kantenlänge des Bildfelds ausgerichtet."""
+    """A bottle, centred, sized against `size` as the edge length of the canvas."""
     cx = size / 2
     unit = size / 100
 
@@ -41,11 +40,11 @@ def bottle(draw: ImageDraw.ImageDraw, size: int, colour: tuple[int, int, int, in
             fill=colour,
         )
 
-    box(-8, 12, 8, 20, 3)  # Sauger
-    box(-13, 22, 13, 32, 4)  # Ring
-    box(-17, 34, 17, 86, 9)  # Körper
+    box(-8, 12, 8, 20, 3)  # teat
+    box(-13, 22, 13, 32, 4)  # collar
+    box(-17, 34, 17, 86, 9)  # body
 
-    # Füllstriche: machen aus einem beliebigen Behälter erkennbar ein Fläschchen.
+    # Graduation marks: they turn a generic container into a recognisable baby bottle.
     for y in (52, 62, 72):
         draw.rounded_rectangle(
             [cx + 5 * unit, y * unit, cx + 12 * unit, (y + 2.2) * unit],
@@ -63,7 +62,7 @@ def rounded_tile(size: int, radius_ratio: float, bg: tuple[int, int, int, int]) 
 
 
 def render(size: int, *, radius_ratio: float, inset: float = 0.0) -> Image.Image:
-    """`inset` schrumpft die Zeichnung — für das maskierbare Symbol nötig."""
+    """`inset` shrinks the drawing — needed for the maskable icon."""
     tile = rounded_tile(BASE, radius_ratio, HONEY)
 
     glyph = Image.new("RGBA", (BASE, BASE), (0, 0, 0, 0))
@@ -98,13 +97,13 @@ SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
 
-    # iOS schneidet die Ecken selbst zu und mag keine Transparenz — deshalb voll gefüllt.
+    # iOS rounds the corners itself and dislikes transparency — hence fully filled.
     render(180, radius_ratio=0.0).save(OUT / "apple-touch-icon.png")
     render(192, radius_ratio=0.18).save(OUT / "icon-192.png")
     render(512, radius_ratio=0.18).save(OUT / "icon-512.png")
-    # Maskierbar: Android beschneidet frei, sicher ist nur der mittlere Kreis (80 %).
+    # Maskable: Android crops freely, only the central circle (80 %) is safe.
     render(512, radius_ratio=0.0, inset=0.22).save(OUT / "icon-maskable-512.png")
     (OUT / "favicon.svg").write_text(SVG, encoding="utf-8")
 
     for f in sorted(OUT.iterdir()):
-        print(f"  {f.name:26} {f.stat().st_size:>7} Byte")
+        print(f"  {f.name:26} {f.stat().st_size:>7} bytes")

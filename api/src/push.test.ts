@@ -46,7 +46,7 @@ describe("Quiet hours", () => {
 });
 
 describe("Due reminders", () => {
-  const due = "2026-08-05T12:00:00Z"; // 14:00 lokal, außerhalb der Ruhezeit
+  const due = "2026-08-05T12:00:00Z"; // 14:00 local, outside the quiet hours
 
   it("speaks up at the lead time, not earlier", () => {
     // 20 minutes before, lead time is 10 -> nothing yet.

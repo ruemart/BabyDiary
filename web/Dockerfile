@@ -18,8 +18,9 @@ RUN npm run build --workspace=@babymonitor/web
 FROM nginx:1.27-alpine AS runtime
 COPY web/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Der Bauplan liegt daneben, nicht direkt im Auslieferungsordner: Das Startskript legt
-# die Dateien dort ab und lässt die der vorigen Fassung stehen. Warum, steht dort.
+# The build output sits alongside, not directly in the served directory: the startup
+# script puts the files there and leaves the previous version's in place. Why, is
+# explained there.
 COPY --from=build /app/web/dist /opt/app-dist
 COPY web/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

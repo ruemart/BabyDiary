@@ -1,14 +1,14 @@
 /**
- * Wandelt die Natural-Earth-Ländergrenzen einmalig in SVG-Pfade um.
+ * Converts the Natural Earth country borders into SVG paths, once.
  *
- * ZUR BAUZEIT, nicht zur Laufzeit: Eine Familien-App soll beim Öffnen keinen
- * Kartendienst kontaktieren. Damit funktioniert die Karte auch offline, es gehen
- * keine Standortdaten nach außen, und es gibt keine Kachel-URL, die in drei Jahren
- * tot ist.
+ * AT BUILD TIME, not at runtime: a family app should not contact any
+ * map service on open. That way the map works offline, no
+ * no location data leaves the device, and there is no tile URL that in three years
+ * will be dead.
  *
- * Projektion: äquirektangulär (Plate Carrée). Bewusst die einfachste — dadurch ist
- * die Umrechnung von Koordinaten auf Bildpunkte eine Multiplikation, und die
- * Punkte lassen sich ohne Bibliothek platzieren.
+ * Projection: equirectangular (plate carrée). Deliberately the simplest — which makes
+ * converting coordinates to pixels a multiplication, and the dots can be placed
+ * without a library.
  *
  *   node tools/build-world-map.mjs > web/src/data/world.ts
  */
@@ -31,15 +31,15 @@ const project = ([lon, lat]) => [
 ];
 
 function ringToPath(ring) {
-  // Sehr kleine Inseln weglassen — sie kosten Bytes und sind bei dieser Größe
-  // ohnehin nicht sichtbar.
+  // Drop very small islands — they cost bytes and at this size are
+  // not visible anyway.
   if (ring.length < 4) return "";
   const points = ring.map(project);
   const [first, ...rest] = points;
   let d = `M${first[0]} ${first[1]}`;
   let last = first;
   for (const p of rest) {
-    // Punkte, die auf denselben Zehntel-Bildpunkt fallen, überspringen.
+    // Skip points that fall on the same tenth of a pixel.
     if (p[0] === last[0] && p[1] === last[1]) continue;
     d += `L${p[0]} ${p[1]}`;
     last = p;
@@ -62,18 +62,18 @@ for (const feature of geo.features) {
 const combined = paths.join("");
 
 process.stdout.write(`/**
- * Ländergrenzen als ein einziger SVG-Pfad, äquirektangulär projiziert.
+ * Country borders as a single SVG path, equirectangular projection.
  *
- * Erzeugt mit \`tools/build-world-map.mjs\` aus Natural Earth (gemeinfrei, über das
- * Paket world-atlas). Zur Bauzeit umgerechnet, damit die App zur Laufzeit keinen
- * Kartendienst kontaktiert: funktioniert offline, verrät keine Standorte nach außen,
- * und es gibt keine Kachel-URL, die irgendwann nicht mehr existiert.
+ * Generated with \`tools/build-world-map.mjs\` from Natural Earth (public domain, via
+ * world-atlas package). Converted at build time so the app contacts no
+ * map service at runtime: it works offline, gives no locations away,
+ * and there is no tile URL that stops existing one day.
  *
  * NICHT VON HAND BEARBEITEN.
  */
 export const WORLD_VIEWBOX = { width: ${WIDTH}, height: ${HEIGHT} } as const;
 
-/** Bildpunkt-Position für Koordinaten — bei dieser Projektion reine Multiplikation. */
+/** Pixel position for coordinates — pure multiplication with this projection. */
 export function projectToMap(latitude: number, longitude: number): { x: number; y: number } {
   return {
     x: ((longitude + 180) / 360) * ${WIDTH},

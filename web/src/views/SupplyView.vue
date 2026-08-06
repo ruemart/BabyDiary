@@ -268,7 +268,7 @@ async function remove() {
             v-if="periods(cat.value)[0]!.entry.mediaId"
             class="thumb"
             type="button"
-            :aria-label="`Foto der Verpackung vergrößern: ${describe(periods(cat.value)[0]!.entry)}`"
+            :aria-label="$t('supply.photoZoomOf', { what: describe(periods(cat.value)[0]!.entry) })"
             @click="zoomed = `/api/media/${periods(cat.value)[0]!.entry.mediaId}`"
           >
             <img :src="`/api/media/${periods(cat.value)[0]!.entry.mediaId}`" alt="" />
@@ -373,7 +373,7 @@ async function remove() {
 
         <label class="field">
           <span class="field__label">{{ $t(categoryMeta.sizeKey) }}</span>
-          <input v-model="size" type="text" placeholder="z. B. Größe 3" />
+          <input v-model="size" type="text" :placeholder="$t('supply.sizePlaceholder')" />
         </label>
 
         <div class="field">

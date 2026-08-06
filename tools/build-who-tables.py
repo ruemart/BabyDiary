@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Wandelt die WHO-Wachstumstabellen (xlsx) in kompaktes JSON für das Frontend um.
+Converts the WHO growth tables (xlsx) into compact JSON for the frontend.
 
-Die Originaldateien enthalten für jeden Lebenstag von 0 bis 1856 eine Zeile mit den
-LMS-Parametern und den daraus abgeleiteten Standardabweichungen. Wir behalten nur
-L, M und S — daraus lässt sich jedes Perzentil exakt berechnen, während das Mitführen
-aller vorberechneten Spalten die Datei ohne Gewinn vervierfachen würde.
+The original files hold one row per day of life from 0 to 1856 with the
+LMS parameters and the standard deviations derived from them. We keep only
+L, M and S — every percentile can be computed exactly from those, whereas carrying all
+the precomputed columns would quadruple the file for no gain.
 
-Ausgedünnt auf wöchentliche Stützstellen über die ersten zwei Jahre: Zwischen zwei
-benachbarten Tagen ändert sich M um Bruchteile eines Gramms, und der Client
-interpoliert linear. Das reduziert die Datei von ~1900 auf ~105 Zeilen je Tabelle.
+Thinned to weekly anchor points over the first two years: between two adjacent days M
+changes by fractions of a gram, and the client
+interpolates linearly. That reduces the file from ~1900 to ~105 rows per table.
 
 Aufruf:
     python3 tools/build-who-tables.py <ordner-mit-xlsx> web/src/data/who
@@ -20,12 +20,12 @@ import sys
 import zipfile
 from pathlib import Path
 
-MAX_DAYS = 730  # zwei Jahre; danach ist der Zeitstrahl der App zu Ende
+MAX_DAYS = 730  # two years; after that the app's timeline ends
 STEP_DAYS = 7
 
 
 def read_sheet(path: Path) -> list[list[str]]:
-    """Minimaler xlsx-Leser — genug für diese flachen Tabellen ohne Formeln."""
+    """A minimal xlsx reader — enough for these flat tables without formulas."""
     with zipfile.ZipFile(path) as z:
         shared: list[str] = []
         if "xl/sharedStrings.xml" in z.namelist():
@@ -39,9 +39,9 @@ def read_sheet(path: Path) -> list[list[str]]:
     rows: list[list[str]] = []
     for row_xml in re.findall(r"<row[^>]*>(.*?)</row>", sheet, re.S):
         cells: list[str] = []
-        # Attribute und Inhalt getrennt greifen: Ein optionales t="s" mitten in einem
-        # gierigen Attribut-Muster wird sonst nie erkannt, und die Kopfzeile bliebe
-        # als unaufgelöster String-Index stehen.
+        # Match attributes and content separately: an optional t="s" in the middle of a
+        # greedy attribute pattern would never be recognised, and the header row would stay
+        # as an unresolved string index.
         for attrs, body in re.findall(r"<c\b([^>]*)>(.*?)</c>", row_xml, re.S):
             value_match = re.search(r"<v>(.*?)</v>", body, re.S)
             if not value_match:
@@ -82,7 +82,7 @@ def extract_lms(path: Path) -> list[list[float]]:
             continue
         if day > MAX_DAYS:
             break
-        # Erster und letzter Tag immer mit, dazwischen im Wochenraster.
+        # Always include the first and last day, weekly in between.
         if day % STEP_DAYS == 0 or day == 0:
             out.append([day, round(l, 4), round(m, 4), round(s, 5)])
     return out
@@ -104,7 +104,7 @@ def main() -> None:
         table = extract_lms(src / filename)
         target = dst / f"{name}.json"
         target.write_text(json.dumps(table, separators=(",", ":")), encoding="utf-8")
-        print(f"{name}: {len(table)} Stützstellen, {target.stat().st_size} Bytes")
+        print(f"{name}: {len(table)} anchor points, {target.stat().st_size} bytes")
 
 
 if __name__ == "__main__":

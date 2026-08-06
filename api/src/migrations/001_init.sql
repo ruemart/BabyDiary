@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS entries (
   type        TEXT NOT NULL CHECK (type IN ('feed','diaper','sleep','growth','milestone','note','photo')),
 
   started_at  TEXT NOT NULL,          -- ISO-8601 UTC, Zeitpunkt des Ereignisses
-  ended_at    TEXT,                   -- nur sleep; NULL solange der Schlaf läuft
+  ended_at    TEXT,                   -- sleep only; NULL while the sleep is running
 
   amount_ml   INTEGER,                -- feed
   diaper      TEXT CHECK (diaper IS NULL OR diaper IN ('empty','wet','soiled','both')),
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS entries (
   head_mm     INTEGER,
 
   label       TEXT,                   -- milestone / photo
-  life_week   INTEGER,                -- photo: für welche Lebenswoche das Foto zählt
+  life_week   INTEGER,                -- photo: which week of life the photo counts for
   media_id    TEXT,
   note        TEXT,
 
@@ -25,12 +25,12 @@ CREATE TABLE IF NOT EXISTS entries (
   edited_at   TEXT NOT NULL,          -- Client-Zeit; entscheidet Konflikte (LWW)
 
   -- Server-vergebene monotone Sequenz. Der Sync-Cursor.
-  -- Bewusst KEIN Zeitstempel: zwei Writes in derselben Millisekunde würden bei
+  -- Deliberately NOT a timestamp: two writes in the same millisecond would, with
   -- einem Zeitstempel-Cursor einen Eintrag verschlucken.
   rev         INTEGER NOT NULL,
 
-  -- Soft-Delete ist Pflicht, nicht Komfort: ohne ihn erfährt das zweite Handy nie
-  -- von einer Löschung und schiebt den Eintrag beim nächsten Sync wieder hoch.
+  -- A soft delete is mandatory, not a convenience: without it the second phone never
+  -- learns of a deletion and pushes the entry back on the next sync.
   deleted     INTEGER NOT NULL DEFAULT 0
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS child (
   name            TEXT NOT NULL,
   sex             TEXT NOT NULL CHECK (sex IN ('female','male')),
   birth_date      TEXT NOT NULL,      -- YYYY-MM-DD, lokal gemeint
-  due_date        TEXT,               -- errechneter Termin; Basis der Sprungwochen
+  due_date        TEXT,               -- due date; the basis of the leap weeks
   birth_weight_g  INTEGER,
   birth_length_mm INTEGER,
   birth_head_mm   INTEGER,

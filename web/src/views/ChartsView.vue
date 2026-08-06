@@ -139,7 +139,7 @@ const trendText = computed(() => {
     <section v-if="data.child" class="card">
       <div class="growth__head">
         <h2 class="card__title">{{ $t("charts.growth") }}</h2>
-        <div class="toggle" role="group" aria-label="Messgröße">
+        <div class="toggle" role="group" :aria-label="$t('charts.measureAria')">
           <button
             type="button"
             :class="{ 'toggle__item--active': growthMeasure === 'weight' }"

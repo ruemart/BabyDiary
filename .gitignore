@@ -2,14 +2,14 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Werkzeug-Einstellungen des Autors
+# The author's tool settings
 .claude/
 
-# Laufzeitdaten: SQLite-Datei, Fotos, Backups — gehören nie ins Repo.
+# Runtime data: the SQLite file, photos, backups — these never belong in the repo.
 #
-# Mit fühender Schrägstrich, sonst trifft das Muster JEDES Verzeichnis namens "data" —
-# auch web/src/data mit den Sprüngen, Meilensteinen, WHO-Tabellen und Länderdateien.
-# Genau das war der Fall: Ein frischer Klon hätte sich nicht bauen lassen.
+# With a leading slash, otherwise the pattern matches EVERY directory named "data" —
+# including web/src/data with the leaps, milestones, WHO tables and country files. That
+# is exactly what happened: a fresh clone would not have built.
 /data/
 /backups/
 
@@ -17,7 +17,7 @@ dist/
 .env.local
 *.local
 
-# Test-Artefakte
+# Test artefacts
 coverage/
 test-results/
 playwright-report/

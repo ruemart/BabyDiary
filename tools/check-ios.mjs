@@ -1,20 +1,20 @@
 /**
- * Prüft die App in WebKit — der Maschine, die auch auf dem iPhone läuft.
+ * Checks the app in WebKit — the engine that also runs on the iPhone.
  *
- * Anlass waren drei Fehler hintereinander, die es NUR auf dem iPhone gab und die in
- * Chromium sauber aussahen: tote Navigationspunkte, ein Blatt, das zu drei Vierteln
- * unter dem Bildschirm lag, und ein Wochenfoto, das seinen Kreis nicht füllte. Jedes
- * Mal hieß es raten, weil hier keine zweite Maschine lief.
+ * Prompted by three bugs in a row that existed ONLY on the iPhone and looked perfectly
+ * fine in Chromium: dead navigation items, a sheet sitting three quarters below the
+ * screen, and a weekly photo that did not fill its circle. Each time it meant guessing,
+ * because no second engine ran here.
  *
- * Läuft gegen den ENTWICKLUNGSSERVER, nicht gegen den Docker-Stapel: Das
- * Sitzungs-Cookie ist dort `Secure`, und WebKit lehnt solche Cookies über HTTP ab
- * (Chromium macht bei localhost eine Ausnahme — genau deshalb fiel es lange nicht auf).
+ * Runs against the DEVELOPMENT SERVER, not the Docker stack: the session cookie is
+ * `Secure` there, and WebKit refuses such cookies over HTTP (Chromium makes an exception
+ * for localhost — which is exactly why this went unnoticed for so long).
  *
  *   npm run dev --workspace=web          # 5173
  *   cd api && … node --experimental-strip-types src/server.ts   # 3010, COOKIE_SECURE=false
  *   node tools/check-ios.mjs
  *
- * Einmalig nötig, damit WebKit startet:
+ * One-time setup so WebKit starts:
  *   npx playwright install webkit
  *   sudo apt-get install -y libharfbuzz-icu0 libmanette-0.2-0 libhyphen0
  */
@@ -23,122 +23,123 @@ import { webkit, devices } from "@playwright/test";
 const BASE = process.env.BASE ?? "http://127.0.0.1:5173";
 const INVITE = process.env.HOUSEHOLD_SECRET ?? "dev-household-secret-1234567890abcd";
 
-const befunde = [];
-const prüfe = (name, bestanden, hinweis) => {
-  befunde.push({ name, bestanden, hinweis });
-  console.log(`${bestanden ? "  ok  " : " FEHL "} ${name}${hinweis ? ` — ${hinweis}` : ""}`);
+const results = [];
+const check = (name, passed, note) => {
+  results.push({ name, passed, note });
+  console.log(`${passed ? "  ok  " : " FAIL "} ${name}${note ? ` — ${note}` : ""}`);
 };
 
 const browser = await webkit.launch();
 const context = await browser.newContext({
   ...devices["iPhone 14"],
-  locale: "de-DE",
+  // English, so the selectors below do not depend on a translation.
+  locale: "en-US",
   timezoneId: "Europe/Berlin",
 });
 const page = await context.newPage();
-const fehler = [];
-page.on("pageerror", (e) => fehler.push(e.message));
+const errors = [];
+page.on("pageerror", (e) => errors.push(e.message));
 
 await page.goto(`${BASE}/start?t=${INVITE}`, { waitUntil: "networkidle" });
 if (await page.getByRole("button", { name: "Papa", exact: true }).count()) {
   await page.getByRole("button", { name: "Papa", exact: true }).click();
-  await page.getByRole("button", { name: /Loslegen/ }).click();
+  await page.getByRole("button", { name: /Let's go/ }).click();
   await page.waitForTimeout(1500);
-  const setup = page.getByPlaceholder("Wie heißt sie oder er?");
+  const setup = page.getByPlaceholder(/name/i);
   if (await setup.count()) {
-    await setup.fill("Testkind");
+    await setup.fill("Test child");
     await page.locator('input[type="date"]').first().fill("2026-05-01");
-    await page.getByRole("button", { name: "Los geht's" }).click();
+    await page.getByRole("button", { name: /Let's go/ }).click();
   }
 }
 await page.waitForTimeout(3500);
 
-/* ── Das Eingabeblatt muss ganz auf den Bildschirm passen ─────────────────── */
+/* ── The input sheet has to fit on the screen ─────────────────────────────── */
 
 await page.goto(`${BASE}/verlauf`, { waitUntil: "networkidle" });
 await page.waitForTimeout(1500);
-await page.getByRole("button", { name: "Nachtragen" }).click();
+await page.getByRole("button", { name: /Add entry/ }).click();
 await page.waitForTimeout(900);
 
-const blatt = await page.evaluate(() => {
+const sheet = await page.evaluate(() => {
   const d = document.querySelector("dialog.sheet");
   if (!d) return null;
   const r = d.getBoundingClientRect();
-  const fuß = d.querySelector(".sheet__actions");
+  const footer = d.querySelector(".sheet__actions");
   return {
-    fenster: window.innerHeight,
-    unten: Math.round(r.bottom),
-    oben: Math.round(r.top),
-    fußUnten: fuß ? Math.round(fuß.getBoundingClientRect().bottom) : null,
-    // Ein hängengebliebenes `transform` war die Ursache des iPhone-Fehlers.
+    viewport: window.innerHeight,
+    bottom: Math.round(r.bottom),
+    top: Math.round(r.top),
+    footerBottom: footer ? Math.round(footer.getBoundingClientRect().bottom) : null,
+    // A stuck `transform` was the cause of the iPhone bug.
     transform: getComputedStyle(d).transform,
   };
 });
 
-prüfe("Blatt öffnet sich", !!blatt);
-if (blatt) {
-  prüfe(
-    "Blatt endet am Bildschirmrand, nicht darunter",
-    blatt.unten <= blatt.fenster + 1,
-    `Unterkante ${blatt.unten}, Fenster ${blatt.fenster}`,
+check("the sheet opens", !!sheet);
+if (sheet) {
+  check(
+    "the sheet ends at the screen edge, not below it",
+    sheet.bottom <= sheet.viewport + 1,
+    `bottom ${sheet.bottom}, viewport ${sheet.viewport}`,
   );
-  prüfe(
-    "Speichern-Knopf ist sichtbar",
-    blatt.fußUnten !== null && blatt.fußUnten <= blatt.fenster + 1,
-    `Fuß endet bei ${blatt.fußUnten}`,
+  check(
+    "the save button is visible",
+    sheet.footerBottom !== null && sheet.footerBottom <= sheet.viewport + 1,
+    `footer ends at ${sheet.footerBottom}`,
   );
-  prüfe(
-    "keine stehengebliebene Verschiebung",
-    blatt.transform === "none" || blatt.transform === "matrix(1, 0, 0, 1, 0, 0)",
-    blatt.transform,
+  check(
+    "no stuck transform",
+    sheet.transform === "none" || sheet.transform === "matrix(1, 0, 0, 1, 0, 0)",
+    sheet.transform,
   );
 }
 
-/* ── Das Wochenfoto muss seinen Kreis füllen ──────────────────────────────── */
+/* ── The weekly photo has to fill its circle ──────────────────────────────── */
 
 await page.keyboard.press("Escape");
 await page.goto(`${BASE}/wochen`, { waitUntil: "networkidle" });
 await page.waitForTimeout(2000);
 
-const foto = await page.evaluate(() => {
+const photo = await page.evaluate(() => {
   const img = document.querySelector(".cell__photo img");
   if (!img) return null;
   const b = img.getBoundingClientRect();
   const r = img.parentElement.getBoundingClientRect();
   return {
-    bild: { b: Math.round(b.width), h: Math.round(b.height) },
-    kreis: { b: Math.round(r.width), h: Math.round(r.height) },
+    image: { w: Math.round(b.width), h: Math.round(b.height) },
+    circle: { w: Math.round(r.width), h: Math.round(r.height) },
   };
 });
 
-if (!foto) {
-  console.log("  ---  Wochenfoto übersprungen (kein Foto hinterlegt)");
+if (!photo) {
+  console.log("  ---  weekly photo skipped (none recorded)");
 } else {
-  prüfe(
-    "Foto füllt den Kreis genau",
-    foto.bild.b === foto.kreis.b && foto.bild.h === foto.kreis.h,
-    `Bild ${foto.bild.b}×${foto.bild.h}, Kreis ${foto.kreis.b}×${foto.kreis.h}`,
+  check(
+    "the photo fills the circle exactly",
+    photo.image.w === photo.circle.w && photo.image.h === photo.circle.h,
+    `image ${photo.image.w}×${photo.image.h}, circle ${photo.circle.w}×${photo.circle.h}`,
   );
 }
 
 /* ── Navigation ───────────────────────────────────────────────────────────── */
 
-for (const [name, pfad] of [
-  ["Heute", "/"],
-  ["Wochen", "/wochen"],
-  ["Schritte", "/meilensteine"],
-  ["Kurven", "/kurven"],
-  ["Mehr", "/einstellungen"],
+for (const [name, path] of [
+  ["Today", "/"],
+  ["Weeks", "/wochen"],
+  ["Steps", "/meilensteine"],
+  ["Charts", "/kurven"],
+  ["More", "/einstellungen"],
 ]) {
   await page.getByRole("link", { name }).click();
   await page.waitForTimeout(900);
-  prüfe(`Navigation „${name}"`, new URL(page.url()).pathname === pfad, page.url());
+  check(`navigation "${name}"`, new URL(page.url()).pathname === path, page.url());
 }
 
-prüfe("keine Skriptfehler", fehler.length === 0, fehler.join(" | "));
+check("no script errors", errors.length === 0, errors.join(" | "));
 
 await browser.close();
 
-const durchgefallen = befunde.filter((b) => !b.bestanden);
-console.log(`\n${befunde.length - durchgefallen.length}/${befunde.length} bestanden`);
-process.exit(durchgefallen.length ? 1 : 0);
+const failed = results.filter((r) => !r.passed);
+console.log(`\n${results.length - failed.length}/${results.length} passed`);
+process.exit(failed.length ? 1 : 0);

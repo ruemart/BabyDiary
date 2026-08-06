@@ -2,9 +2,9 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
-    // Kein Emit: `shared` wird als Quelltext konsumiert — von Vite im Frontend und
-    // von Nodes Type-Stripping im Backend. Damit entfällt ein Build-Schritt komplett,
-    // und es kann nie eine veraltete dist/ gegen die Quellen laufen.
+    // No emit: `shared` is consumed as source — by Vite in the frontend and by Node's
+    // type stripping in the backend. That removes a build step entirely, and a stale
+    // dist/ can never run against the sources.
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "rootDir": "src"

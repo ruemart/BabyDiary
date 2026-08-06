@@ -8,6 +8,7 @@
   "add": {
     "absence": "Urlaub",
     "amount": "Menge",
+    "changePlace": "ändern",
     "condition": "Zustand",
     "end": "Ende",
     "endKnown": "Ende ist schon bekannt",
@@ -56,6 +57,9 @@
       "title": "Seit {hours} Stunden keine nasse Windel"
     }
   },
+  "app": {
+    "description": "Trinken, Windeln, Schlaf und Entwicklung festhalten"
+  },
   "area": {
     "koerper": "Körper",
     "motorik": "Bewegung",
@@ -86,6 +90,7 @@
     "length": "Länge",
     "lessThanLastWeek": "{n} % weniger als letzte Woche",
     "lighter": "leichter oder gleich schwer",
+    "measureAria": "Messgröße",
     "moreThanLastWeek": "{n} % mehr als letzte Woche",
     "needsWeight": "Braucht einen Gewichtseintrag",
     "noMeasurements": "Noch keine Messwerte. Über „Verlauf → Nachtragen“ lassen sich Gewicht und Länge eintragen — etwa die Werte von der letzten Vorsorgeuntersuchung.",
@@ -359,7 +364,8 @@
   },
   "push": {
     "denied": "Benachrichtigungen wurden im Browser abgelehnt. Das lässt sich nur in den Browser-Einstellungen wieder ändern.",
-    "noKeys": "Auf dem Server sind keine Schlüssel hinterlegt."
+    "noKeys": "Auf dem Server sind keine Schlüssel hinterlegt.",
+    "saveFailed": "Die Anmeldung konnte nicht gespeichert werden."
   },
   "record": {
     "biggestFeed": "Größte Mahlzeit",
@@ -490,11 +496,13 @@
     "photoTake": "Foto aufnehmen",
     "photoUploading": "Wird geladen …",
     "photoZoom": "Foto vergrößern",
+    "photoZoomOf": "Foto der Verpackung vergrößern: {what}",
     "product": "Marke oder Produkt",
     "record": "Eintragen",
     "shop": "Wo gekauft",
     "shopPlaceholder": "z. B. dm, Rossmann, Apotheke",
     "since": "Seit wann",
+    "sizePlaceholder": "z. B. Größe 3",
     "title": "Was wir kaufen",
     "titleEdit": "Eintrag ändern",
     "titleNew": "{category} eintragen"
@@ -569,6 +577,7 @@
     "bottles": "Fläschchen",
     "diapers": "Windeln",
     "empty": "Sobald ihr ein paar Tage eingetragen habt, sammeln sich hier die Zahlen.",
+    "entriesCount": "{n} Einträge",
     "feeds": "Mahlzeiten",
     "intake": "Trinkmenge",
     "liters": "Liter",
@@ -633,6 +642,7 @@
     "checkInList": "In der Liste abhaken",
     "from": "ab {date}",
     "lead": "Jede Woche ein Foto — der Zeitstrahl wird damit zum Album.",
+    "milestoneTitle": "{n} Meilenstein(e) üblich ab dieser Woche",
     "nothingThisWeek": "In dieser Woche steht nichts an.",
     "otherPhoto": "Anderes Foto",
     "periodWeeks": "Woche {from}",

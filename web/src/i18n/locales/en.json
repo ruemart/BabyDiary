@@ -8,6 +8,7 @@
   "add": {
     "absence": "Away",
     "amount": "Amount",
+    "changePlace": "change",
     "condition": "Condition",
     "end": "End",
     "endKnown": "The end is already known",
@@ -56,6 +57,9 @@
       "title": "No wet nappy for {hours} hours"
     }
   },
+  "app": {
+    "description": "Track feeds, nappies, sleep and development"
+  },
   "area": {
     "koerper": "Body",
     "motorik": "Movement",
@@ -86,6 +90,7 @@
     "length": "Length",
     "lessThanLastWeek": "{n} % less than last week",
     "lighter": "lighter or the same weight",
+    "measureAria": "Measure",
     "moreThanLastWeek": "{n} % more than last week",
     "needsWeight": "Needs a weight entry",
     "noMeasurements": "No measurements yet. Under “History → Add entry” you can record weight and length — for example the values from the last check-up.",
@@ -359,7 +364,8 @@
   },
   "push": {
     "denied": "Notifications are blocked in the browser. That can only be changed in the browser settings.",
-    "noKeys": "No keys are configured on the server."
+    "noKeys": "No keys are configured on the server.",
+    "saveFailed": "The subscription could not be saved."
   },
   "record": {
     "biggestFeed": "Biggest feed",
@@ -490,11 +496,13 @@
     "photoTake": "Take a photo",
     "photoUploading": "Uploading …",
     "photoZoom": "Enlarge photo",
+    "photoZoomOf": "Enlarge the photo of the packaging: {what}",
     "product": "Brand or product",
     "record": "Record",
     "shop": "Where bought",
     "shopPlaceholder": "e.g. Boots, Tesco, pharmacy",
     "since": "Since when",
+    "sizePlaceholder": "e.g. size 3",
     "title": "What we buy",
     "titleEdit": "Edit entry",
     "titleNew": "Record {category}"
@@ -569,6 +577,7 @@
     "bottles": "bottles",
     "diapers": "nappies",
     "empty": "Once you have recorded a few days, the numbers gather here.",
+    "entriesCount": "{n} entries",
     "feeds": "Feeds",
     "intake": "Intake",
     "liters": "litres",
@@ -633,6 +642,7 @@
     "checkInList": "Tick it off in the list",
     "from": "from {date}",
     "lead": "One photo per week — which turns the timeline into an album.",
+    "milestoneTitle": "{n} milestone(s) usually from this week on",
     "nothingThisWeek": "Nothing due this week.",
     "otherPhoto": "Another photo",
     "periodWeeks": "week {from}",

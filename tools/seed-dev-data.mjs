@@ -1,18 +1,18 @@
 /**
- * Sät realistische Testdaten in eine laufende API — nur für die Entwicklung.
+ * Seeds realistic test data into a running API — for development only.
  *
- * Ohne echte Daten lassen sich die Auswertungen nicht beurteilen: Ein einzelner
- * Datenpunkt zeigt weder, ob die Achsen stimmen, noch ob das Rhythmus-Diagramm
- * tatsächlich das nächtliche Band sichtbar macht.
+ * Without real data the charts cannot be judged: a single data point shows neither
+ * whether the axes are right nor whether the rhythm chart
+ * actually makes the night-time band visible.
  *
- * Modelliert wird ein Säugling über 30 Tage: die Trinkmenge steigt langsam, die
- * Mahlzeiten werden seltener, und die Nachtfütterungen werden weniger.
+ * Models an infant over 30 days: the amounts rise slowly, the feeds become less
+ * frequent, and the night feeds thin out.
  */
 const BASE = process.env.BASE ?? "http://127.0.0.1:3010";
 const INVITE = process.env.HOUSEHOLD_SECRET ?? "dev-household-secret-1234567890abcd";
 const DAYS = 30;
 
-// Deterministischer Zufall, damit zwei Läufe dieselben Daten erzeugen.
+// Deterministic randomness so two runs produce the same data.
 let seed = 42;
 const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
 
@@ -46,7 +46,7 @@ const pull = await fetch(`${BASE}/api/sync`, {
 }).then((r) => r.json());
 
 const child = pull.child;
-if (!child) throw new Error("Kein Kind eingerichtet — erst die App einrichten.");
+if (!child) throw new Error("No child set up — set the app up first.");
 
 const base = (type, at, extra) => ({
   id: uuidv7(at.getTime()),
@@ -76,13 +76,13 @@ today.setHours(0, 0, 0, 0);
 for (let ago = DAYS - 1; ago >= 0; ago--) {
   const day = new Date(today);
   day.setDate(day.getDate() - ago);
-  const progress = (DAYS - 1 - ago) / (DAYS - 1); // 0 = ältester Tag
+  const progress = (DAYS - 1 - ago) / (DAYS - 1); // 0 = oldest day
 
   // Mahlzeiten: von 8/Tag auf 6/Tag, Menge von 75 auf 135 ml.
   const feedCount = Math.round(8 - progress * 2);
   const targetMl = 75 + progress * 60;
 
-  // Nachtfütterungen werden über den Zeitraum seltener.
+  // Night feeds become rarer over the period.
   const nightFeeds = Math.max(1, Math.round(3 - progress * 2));
   const dayFeeds = feedCount - nightFeeds;
 
@@ -109,7 +109,7 @@ for (let ago = DAYS - 1; ago >= 0; ago--) {
     changes.push(base("diaper", at, { diaper: kind }));
   }
 
-  // Ein längerer Schlaf pro Nacht, der über die Wochen länger wird.
+  // One longer sleep per night, growing longer over the weeks.
   const sleepStart = new Date(day);
   sleepStart.setHours(20, Math.floor(rnd() * 50), 0, 0);
   const sleepEnd = new Date(sleepStart);
@@ -119,7 +119,7 @@ for (let ago = DAYS - 1; ago >= 0; ago--) {
   }
 }
 
-// Wachstum: wöchentliche Wiegungen.
+// Growth: weekly weigh-ins.
 for (let week = 0; week <= 4; week++) {
   const at = new Date(today);
   at.setDate(at.getDate() - (28 - week * 7));
@@ -134,10 +134,10 @@ for (let week = 0; week <= 4; week++) {
 }
 
 changes.push(
-  base("milestone", new Date(today.getTime() - 9 * 86400000), { label: "Erstes bewusstes Lächeln" }),
+  base("milestone", new Date(today.getTime() - 9 * 86400000), { label: "First real smile" }),
 );
 
-// In Blöcken senden — der Server nimmt maximal 500 Änderungen pro Anfrage.
+// Send in blocks — the server accepts at most 500 changes per request.
 let sent = 0;
 for (let i = 0; i < changes.length; i += 400) {
   const batch = changes.slice(i, i + 400);
@@ -150,4 +150,4 @@ for (let i = 0; i < changes.length; i += 400) {
   sent += batch.length;
 }
 
-console.log(`${sent} Einträge gesät für ${child.name} (Geburt ${child.birthDate}).`);
+console.log(`Seeded ${sent} entries for ${child.name} (born ${child.birthDate}).`);

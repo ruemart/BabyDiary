@@ -1,9 +1,9 @@
 /**
- * Der wichtigste Test dieser App: Eintragen ohne Netz, und der Eintrag kommt auf dem
- * zweiten Gerät an, sobald das Netz zurück ist.
+ * The most important test of this app: record with no network, and the entry arrives on the
+ * second device as soon as the network is back.
  *
- * Läuft gegen den fertigen Docker-Stapel, nicht gegen den Entwicklungsserver — damit
- * auch nginx, der Service Worker und der echte API-Container mitgeprüft werden.
+ * Runs against the finished Docker stack, not the development server — so nginx, the
+ * service worker and the real API container are checked along with it.
  *
  *   BASE=http://127.0.0.1:8090 INVITE=<HOUSEHOLD_SECRET> node tools/verify-offline-sync.mjs
  */
@@ -21,7 +21,7 @@ const check = (name, ok, detail = "") => {
 
 const browser = await chromium.launch();
 
-// ── Gerät 1: Mama richtet ein ────────────────────────────────────────────────
+// ── Device 1: Mama sets things up ────────────────────────────────────────────
 const mama = await browser.newContext({
   viewport: { width: 390, height: 844 },
   locale: "de-DE",
@@ -34,30 +34,30 @@ await m.getByRole("button", { name: "Mama", exact: true }).click();
 await m.getByRole("button", { name: /Loslegen/ }).click();
 await m.waitForTimeout(3000);
 
-// Der Einrichtungsdialog erscheint nur bei leerer Datenbank. Bei einem zweiten
-// Durchlauf gegen denselben Stapel ist bereits ein Kind vorhanden — das ist kein
-// Fehler, sondern genau das gewünschte Verhalten.
+// The setup screen only appears with an empty database. On a second run against the
+// same stack a child already exists — that is
+// not an error but exactly the intended behaviour.
 const needsSetup = await m
   .waitForSelector("text=Wen begleiten wir", { timeout: 8000 })
   .then(() => true)
   .catch(() => false);
 
 if (needsSetup) {
-  await m.getByPlaceholder("Wie heißt sie oder er?").fill("Testkind");
+  await m.getByPlaceholder(/name/i).fill("Test child");
   const birth = new Date();
   birth.setDate(birth.getDate() - 40);
   await m.locator('input[type="date"]').first().fill(birth.toISOString().slice(0, 10));
   await m.getByRole("button", { name: /Los geht/ }).click();
 }
 
-// Auf die Kopfzeile warten statt auf einen festen Zeitraum: Auf einem ausgelasteten
-// Pi ist jede feste Wartezeit entweder zu kurz oder Zeitverschwendung.
+// Wait for the header rather than a fixed delay: on a busy Pi any fixed wait is either
+// too short or a waste of time.
 const headerVisible = await m
   .waitForSelector("h1:has-text('Woche')", { timeout: 15000 })
   .then(() => true)
   .catch(() => false);
 check(
-  needsSetup ? "Einrichtung abgeschlossen" : "Vorhandene Einrichtung übernommen",
+  needsSetup ? "setup completed" : "existing setup adopted",
   headerVisible,
 );
 
@@ -80,12 +80,12 @@ check("Eintrag erscheint sofort, obwohl offline", offlineVisible);
 await m.getByRole("button", { name: "Voll" }).first().click();
 await m.waitForTimeout(1500);
 
-// ── Wieder online: der Ausgangskorb muss abfließen ───────────────────────────
+// ── Back online: the outbox has to drain ─────────────────────────────────────
 await mama.setOffline(false);
 await m.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
 await m.waitForTimeout(6000);
 
-// ── Gerät 2: Papa, frischer Browser ──────────────────────────────────────────
+// ── Device 2: Papa, a fresh browser ──────────────────────────────────────────
 const papa = await browser.newContext({
   viewport: { width: 390, height: 844 },
   locale: "de-DE",
@@ -99,7 +99,7 @@ await p.waitForTimeout(5000);
 
 const papaSeesChild = await p.getByText("Testkind").isVisible().catch(() => false);
 check(
-  "Zweites Gerät übernimmt die Kinddaten (kein zweiter Einrichtungsdialog)",
+  "second device adopts the child details (no second setup screen)",
   papaSeesChild,
 );
 
@@ -107,15 +107,15 @@ await p.goto(`${BASE}/verlauf`, { waitUntil: "networkidle" });
 await p.waitForTimeout(2500);
 const historyText = await p.locator("body").innerText();
 check(
-  "Offline angelegte Flasche ist auf dem zweiten Gerät angekommen",
+  "bottle created offline arrived on the second device",
   /Flasche/.test(historyText),
 );
 check(
-  "Offline angelegte Windel ist auf dem zweiten Gerät angekommen",
+  "nappy created offline arrived on the second device",
   /Windel/.test(historyText),
 );
 
-// ── Löschen muss ebenfalls propagieren (Soft-Delete-Pfad) ────────────────────
+// ── Deleting has to propagate too (the soft-delete path) ─────────────────────
 const beforeDelete = (await p.locator(".entry").count()) ?? 0;
 await p.locator(".entry__remove").first().click();
 await p.waitForTimeout(4000);
@@ -125,7 +125,7 @@ await m.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
 await m.waitForTimeout(5000);
 const mamaCount = await m.locator(".entry").count();
 check(
-  "Löschung propagiert auf das erste Gerät",
+  "deletion propagated to the first device",
   mamaCount < beforeDelete,
   `${beforeDelete} → ${mamaCount}`,
 );
@@ -135,7 +135,7 @@ await browser.close();
 const failed = results.filter((r) => !r.ok);
 console.log(
   failed.length === 0
-    ? `\nAlle ${results.length} Prüfungen bestanden.`
-    : `\n${failed.length} von ${results.length} Prüfungen fehlgeschlagen.`,
+    ? `\nAll ${results.length} checks passed.`
+    : `\n${failed.length} of ${results.length} checks failed.`,
 );
 process.exit(failed.length === 0 ? 0 : 1);

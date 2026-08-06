@@ -1,15 +1,14 @@
 # syntax=docker/dockerfile:1
 #
-# Kein Build-Schritt für TypeScript: Node 24 strippt die Typen beim Laden. Dadurch
-# läuft im Container derselbe Quelltext, der auch lokal läuft — keine dist/, die
-# gegenüber den Quellen veralten kann.
+# No build step for TypeScript: Node 24 strips the types on load. That way the container
+# runs the same source that runs locally — no dist/ that can go stale against it.
 
 FROM node:24-alpine AS deps
 WORKDIR /app
 
-# better-sqlite3 wird auf arm64 aus der Quelle übersetzt, falls kein passendes
-# Fertigpaket vorliegt. Auf einem Pi 5 dauert das unter einer Minute; die Werkzeuge
-# bleiben in dieser Stufe und landen nicht im Laufzeit-Abbild.
+# better-sqlite3 is compiled from source on arm64 when no prebuilt package fits. On a
+# Pi 5 that takes under a minute; the toolchain stays in this stage and never reaches the
+# runtime image.
 RUN apk add --no-cache python3 make g++
 
 COPY package.json package-lock.json ./
@@ -17,15 +16,15 @@ COPY shared/package.json shared/
 COPY api/package.json api/
 COPY web/package.json web/
 
-# --omit=dev, aber der Workspace braucht die Paketdateien aller drei Teile, damit
-# npm den Baum auflösen kann.
+# --omit=dev, but the workspace needs the package files of all three parts so npm can
+# resolve the tree.
 RUN npm ci --omit=dev --workspace=@babymonitor/api --include-workspace-root
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
 
 # ffmpeg erzeugt den Zeitraffer aus den Wochenfotos.
-# su-exec lässt den Entrypoint die Rechte am Datenordner richten und danach auf den
+# su-exec lets the entrypoint fix the permissions on the data directory and then drop to
 # unprivilegierten Nutzer wechseln.
 RUN apk add --no-cache ffmpeg tini su-exec
 
@@ -44,9 +43,9 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
 
 EXPOSE 3010
 
-# tini als PID 1: sonst erreicht SIGTERM den Node-Prozess nicht sauber und
+# tini as PID 1: otherwise SIGTERM does not reach the Node process cleanly and
 # `docker compose down` wartet zehn Sekunden auf den Timeout.
-# Das Entrypoint-Skript startet als root, richtet die Rechte am Bind-Mount und
+# The entrypoint script starts as root, fixes the permissions on the bind mount and
 # wechselt dann per su-exec auf `node`.
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 

@@ -11,9 +11,9 @@ const TODAY = "2026-08-05";
 
 /** Entries arrive newest first — that is how the app supplies them. */
 const CHAIN = [
-  { startedAt: "2026-07-17T06:00:00.000Z", size: "Größe 3" },
-  { startedAt: "2026-05-02T06:00:00.000Z", size: "Größe 2" },
-  { startedAt: "2026-04-28T06:00:00.000Z", size: "Größe 1" },
+  { startedAt: "2026-07-17T06:00:00.000Z", size: "size 3" },
+  { startedAt: "2026-05-02T06:00:00.000Z", size: "size 2" },
+  { startedAt: "2026-04-28T06:00:00.000Z", size: "size 1" },
 ];
 
 describe("Switch history from the chain of entries", () => {

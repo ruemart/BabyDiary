@@ -102,7 +102,7 @@ export async function buildApp(
     if (!parsed.success) return reply.code(400).send({ error: "bad_request" });
 
     if (!isValidInvite(parsed.data.token, config.householdSecret)) {
-      req.log.warn({ ip: req.ip }, "ungültiges Einladungs-Token");
+      req.log.warn({ ip: req.ip }, "invalid invite token");
       return reply.code(403).send({ error: "invalid_invite" });
     }
 
@@ -154,7 +154,7 @@ export async function buildApp(
     }
 
     if (invalid.length > 0) {
-      req.log.warn({ invalid }, "Einzelne Einträge abgelehnt, Rest wird übernommen");
+      req.log.warn({ invalid }, "some entries rejected, the rest accepted");
     }
 
     const childResult = envelope.data.child
@@ -189,7 +189,7 @@ export async function buildApp(
     // What the database rejected counts as a schema error: permanently unusable, so
     // report it rather than letting it be retried forever.
     if (failed.length > 0) {
-      req.log.error({ failed }, "Einträge von der Datenbank abgelehnt");
+      req.log.error({ failed }, "entries rejected by the database");
       invalid.push(...failed);
     }
 
@@ -290,7 +290,7 @@ export async function buildApp(
             );
             weather.save(awayDays);
           } catch (err) {
-            app.log.warn({ err, away }, "Wetter für Abwesenheit nicht abrufbar");
+            app.log.warn({ err, away }, "weather for the away period could not be fetched");
           }
         }
 
@@ -383,8 +383,8 @@ export async function buildApp(
     if (!sub) return reply.code(404).send({ error: "not_subscribed" });
 
     const ok = await sendTo(push, sub, {
-      title: "Benachrichtigungen sind an",
-      body: "So sieht die Erinnerung aus, wenn die nächste Flasche fällig sein könnte.",
+      title: "Notifications are on",
+      body: "This is what the reminder looks like when the next bottle might be due.",
       tag: "test",
       url: "/",
     });
@@ -428,7 +428,7 @@ export async function buildApp(
       req.log.error({ err }, "Zeitraffer fehlgeschlagen");
       return reply.code(503).send({
         error: "ffmpeg_unavailable",
-        hint: "ffmpeg ist im API-Container nicht installiert oder abgestürzt.",
+        hint: "ffmpeg is not installed in the API container, or it crashed.",
       });
     }
   });

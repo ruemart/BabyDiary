@@ -87,7 +87,7 @@ async function run(childId: string): Promise<SyncOutcome> {
   if (body.rejected.length > 0) {
     // Not an error: the other device was faster, and its version is already in the
     // store — it came along in the same response.
-    console.info(`${body.rejected.length} Änderung(en) vom Server überstimmt`);
+    console.info(`${body.rejected.length} change(s) overruled by the server`);
   }
 
   const invalid = body.invalid ?? [];
