@@ -5,7 +5,7 @@ import {
   calendarDateLabel,
   lifeWeek as calcLifeWeek,
   localDayKey,
-} from "@babymonitor/shared";
+} from "@milo/shared";
 import { useData } from "../stores/data.ts";
 import { WORLD_PATH, WORLD_VIEWBOX, projectToMap } from "../data/world.ts";
 import { useI18n } from "vue-i18n";

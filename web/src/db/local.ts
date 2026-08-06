@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Child, Entry, StoredEntry } from "@babymonitor/shared";
+import type { Child, Entry, StoredEntry } from "@milo/shared";
 
 /**
  * The local database. Every input lands HERE first and is rendered immediately; syncing
@@ -21,6 +21,15 @@ export type OutboxItem = {
 
 export type MetaRow = { key: string; value: string };
 
+/*
+ * Still the old name, on purpose.
+ *
+ * The project is called Milo now, but this string names an IndexedDB database that
+ * already exists on every phone. Changing it opens a fresh, empty one — the entries
+ * would come back on the next sync, but anything sitting in the outbox because the
+ * phone was offline would be stranded in a database nothing opens any more. A tidier
+ * name is not worth losing a night feed nobody noticed had not gone through.
+ */
 const db = new Dexie("babymonitor") as Dexie & {
   entries: EntityTable<LocalEntry, "id">;
   outbox: EntityTable<OutboxItem, "id">;

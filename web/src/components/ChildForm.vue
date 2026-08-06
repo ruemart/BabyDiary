@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, watch } from "vue";
-import type { Child, Sex } from "@babymonitor/shared";
+import type { Child, Sex } from "@milo/shared";
 import CmField from "./CmField.vue";
 import { useI18n } from "vue-i18n";
 

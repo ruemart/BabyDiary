@@ -22,21 +22,35 @@ cd "$(dirname "$0")/.."
 
 label="${1:-manual}"
 stamp="$(date +%Y%m%d-%H%M%S)"
-name="babymonitor-${stamp}-${label}.db"
+name="milo-${stamp}-${label}.db"
 
-if [ ! -f data/babymonitor.db ]; then
+# The project used to be called BabyMonitor. The API renames the file on its next start,
+# but this script runs BEFORE that — on exactly the deploy that performs the rename, the
+# file is still called the old name, and a check for the new one alone would skip the
+# backup at the one moment it matters most.
+source="milo.db"
+if [ ! -f "data/${source}" ] && [ -f data/babymonitor.db ]; then
+  source="babymonitor.db"
+fi
+
+if [ ! -f "data/${source}" ]; then
   echo "  no database yet — nothing to back up"
   exit 0
 fi
 
-if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx babymonitor-backup; then
+container=milo-backup
+if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$container"; then
+  container=babymonitor-backup
+fi
+
+if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$container"; then
   echo "  backup container is not running — skipping the pre-deploy backup" >&2
   exit 0
 fi
 
 # The same container, the same sqlite3, the same mounts as every night.
-if docker exec babymonitor-backup sh -c "
-     sqlite3 /data/babymonitor.db \".backup '/backups/${name}'\" &&
+if docker exec "$container" sh -c "
+     sqlite3 /data/${source} \".backup '/backups/${name}'\" &&
      gzip -f '/backups/${name}' &&
      chmod 600 '/backups/${name}.gz' &&
      chown \"\$(stat -c '%u:%g' /data)\" '/backups/${name}.gz'

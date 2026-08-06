@@ -1,4 +1,4 @@
-# BabyMonitor. Three containers: the API, nginx serving the built frontend, and a
+# Milo. Three containers: the API, nginx serving the built frontend, and a
 # nightly backup.
 #
 # Only the web container publishes a port, and only on 127.0.0.1 — nothing is reachable
@@ -7,13 +7,18 @@
 #
 # Start:  ./install.sh   (or: docker compose up -d --build)
 
+# Pinned, rather than derived from the directory name. Otherwise renaming the folder
+# silently starts a SECOND set of containers next to the running ones, and the old set is
+# orphaned with the volumes still attached.
+name: milo
+
 services:
   api:
     build:
       context: .
       dockerfile: api/Dockerfile
     # A fixed name, because nginx in the neighbouring container resolves exactly this.
-    container_name: babymonitor-api
+    container_name: milo-api
     restart: unless-stopped
     environment:
       DATA_DIR: /data
@@ -42,7 +47,7 @@ services:
       dockerfile: web/Dockerfile
     # An unambiguous name rather than the Compose alias `web`: several projects can
     # share an external network, and `web` would collide there.
-    container_name: babymonitor-web
+    container_name: milo-web
     restart: unless-stopped
     depends_on:
       - api
@@ -58,12 +63,17 @@ services:
       # finding its files. See web/entrypoint.sh.
       - ./data/web-assets:/usr/share/nginx/html/assets
     networks:
-      - internal
-      - cloudflare_proxy
+      internal:
+      cloudflare_proxy:
+        # The old name stays resolvable. A tunnel or reverse proxy in front of this points
+        # at a host name, and renaming the container would take the site down until
+        # somebody edited a dashboard. Remove it once that entry says milo-web.
+        aliases:
+          - babymonitor-web
 
   backup:
     image: alpine:3.20
-    container_name: babymonitor-backup
+    container_name: milo-backup
     restart: unless-stopped
     volumes:
       # Read-only is enough for `.backup` — a backup must never modify the database.

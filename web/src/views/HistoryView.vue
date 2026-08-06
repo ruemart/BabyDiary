@@ -8,7 +8,7 @@ import {
   shortDateLabel,
   startOfWeek,
   weekdayIndex,
-} from "@babymonitor/shared";
+} from "@milo/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { localDayKey, type EntryType } from "@babymonitor/shared";
+import { localDayKey, type EntryType } from "@milo/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import { vitaminHolderOn } from "../composables/useVitaminD.ts";

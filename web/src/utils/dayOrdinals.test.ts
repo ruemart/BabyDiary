@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EntryType } from "@babymonitor/shared";
+import type { EntryType } from "@milo/shared";
 import { numberWithinDay } from "./dayOrdinals.ts";
 
 /** A day the way the list shows it: chronological, oldest first. */

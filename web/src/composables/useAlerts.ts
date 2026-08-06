@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { localDayKey } from "@babymonitor/shared";
+import { localDayKey } from "@milo/shared";
 import type { LocalEntry } from "../db/local.ts";
 import { useI18n } from "vue-i18n";
 

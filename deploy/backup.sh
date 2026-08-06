@@ -19,9 +19,15 @@ chown "$OWNER" /backups 2>/dev/null || true
 
 while true; do
   STAMP="$(date +%Y%m%d)"
-  TARGET="/backups/babymonitor-$STAMP.db"
+  TARGET="/backups/milo-$STAMP.db"
 
-  if sqlite3 /data/babymonitor.db ".backup '$TARGET'"; then
+  # Falls back to the old file name for one cycle: if the API has not restarted since the
+  # rename, that is still what is on disk — and a backup loop that quietly does nothing is
+  # worse than no backup loop at all, because it looks like it is working.
+  SOURCE=/data/milo.db
+  [ -f "$SOURCE" ] || SOURCE=/data/babymonitor.db
+
+  if sqlite3 "$SOURCE" ".backup '$TARGET'"; then
     gzip -f "$TARGET"
     # 600 rather than the default 644: this is a child's health data and none of the
     # other users on the machine need to read it.
@@ -32,6 +38,6 @@ while true; do
     echo "[backup] $STAMP FAILED" >&2
   fi
 
-  find /backups -name 'babymonitor-*.db.gz' -mtime "+$KEEP_DAYS" -delete
+  find /backups -name 'milo-*.db.gz' -mtime "+$KEEP_DAYS" -delete
   sleep "$INTERVAL"
 done

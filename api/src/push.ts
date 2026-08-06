@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { localParts } from "@babymonitor/shared";
+import { localParts } from "@milo/shared";
 import { config } from "./config.ts";
 import type { Db } from "./db.ts";
 import type { Store } from "./db.ts";

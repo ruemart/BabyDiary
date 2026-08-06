@@ -5,7 +5,7 @@ import multipart from "@fastify/multipart";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Entry, SyncResponse } from "@babymonitor/shared";
+import type { Entry, SyncResponse } from "@milo/shared";
 
 const INVITE = "test-household-secret-0123456789";
 process.env["HOUSEHOLD_SECRET"] = INVITE;
@@ -26,6 +26,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     amountMl: 120,
     spatUp: false,
     vitaminD: false,
+    colicDrops: false,
     milestoneKey: null,
     temperatureDc: null,
     latitude: null,

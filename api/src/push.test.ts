@@ -15,6 +15,7 @@ function sub(over: Partial<PushSubscriptionRow> = {}): PushSubscriptionRow {
     auth: "a",
     device_name: "Mama",
     lead_minutes: 10,
+    locale: "en",
     quiet_from_hour: 22,
     quiet_to_hour: 6,
     last_notified_for: null,

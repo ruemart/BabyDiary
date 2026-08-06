@@ -1,4 +1,4 @@
-import { calendarDateLabel, daysBetween, shortDateLabel } from "@babymonitor/shared";
+import { calendarDateLabel, daysBetween, shortDateLabel } from "@milo/shared";
 
 /**
  * The chain of supply entries is the switch history.

@@ -1,5 +1,5 @@
 import { createI18n } from "vue-i18n";
-import { setDisplayLocale } from "@babymonitor/shared";
+import { setDisplayLocale } from "@milo/shared";
 import en from "./locales/en.json";
 import de from "./locales/de.json";
 

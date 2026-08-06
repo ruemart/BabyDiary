@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { localDayKey, localTimeLabel } from "@babymonitor/shared";
+import { localDayKey, localTimeLabel } from "@milo/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**

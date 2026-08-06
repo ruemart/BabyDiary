@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { ageInDays, localDayKey } from "@babymonitor/shared";
+import { ageInDays, localDayKey } from "@milo/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**

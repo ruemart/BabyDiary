@@ -18,7 +18,7 @@ COPY web/package.json web/
 
 # --omit=dev, but the workspace needs the package files of all three parts so npm can
 # resolve the tree.
-RUN npm ci --omit=dev --workspace=@babymonitor/api --include-workspace-root
+RUN npm ci --omit=dev --workspace=@milo/api --include-workspace-root
 
 FROM node:24-alpine AS runtime
 WORKDIR /app

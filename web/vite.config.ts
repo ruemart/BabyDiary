@@ -21,10 +21,12 @@ export default defineConfig({
       },
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "BabyMonitor",
-        short_name: "Baby",
+        name: "Milo",
+        short_name: "Milo",
         description: "Track feeds, nappies, sleep and development",
-        lang: "de",
+        // English, like the app's own default. The device language decides at first
+        // launch; this is only what the install prompt speaks.
+        lang: "en",
         start_url: "/",
         display: "standalone",
         background_color: "#f7f4ee",

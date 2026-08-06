@@ -6,7 +6,7 @@ import DailyVolumeChart from "../components/charts/DailyVolumeChart.vue";
 import RhythmChart from "../components/charts/RhythmChart.vue";
 import DiaperHeatmap from "../components/charts/DiaperHeatmap.vue";
 import GrowthChart from "../components/charts/GrowthChart.vue";
-import { ageInDays } from "@babymonitor/shared";
+import { ageInDays } from "@milo/shared";
 import { zScore, zToPercentile, type GrowthMeasure } from "../data/who/index.ts";
 import { useI18n } from "vue-i18n";
 

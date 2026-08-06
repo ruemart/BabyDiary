@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
-import { calendarDateLabel, lifeWeekStart } from "@babymonitor/shared";
+import { calendarDateLabel, lifeWeekStart } from "@milo/shared";
 import type { PeriodBand, TimelineBand, TimelinePin } from "../composables/useTimeline.ts";
 import type { LocalEntry } from "../db/local.ts";
 

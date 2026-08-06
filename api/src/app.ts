@@ -10,7 +10,7 @@ import {
   uuidv7,
   type Entry,
   type SyncResponse,
-} from "@babymonitor/shared";
+} from "@milo/shared";
 import { config } from "./config.ts";
 import {
   SESSION_COOKIE,

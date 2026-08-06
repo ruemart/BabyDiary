@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
-import { readFileSync, readdirSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync, existsSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Child, Entry, StoredEntry } from "@babymonitor/shared";
+import type { Child, Entry, StoredEntry } from "@milo/shared";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -10,6 +10,7 @@ export type Db = Database.Database;
 
 export function openDatabase(path: string): Db {
   mkdirSync(dirname(path), { recursive: true });
+  adoptRenamedFile(path);
   const db = new Database(path);
 
   // WAL: readers do not block the writer. With two phones syncing while the gallery
@@ -24,6 +25,32 @@ export function openDatabase(path: string): Db {
 
   migrate(db);
   return db;
+}
+
+/**
+ * Takes over the database file of the old name.
+ *
+ * The project used to be called Milo, so the file was `milo.db`. Leaving it
+ * behind would not lose anything — but it would start an empty database next to a full
+ * one, and the app would come up looking as if every entry were gone. That is the sort of
+ * moment where somebody restores a backup over the top and really does lose something.
+ *
+ * Renamed rather than copied: two files that both look like the database is exactly the
+ * confusion to avoid. All three parts move together — with WAL active, `-wal` and `-shm`
+ * belong to the database, and a `-wal` left next to the old name would be applied to
+ * nothing while its transactions are missing from the new one.
+ *
+ * Runs before the file is opened, which is the only safe moment: at this point in the
+ * container's life nothing holds a handle on it.
+ */
+function adoptRenamedFile(path: string): void {
+  const previous = join(dirname(path), "babymonitor.db");
+  if (previous === path || existsSync(path) || !existsSync(previous)) return;
+
+  for (const suffix of ["", "-wal", "-shm"]) {
+    if (existsSync(previous + suffix)) renameSync(previous + suffix, path + suffix);
+  }
+  console.log(`[db] took over ${previous} as ${path}`);
 }
 
 /**

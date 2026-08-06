@@ -1,4 +1,4 @@
-import type { EntryType } from "@babymonitor/shared";
+import type { EntryType } from "@milo/shared";
 
 /**
  * Number bottles and nappies within a day: 1st bottle, 2nd bottle …

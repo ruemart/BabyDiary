@@ -1,4 +1,4 @@
-import { addDays, daysBetween, localDayKey, startOfWeek } from "@babymonitor/shared";
+import { addDays, daysBetween, localDayKey, startOfWeek } from "@milo/shared";
 import type { LocalEntry } from "../db/local.ts";
 
 /**

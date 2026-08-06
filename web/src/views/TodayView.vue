@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from "vue";
-import { localTimeLabel } from "@babymonitor/shared";
+import { localTimeLabel } from "@milo/shared";
 import { useElapsed } from "../i18n/format.ts";
 import { useConfirmToast } from "../composables/useConfirmations.ts";
 import { useData } from "../stores/data.ts";
@@ -14,7 +14,7 @@ import { useWeather, describeTemperature } from "../composables/useWeather.ts";
 import { useDailyIntake } from "../composables/useDailyIntake.ts";
 import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
 import { useVitaminD } from "../composables/useVitaminD.ts";
-import { ageInDays, localDayKey } from "@babymonitor/shared";
+import { ageInDays, localDayKey } from "@milo/shared";
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 

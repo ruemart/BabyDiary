@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { WeatherDay } from "@babymonitor/shared";
+import type { WeatherDay } from "@milo/shared";
 
 /**
  * Daily temperatures from our own server (which fetches them from Open-Meteo and keeps

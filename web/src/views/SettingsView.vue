@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useToast } from "sit-onyx";
-import type { Child } from "@babymonitor/shared";
+import type { Child } from "@milo/shared";
 import { useData } from "../stores/data.ts";
 import { appearance, setAppearance, type AppearanceSetting } from "../composables/useAppearance.ts";
 import { confirmations, setConfirmations } from "../composables/useConfirmations.ts";

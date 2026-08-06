@@ -1,4 +1,4 @@
-# BabyMonitor
+# Milo
 
 Eine private Web-App, um die ersten Jahre festzuhalten: Flasche, Windeln, Schlaf und
 Wachstum eintragen, und auf einem Zeitstrahl sehen, was als nächstes ansteht —
@@ -99,12 +99,12 @@ docker compose up -d --build
 curl http://127.0.0.1:8090/api/health   # -> {"ok":true,...}
 ```
 
-Drei Container: `babymonitor-api`, `babymonitor-web` (nginx) und `babymonitor-backup`.
+Drei Container: `milo-api`, `milo-web` (nginx) und `milo-backup`.
 
 ### 3. An den bestehenden Cloudflare-Tunnel hängen
 
 **Es wird kein neuer Tunnel gebraucht.** Der laufende `cloudflared-tunnel`-Container
-hängt bereits im externen Netz `cloudflare_proxy`, und `babymonitor-web` tut das
+hängt bereits im externen Netz `cloudflare_proxy`, und `milo-web` tut das
 ebenfalls — er ist dort über seinen Containernamen erreichbar, genau wie Baserow.
 
 Im Cloudflare-Dashboard unter *Zero Trust → Networks → Tunnels → dein Tunnel →
@@ -114,7 +114,7 @@ Public Hostname* eintragen:
 |---|---|
 | Subdomain | `baby` |
 | Domain | deine Domain |
-| Service | `HTTP` → `babymonitor-web:80` |
+| Service | `HTTP` → `milo-web:80` |
 
 ### 4. Die Handys anmelden
 
@@ -162,8 +162,8 @@ Wiederherstellen — **dieser Weg ist einmal vollständig durchgespielt worden**
 
 ```bash
 docker compose stop api
-gunzip -c backups/babymonitor-JJJJMMTT.db.gz > data/babymonitor.db
-rm -f data/babymonitor.db-wal data/babymonitor.db-shm
+gunzip -c backups/milo-JJJJMMTT.db.gz > data/milo.db
+rm -f data/milo.db-wal data/milo.db-shm
 docker compose start api
 ```
 

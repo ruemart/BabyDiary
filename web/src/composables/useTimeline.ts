@@ -8,7 +8,7 @@ import {
   lifeWeekStart,
   localDayKey,
   type Child,
-} from "@babymonitor/shared";
+} from "@milo/shared";
 import { MILESTONES } from "../data/milestones.ts";
 import { LEAPS, type Leap } from "../data/leaps.ts";
 import { regionByCode, type RegionCheckup } from "../data/regions/index.ts";
