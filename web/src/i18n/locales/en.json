@@ -337,6 +337,7 @@
   },
   "nav": {
     "charts": "Charts",
+    "history": "History",
     "main": "Main navigation",
     "milestones": "Steps",
     "more": "More",
@@ -452,6 +453,8 @@
     "shortcut": {
       "history": "History",
       "historyHint": "View, edit and add past entries",
+      "milestones": "Milestones",
+      "milestonesHint": "Tick off what she can already do",
       "supply": "What we buy",
       "supplyHint": "Formula, nappy size, shop",
       "totals": "Numbers",

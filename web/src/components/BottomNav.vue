@@ -18,11 +18,25 @@ import { RouterLink } from "vue-router";
  * A `d` may contain several subpaths — so a single <path> still does.
  */
 const items = [
-  { to: "/", key: "nav.today", icon: "M4 12h16M4 6h16M4 18h10" },
+    // Sonne: der heutige Tag. Vorher waren es drei Linien — dieselbe Form wie die
+  // Verlaufsliste, und damit genau der Fehler, der bei Wochen und Schritten schon
+  // einmal passiert ist.
+  { to: "/", key: "nav.today", icon: "M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" },
   // Calendar page: the week as a period.
   { to: "/wochen", key: "nav.weeks", icon: "M4 7h16v13H4zM4 11h16M9 4v4M15 4v4" },
-  // Staircase: what she can already do, one step after another.
-  { to: "/meilensteine", key: "nav.milestones", icon: "M4 19h5v-5h5v-5h6" },
+  /*
+   * Liste mit Zeilen: der Verlauf.
+   *
+   * Steht hier statt der Meilensteine, und zwar nach Häufigkeit: Den Verlauf öffnet man
+   * täglich — zum Nachsehen und zum Nachtragen —, einen Meilenstein hakt man alle paar
+   * Wochen ab. Eine Leiste mit fünf Zielen muss die fünf häufigsten zeigen, sonst ist
+   * sie Dekoration. Die Meilensteine sind weiterhin zwei Wege entfernt: über "Mehr"
+   * und über die Detailkarte im Wochenband.
+   *
+   * Sechs Ziele wären die naheliegende Antwort gewesen, aber auf einem schmalen Gerät
+   * bleiben dann 62 px je Ziel — unter der Grenze, ab der der Daumen zuverlässig trifft.
+   */
+  { to: "/verlauf", key: "nav.history", icon: "M4 7h16M4 12h16M4 17h10" },
   { to: "/kurven", key: "nav.charts", icon: "M4 19V5m0 14h16M8 15l3-4 3 3 4-6" },
   { to: "/einstellungen", key: "nav.more", icon: "M12 6h.01M12 12h.01M12 18h.01" },
 ] as const;

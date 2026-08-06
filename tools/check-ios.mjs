@@ -127,7 +127,7 @@ if (!photo) {
 for (const [name, path] of [
   ["Today", "/"],
   ["Weeks", "/wochen"],
-  ["Steps", "/meilensteine"],
+  ["History", "/verlauf"],
   ["Charts", "/kurven"],
   ["More", "/einstellungen"],
 ]) {

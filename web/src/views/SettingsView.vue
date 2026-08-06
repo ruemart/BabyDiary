@@ -189,6 +189,10 @@ async function signOut() {
     <!-- Right at the top, because this is looked up at the shop and should not need
          searching for. -->
     <nav class="shortcuts">
+      <RouterLink to="/meilensteine" class="shortcut">
+        <span class="shortcut__label">{{ $t("settings.shortcut.milestones") }}</span>
+        <span class="shortcut__hint">{{ $t("settings.shortcut.milestonesHint") }}</span>
+      </RouterLink>
       <RouterLink to="/zahlen" class="shortcut">
         <span class="shortcut__label">{{ $t("settings.shortcut.totals") }}</span>
         <span class="shortcut__hint">{{ $t("settings.shortcut.totalsHint") }}</span>
@@ -200,10 +204,6 @@ async function signOut() {
       <RouterLink to="/reisen" class="shortcut">
         <span class="shortcut__label">{{ $t("settings.shortcut.travel") }}</span>
         <span class="shortcut__hint">{{ $t("settings.shortcut.travelHint") }}</span>
-      </RouterLink>
-      <RouterLink to="/verlauf" class="shortcut">
-        <span class="shortcut__label">{{ $t("settings.shortcut.history") }}</span>
-        <span class="shortcut__hint">{{ $t("settings.shortcut.historyHint") }}</span>
       </RouterLink>
     </nav>
 

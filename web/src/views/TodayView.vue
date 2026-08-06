@@ -212,30 +212,54 @@ async function startSleep() {
 
     <!-- Status line: the reason you switch the phone on at night at all. -->
     <section class="status" :aria-label="$t('today.statusRegion')">
-      <!-- Flasche und Windel gleichrangig. Vorher war die Windel eine graue Zeile
-           unter der großen Flaschen-Zahl — und genau deshalb ist zweimal dieselbe
-           Windel eingetragen worden: Man sah sie nicht, bevor man tippte. -->
-      <div class="status__primary">
-        <p class="status__label">{{ $t("today.lastFeed") }}</p>
-        <p v-if="lastFeedText" class="status__value bm-tabular">{{ lastFeedText.since }}</p>
-        <p v-else class="status__value status__value--empty">{{ $t("today.none") }}</p>
-        <p v-if="lastFeedText" class="status__detail bm-tabular">
-          {{ lastFeedText.detail }}
-          <span v-if="lastFeedText.spatUp" class="status__flag">{{ $t("today.spatUp") }}</span>
-          <span v-if="lastFeedText.by" class="status__by">{{ $t("today.byOther", { name: lastFeedText.by }) }}</span>
-        </p>
-      </div>
+      <!-- Flasche und Windel nebeneinander und gleichrangig.
+           Vorher war die Windel eine graue Zeile unter der großen Flaschen-Zahl — und
+           genau deshalb ist zweimal dieselbe Windel eingetragen worden: Man sah sie
+           nicht, bevor man tippte.
+           Zwei Spalten statt zweier Blöcke untereinander, damit beides ohne Scrollen
+           im Blick ist. Und je ein Zeichen in der Farbe der Eintragsart: Zwei
+           gleich gestaltete Spalten muss man LESEN, um sie zu unterscheiden — Form und
+           Farbe erkennt man vorher. -->
+      <div class="status__pair">
+        <div class="status__primary">
+          <p class="status__label">
+            <svg class="status__icon status__icon--feed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M9 2h6M10 2v3.2a4 4 0 0 1-.5 1.9L8 9.5V21a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9.5l-1.5-2.4a4 4 0 0 1-.5-1.9V2" />
+              <path d="M8 13h8" stroke-linecap="round" />
+            </svg>
+            {{ $t("today.lastFeed") }}
+          </p>
+          <p v-if="lastFeedText" class="status__value bm-tabular">{{ lastFeedText.since }}</p>
+          <p v-else class="status__value status__value--empty">{{ $t("today.none") }}</p>
+          <p v-if="lastFeedText" class="status__detail bm-tabular">
+            {{ lastFeedText.detail }}
+            <span v-if="lastFeedText.spatUp" class="status__flag">{{ $t("today.spatUp") }}</span>
+          </p>
+          <p v-if="lastFeedText?.by" class="status__by">
+            {{ $t("today.byOther", { name: lastFeedText.by }) }}
+          </p>
+        </div>
 
-      <div class="status__primary status__primary--diaper">
-        <p class="status__label">{{ $t("today.lastDiaperLabel") }}</p>
-        <p v-if="lastDiaperText" class="status__value bm-tabular">{{ lastDiaperText.since }}</p>
-        <p v-else class="status__value status__value--empty">{{ $t("today.noDiaperYet") }}</p>
-        <p v-if="lastDiaperText" class="status__detail bm-tabular">
-          {{ lastDiaperText.detail }}
+        <div class="status__primary status__primary--diaper">
+          <p class="status__label">
+            <!-- Windel: breit oben, nach unten zusammenlaufend — und GEFÜLLT, während
+                 die Flasche daneben ein Umriss ist. Zwei Zeichen derselben Machart
+                 unterscheidet man erst beim Hinsehen; gefüllt gegen offen sieht man
+                 sofort, und die Farbe bestätigt es nur noch. -->
+            <svg class="status__icon status__icon--diaper" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 5h16v5.2c0 3.8-2.8 5.7-5 6.7-1.6 .8-2.4 1.9-3 4.1-.6-2.2-1.4-3.3-3-4.1-2.2-1-5-2.9-5-6.7V5Z" />
+            </svg>
+            {{ $t("today.lastDiaperLabel") }}
+          </p>
+          <p v-if="lastDiaperText" class="status__value bm-tabular">{{ lastDiaperText.since }}</p>
+          <p v-else class="status__value status__value--empty">{{ $t("today.noDiaperYet") }}</p>
+          <p v-if="lastDiaperText" class="status__detail bm-tabular">{{ lastDiaperText.detail }}</p>
           <!-- Der Name des anderen ist hier die wichtigste Information: Er beantwortet
                "hat das schon jemand eingetragen?", bevor man es ein zweites Mal tut. -->
-          <span v-if="lastDiaperText.by" class="status__by">{{ $t("today.byOther", { name: lastDiaperText.by }) }}</span>
-        </p>
+          <p v-if="lastDiaperText?.by" class="status__by">
+            {{ $t("today.byOther", { name: lastDiaperText.by }) }}
+          </p>
+        </div>
       </div>
 
       <!-- The daily amount as context, not as a target: how much she needs is her call.
@@ -401,6 +425,9 @@ async function startSleep() {
 
 .status__label {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -411,9 +438,9 @@ async function startSleep() {
 .status__value {
   margin: 0.15rem 0 0;
   font-family: var(--bm-font-display);
-  /* Big enough to read from a metre away in half darkness. Slightly smaller since
-     there are two of these now — both still far above everything else on the screen. */
-  font-size: clamp(1.6rem, 6.6vw, 2.1rem);
+  /* Big enough to read from a metre away in half darkness. In a half-width column,
+     so smaller than when it stood alone — still far above everything else. */
+  font-size: clamp(1.05rem, 4.6vw, 1.45rem);
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -461,22 +488,54 @@ async function startSleep() {
   font-variant-numeric: normal;
 }
 
-/* Die zweite Karte bekommt eine Trennlinie statt einer eigenen Fläche — ein zweiter
-   Kasten würde die Karte zerreißen, eine Linie ordnet sie einander zu. */
-.status__primary--diaper {
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--bm-hairline);
+/* Zwei Spalten. Die Trennlinie steht senkrecht dazwischen statt waagrecht darunter —
+   damit lesen sich beide als gleichrangig und nicht als Haupt- und Nebensache. */
+.status__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
 }
 
-/* Der Name des anderen Geräts: farbig statt grau, weil er eine Handlung verhindern
-   soll und nicht bloß Beiwerk ist. */
+.status__primary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.status__primary--diaper {
+  padding-inline-start: 0.9rem;
+  border-inline-start: 1px solid var(--bm-hairline);
+}
+
+/* Zeichen in der Farbe der Eintragsart. Form UND Farbe, damit man die Spalten
+   unterscheidet, bevor man liest. */
+.status__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+}
+
+.status__icon--feed {
+  color: var(--bm-feed);
+}
+
+.status__icon--diaper {
+  color: var(--bm-diaper);
+}
+
+/* Der Name des anderen Geräts. Abgesetzt genug, um gesehen zu werden, aber OHNE die
+   Farbe einer Eintragsart: Er meint eine Person, keine Kategorie — trüge er das Grün
+   der Windel, läse man ihn als Teil der Windel-Angabe. */
 .status__by {
-  margin-inline-start: 0.5rem;
-  padding: 0.1rem 0.45rem;
+  margin: 0.25rem 0 0;
+  align-self: start;
+  width: fit-content;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--bm-hairline);
   border-radius: 62.5rem;
-  background: var(--bm-diaper-soft);
-  color: color-mix(in srgb, var(--bm-diaper) 60%, var(--bm-ink));
-  font-size: 0.8125rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }

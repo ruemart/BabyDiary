@@ -198,7 +198,6 @@ async function remove(entry: LocalEntry) {
       >
         {{ $t("history.jumpToday") }}
       </button>
-      <button class="history__add" type="button" @click="addOpen = true">{{ $t("history.addEntry") }}</button>
     </header>
 
     <!-- Entries the server permanently rejects. They no longer block syncing, but they
@@ -325,6 +324,17 @@ async function remove(entry: LocalEntry) {
       </ul>
     </section>
 
+    <!-- Schwebender Knopf statt einer Kopfzeile, die wegscrollt.
+         Nachtragen ist der Grund, warum man diese Seite überhaupt öffnet — der Knopf
+         darf nicht von der Länge der Tagesliste abhängen. Er sitzt über der
+         Navigationsleiste und in Daumenreichweite. -->
+    <button class="fab" type="button" :aria-label="$t('history.addEntry')" @click="addOpen = true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke-linecap="round" />
+      </svg>
+      <span class="fab__label">{{ $t("history.addEntry") }}</span>
+    </button>
+
     <AddEntrySheet v-model:open="addOpen" :default-at="day.key === today ? null : `${day.key}T12:00:00`" />
     <AddEntrySheet v-model:open="editOpen" :entry="editing" />
   </div>
@@ -332,7 +342,8 @@ async function remove(entry: LocalEntry) {
 
 <style scoped>
 .history {
-  padding: 1.5rem 1rem 2rem;
+  /* Unten Luft für den schwebenden Knopf — sonst verdeckt er den letzten Eintrag. */
+  padding: 1.5rem 1rem 5.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
@@ -363,16 +374,37 @@ async function remove(entry: LocalEntry) {
   cursor: pointer;
 }
 
-.history__add {
-  min-height: 2.5rem;
-  padding: 0 0.9rem;
+/* Über der Navigationsleiste (4,75 rem plus Home-Indicator) und rechts, wo der
+   Daumen ohnehin liegt. */
+.fab {
+  position: fixed;
+  inset-inline-end: 1rem;
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 3.25rem;
+  padding: 0 1.15rem 0 0.95rem;
   border: none;
   border-radius: 62.5rem;
   background: var(--bm-feed);
   color: #2a2028;
   font: inherit;
   font-weight: 600;
+  box-shadow: var(--bm-shadow-lift);
   cursor: pointer;
+}
+
+.fab svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Die Beschriftung bleibt: Ein nacktes Plus über einer Tagesliste kann auch
+   "Tag hinzufügen" heißen. */
+.fab__label {
+  font-size: 0.95rem;
 }
 
 .warning {

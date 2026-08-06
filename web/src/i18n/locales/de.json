@@ -337,6 +337,7 @@
   },
   "nav": {
     "charts": "Kurven",
+    "history": "Verlauf",
     "main": "Hauptnavigation",
     "milestones": "Schritte",
     "more": "Mehr",
@@ -452,6 +453,8 @@
     "shortcut": {
       "history": "Verlauf",
       "historyHint": "Alles ansehen, ändern und nachtragen",
+      "milestones": "Meilensteine",
+      "milestonesHint": "Abhaken, was sie schon kann",
       "supply": "Was wir kaufen",
       "supplyHint": "Milchnahrung, Windelgröße, Laden",
       "totals": "Zahlen",
