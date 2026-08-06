@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 
 /**
  * An input sheet that slides in from the bottom.
@@ -16,34 +16,64 @@ defineProps<{ title: string }>();
 const dialog = ref<HTMLDialogElement>();
 
 /**
- * The entry animation is switched on one frame later and removed again afterwards.
+ * The entry animation is switched on a couple of frames later and taken off again
+ * afterwards — by `animationend` if it runs, by the clock if it does not.
  *
- * On the iPhone the animation stayed on its FIRST frame — `translateY(12%)` kept
- * applying. On a 598 px tall sheet that is 72 px: the bottom edge sat below the screen,
- * only the title was visible, and the save button was out of reach. A stuck `transform`
- * also makes the sheet the containing block for anything fixed inside it — which is how
- * it was proven.
+ * On the iPhone the animation stayed on its FIRST frame: `translateY(12%)` kept applying.
+ * On a 598 px tall sheet that is 72 px — the bottom edge sat below the screen, only the
+ * title was visible, and the save button was out of reach. A stuck `transform` also makes
+ * the sheet the containing block for anything fixed inside it, which is how it was proven.
  *
- * Two safeguards: the animation only starts once the sheet is already visible, and it
- * hangs off a class of its own that disappears at the end. A failure can therefore only
- * mean it does NOT slide in — never again that it sits in the wrong place.
+ * The first attempt at a fix hung the animation off a class of its own and took it off in
+ * `animationend`. That was right in intent and wrong in mechanism: when the animation
+ * never progresses past frame one, `animationend` never fires either, so the class — and
+ * the transform — stayed forever. Measured in WebKit, it broke in two runs out of three.
+ *
+ * What actually cures it is waiting TWO frames instead of one before starting: measured
+ * in WebKit, three runs out of three then come out clean even with the backstop below
+ * turned off, so the animation really does run to its end rather than being tidied up
+ * afterwards.
+ *
+ * The timer stays anyway. It costs nothing, and the failure it covers is the difference
+ * between a sheet that appears without sliding — which nobody notices at three in the
+ * morning — and one that cannot be used at all.
  */
+const SETTLE_AFTER_MS = 400; // the animation lasts 220
+
+let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+function stopEntering() {
+  clearTimeout(settleTimer);
+  settleTimer = undefined;
+  dialog.value?.classList.remove("sheet--entering");
+}
+
 watch(open, (isOpen) => {
   const element = dialog.value;
   if (!element) return;
 
   if (isOpen && !element.open) {
     element.showModal();
-    requestAnimationFrame(() => element.classList.add("sheet--entering"));
+    // Two frames, not one: `showModal` moves the element into the top layer, and starting
+    // an animation in the same frame as that promotion is what WebKit chokes on.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        element.classList.add("sheet--entering");
+        settleTimer = setTimeout(stopEntering, SETTLE_AFTER_MS);
+      }),
+    );
   }
   if (!isOpen && element.open) {
-    element.classList.remove("sheet--entering");
+    stopEntering();
     element.close();
   }
 });
 
-function onAnimationEnd() {
-  dialog.value?.classList.remove("sheet--entering");
+onUnmounted(stopEntering);
+
+/** `animationend` bubbles — a field animating inside the sheet must not end this one. */
+function onAnimationEnd(event: AnimationEvent) {
+  if (event.target === dialog.value) stopEntering();
 }
 
 function onClose() {

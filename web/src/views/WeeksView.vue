@@ -26,7 +26,19 @@ onMounted(() => {
   }
 });
 const { savePhoto, busy } = usePhotoUpload();
-const { bands, pins, upcoming, activeLeap } = useTimeline(() => data.child);
+/** When each milestone was reached, by key — the same source the checklist reads. */
+const achievedMilestones = computed(() => {
+  const map = new Map<string, string>();
+  for (const e of data.entries) {
+    if (e.type === "milestone" && e.milestoneKey) map.set(e.milestoneKey, e.startedAt);
+  }
+  return map;
+});
+
+const { bands, pins, upcoming, activeLeap } = useTimeline(
+  () => data.child,
+  () => achievedMilestones.value,
+);
 
 /** Illnesses and away periods as their own tracks in the ribbon. */
 const periods = computed(() =>
@@ -197,7 +209,16 @@ function daysAwayLabel(days: number): string {
             <p class="pins__label">{{ pin.label }}</p>
             <p class="pins__when">{{ pin.when }}</p>
             <p v-if="pin.detail" class="pins__detail">{{ pin.detail }}</p>
-            <RouterLink v-if="pin.kind === 'milestone'" to="/meilensteine" class="pins__link">
+            <!-- A tick mark once it has happened, an invitation only while it has not.
+                 Still asking to tick off something that IS ticked off is the app
+                 contradicting what you did. -->
+            <span v-if="pin.doneOn" class="pins__done">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {{ $t("weeks.milestoneDone") }}
+            </span>
+            <RouterLink v-else-if="pin.kind === 'milestone'" to="/meilensteine" class="pins__link">
               {{ $t("weeks.checkInList") }}
             </RouterLink>
           </div>
@@ -446,6 +467,23 @@ function daysAwayLabel(days: number): string {
   font-weight: 600;
 }
 
+/* Sage rather than the milestone colour: green is what "done" means everywhere else in
+   this app, and it must not read as another link to tap. */
+.pins__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  color: var(--bm-diaper);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.pins__done svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
 .pins__detail {
   margin: 0.35rem 0 0;
   font-size: 0.875rem;
@@ -453,7 +491,7 @@ function daysAwayLabel(days: number): string {
   color: var(--bm-ink-soft);
 }
 
-/* ── Ausblick ─────────────────────────────────────────────────────────────── */
+/* ── What is coming ───────────────────────────────────────────────────────── */
 
 .upcoming {
   background: var(--bm-surface);

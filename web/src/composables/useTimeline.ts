@@ -6,6 +6,7 @@ import {
   daysBetween,
   lifeWeek,
   lifeWeekStart,
+  localDayKey,
   type Child,
 } from "@babymonitor/shared";
 import { MILESTONES } from "../data/milestones.ts";
@@ -38,6 +39,13 @@ export type TimelinePin = {
   detail: string;
   /** Date or period in plain words for the detail card. */
   when: string;
+  /**
+   * When it actually happened — set only for milestones that have been ticked off.
+   *
+   * Only milestones have this because only they are ticked off in the app. Check-ups and
+   * vaccinations happen at the practice; the app does not know whether you went.
+   */
+  doneOn?: string;
 };
 
 export type UpcomingItem = TimelinePin & { daysAway: number };
@@ -87,7 +95,16 @@ export function periodBands(
     .sort((a, b) => a.fromWeek - b.fromWeek);
 }
 
-export function useTimeline(child: () => Child | null, weeksTotal = 80) {
+/**
+ * @param achievedMilestones When a milestone was reached, by key. Passed in rather than
+ *   read from the store here, so this composable stays a pure mapping onto the week axis
+ *   and can be tested without a store.
+ */
+export function useTimeline(
+  child: () => Child | null,
+  achievedMilestones: () => Map<string, string> = () => new Map(),
+  weeksTotal = 80,
+) {
   const { t } = useI18n();
 
   /**
@@ -119,7 +136,7 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
     })).filter((b) => b.toWeek >= 0 && b.fromWeek <= weeksTotal);
   });
 
-  /** Wandelt ein Untersuchungsfenster in Lebenswochen um. */
+  /** Converts a check-up window into weeks of life. */
   function checkupWeeks(c: Child, checkup: RegionCheckup): { from: number; to: number; dates: string } {
     const startDate =
       checkup.unit === "day"
@@ -184,17 +201,29 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
 
     // Milestones appear in their expected window — the same list that sits under
     // "Milestones" for ticking off. There is deliberately only one.
+    //
+    // Once one has been ticked off it moves to the week it ACTUALLY happened in. Before
+    // that the ribbon is an expectation, afterwards it is a record, and a record that
+    // still points at the expected week would be telling the wrong story: someone who
+    // taps week 5 and finds "first smile" there wants to know it happened in week 5.
+    const achieved = achievedMilestones();
     for (const milestone of MILESTONES) {
-      if (milestone.fromWeek > weeksTotal) continue;
+      const doneOn = achieved.get(milestone.key);
+      const week = doneOn ? lifeWeek(c.birthDate, doneOn, c.timezone) : milestone.fromWeek;
+      if (week > weeksTotal) continue;
       result.push({
         id: `milestone-${milestone.key}`,
-        week: milestone.fromWeek,
+        week,
         kind: "milestone",
         label: t(`milestone.${milestone.key}`),
         detail: milestone.hint ? t(`milestone.${milestone.key}.hint`) : "",
-        when:
-          t("milestone.usualWeeks", { from: milestone.fromWeek, to: milestone.toWeek }) +
-          (milestone.source === "who" ? t("milestone.who") : ""),
+        when: doneOn
+          // Via the local day: calendarDateLabel wants a calendar day, and a timestamp
+            // just before midnight would otherwise land on the wrong date.
+            ? t("milestone.doneOn", { date: calendarDateLabel(localDayKey(doneOn, c.timezone)) })
+          : t("milestone.usualWeeks", { from: milestone.fromWeek, to: milestone.toWeek }) +
+            (milestone.source === "who" ? t("milestone.who") : ""),
+        ...(doneOn ? { doneOn } : {}),
       });
     }
 
@@ -206,7 +235,8 @@ export function useTimeline(child: () => Child | null, weeksTotal = 80) {
     const c = child();
     if (!c) return [];
     return pins.value
-      .filter((pin) => pin.week >= currentWeek)
+      // Anything already ticked off is not coming up — it happened.
+      .filter((pin) => !pin.doneOn && pin.week >= currentWeek)
       .slice(0, count)
       .map((pin) => ({
         ...pin,
