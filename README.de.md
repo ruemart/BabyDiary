@@ -147,8 +147,12 @@ Router — hartes Neuladen auf die Zielseite — bleibt als Netz darunter besteh
 ### Sicherungen
 
 Der `backup`-Container legt jede Nacht eine Kopie unter `backups/` an und hält
-30 Tage vor. `sqlite3 .backup` statt `cp`: Eine laufende Datenbank zu kopieren erzeugt
-bei aktivem WAL eine Datei, die beim Wiederherstellen inkonsistent sein kann.
+30 Tage vor. `./install.sh` legt zusätzlich unmittelbar vor dem Ausrollen eine an —
+die nächtliche kann genau dann, wenn eine Schema-Änderung kommt, 24 Stunden alt sein.
+Jederzeit von Hand geht `./deploy/backup-now.sh`.
+
+`sqlite3 .backup` statt `cp`: Eine laufende Datenbank zu kopieren erzeugt bei aktivem
+WAL eine Datei, die beim Wiederherstellen inkonsistent sein kann.
 
 Die Dateien gehören dem Besitzer des Datenordners und haben Rechte `600` — es sind
 Gesundheitsdaten eines Kindes und gehen andere Nutzer auf dem Gerät nichts an.

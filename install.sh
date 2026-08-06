@@ -132,12 +132,23 @@ if [ -n "${fresh:-}" ]; then
   fi
 fi
 
-# ── 3. Build and start ──────────────────────────────────────────────────────
+# ── 3. A backup first ───────────────────────────────────────────────────────
+#
+# The nightly backup runs once a day, and a deploy that changes the schema happens
+# exactly in between — so at the worst possible moment the newest backup can be
+# 24 hours old. One extra copy costs 20 KB and a second.
+#
+# Does nothing on a fresh install (no database yet), and never blocks the deploy.
+
+step "Backing up the database before deploying"
+./deploy/backup-now.sh predeploy
+
+# ── 4. Build and start ──────────────────────────────────────────────────────
 
 step "Building and starting (this takes a few minutes the first time)"
 docker compose up -d --build
 
-# ── 4. Wait until it actually answers ───────────────────────────────────────
+# ── 5. Wait until it actually answers ───────────────────────────────────────
 #
 # "Container started" is not the same as "app works". Compiling better-sqlite3
 # on a Raspberry Pi takes a moment, and reporting success too early sends
@@ -160,7 +171,7 @@ if [ -z "${healthy:-}" ]; then
   die "No answer after two minutes. Check the logs with: docker compose logs"
 fi
 
-# ── 5. The invite link ──────────────────────────────────────────────────────
+# ── 6. The invite link ──────────────────────────────────────────────────────
 
 secret=$(grep '^HOUSEHOLD_SECRET=' .env | cut -d= -f2-)
 
@@ -181,7 +192,7 @@ run full-screen and start fast enough to be worth reaching for.${OFF}
 
 Next steps:
   • Reach it from outside the house  →  README.md, "Making it reachable"
-  • Nightly backups are already running to ./backups
+  • Nightly backups run to ./backups; ./deploy/backup-now.sh makes one on demand
   • Anyone with that link gets in. Treat it like a house key.
 
 BANNER

@@ -1,9 +1,9 @@
 #!/bin/sh
 # Nightly backup of the SQLite file.
 #
-# `sqlite3 .backup` statt `cp`: Eine laufende Datenbank zu kopieren erzeugt bei aktivem
-# WAL a file that can be inconsistent when restored — the copy
-# sieht dann einen Zwischenstand, in dem Teile einer Transaktion fehlen.
+# `sqlite3 .backup` rather than `cp`: copying a live database with WAL active produces a
+# file that can be inconsistent when restored — the copy sees an in-between state in
+# which parts of a transaction are missing.
 set -eu
 
 INTERVAL="${BACKUP_INTERVAL_SECONDS:-86400}"
@@ -27,9 +27,9 @@ while true; do
     # other users on the machine need to read it.
     chmod 600 "$TARGET.gz"
     chown "$OWNER" "$TARGET.gz"
-    echo "[backup] $STAMP gesichert ($(stat -c %s "$TARGET.gz") Bytes)"
+    echo "[backup] $STAMP saved ($(stat -c %s "$TARGET.gz") bytes)"
   else
-    echo "[backup] $STAMP FEHLGESCHLAGEN" >&2
+    echo "[backup] $STAMP FAILED" >&2
   fi
 
   find /backups -name 'babymonitor-*.db.gz' -mtime "+$KEEP_DAYS" -delete

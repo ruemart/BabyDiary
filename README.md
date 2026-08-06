@@ -159,6 +159,9 @@ git pull && ./install.sh        # update
 ### Backups
 
 The `backup` container writes a copy to `backups/` every night and keeps 30 days.
+`./install.sh` takes one more right before it deploys — the nightly one can be up to
+24 hours old at exactly the moment a schema change lands. You can also run
+`./deploy/backup-now.sh` whenever you like.
 `sqlite3 .backup` rather than `cp`: copying a live database with WAL active produces a
 file that can be inconsistent when restored.
 
