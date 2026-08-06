@@ -20,9 +20,9 @@ const hasData = computed(() => totals.value.feeds > 0 || totals.value.diapers > 
       <h1>{{ $t("totals.title") }}</h1>
       <p class="head__sub">
         <template v-if="totals.ageDays !== null">
-          {{ totals.ageDays }} Tage mit {{ data.child?.name }} ·
+          {{ $t("totals.daysWith", { n: totals.ageDays, name: data.child?.name }) }} ·
         </template>
-        an {{ totals.daysTracked }} Tagen etwas festgehalten
+        {{ $t("totals.daysTracked", { n: totals.daysTracked }) }}
       </p>
     </header>
 

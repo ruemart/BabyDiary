@@ -115,7 +115,7 @@ function doneLabel(row: Row): string {
     <header class="head">
       <h1>{{ $t("milestones.title") }}</h1>
       <p class="head__sub">
-        {{ doneCount }} von {{ rows.length }} abgehakt
+        {{ $t("milestones.doneOf", { done: doneCount, total: rows.length }) }}
       </p>
     </header>
 

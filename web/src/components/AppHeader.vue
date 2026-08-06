@@ -20,7 +20,7 @@ const syncLabel = computed(() => {
   if (data.syncState === "syncing") return t("sync.syncing");
   if (data.syncState === "unauthorized") return t("sync.unauthorized");
   if (data.syncState === "error") return t("sync.error");
-  if (data.pending > 0) return `${data.pending} wartet`;
+  if (data.pending > 0) return t("sync.waiting", { n: data.pending });
   return null;
 });
 </script>

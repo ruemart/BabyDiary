@@ -87,6 +87,7 @@
     "empty": "As soon as a few feeds are recorded, the charts appear here.",
     "growth": "Growth",
     "growthLegend": "Grey lines: WHO percentiles P3, P15, P50 (solid), P85 and P97.",
+    "lastDays": "The last {n} days",
     "length": "Length",
     "lessThanLastWeek": "{n} % less than last week",
     "lighter": "lighter or the same weight",
@@ -325,6 +326,7 @@
     "check": "Tick off",
     "done": "She can already",
     "doneAt": "Week {week} · {date}",
+    "doneOf": "{done} of {total} ticked off",
     "due": "Could be due now",
     "later": "Later on",
     "note": "The windows do not say when something should happen — they show the range in which healthy children take this step, and it is remarkably wide. Six of them (sitting alone, standing with support, crawling, walking with help, standing alone, walking alone) come from the WHO Motor Development Study; the rest are common experience.",
@@ -334,6 +336,17 @@
     "uncheck": "Remove tick",
     "usualIn": "Usually in {window}",
     "window": "week {from}–{to}"
+  },
+  "more": {
+    "milestones": "Milestones",
+    "milestonesHint": "Tick off what she can already do",
+    "settingsHint": "Child, language, notifications, device",
+    "supply": "What we buy",
+    "supplyHint": "Formula, nappy size, shop",
+    "totals": "Numbers",
+    "totalsHint": "Totals, averages and records",
+    "travel": "Travel map",
+    "travelHint": "Everywhere she has been"
   },
   "nav": {
     "charts": "Charts",
@@ -395,6 +408,16 @@
     "appearanceLead": "At night the app switches to a warm, muted look — bright, blue-tinted light at three in the morning makes falling back asleep needlessly hard.",
     "appearanceLight": "Always light",
     "child": "Child",
+    "childRejected": {
+      "text": "A value is out of range — usually birth length or head circumference. Please enter it in centimetres (e.g. 52) and save.",
+      "title": "The child details are not being synced"
+    },
+    "confirmations": "Confirmations",
+    "confirmationsLead": "The short messages after each entry. Failures and warnings still appear.",
+    "confirmationsOff": "Off",
+    "confirmationsOffHint": "The card at the top still updates straight away; undo lives in the history",
+    "confirmationsOn": "On",
+    "confirmationsOnHint": "Tap to undo",
     "device": "This device",
     "deviceLead": "Entries are saved as {name}.",
     "deviceUs": "Us",
@@ -404,26 +427,7 @@
     "photosLead": "{n} photo collected. | {n} photos collected.",
     "photosLead2": "From the weekly photos the server builds a video in week order.",
     "placePlaceholder": "Town or postcode",
-    "saveChanges": "Save changes",
-    "saved": "Saved",
-    "saving": "Saving …",
-    "search": "Search",
-    "searching": "Searching …",
-    "signOut": "Sign out on this device",
-    "signOutNote": "Only clears the local copy on this phone. All entries stay on the server and on the other device.",
-    "timelapse": "Download time-lapse",
-    "timelapseBusy": "Building …",
-    "timelapseFailed": "Time-lapse not possible",
-    "timelapseServer": "The server could not build the video.",
-    "timelapseTooFew": "That needs at least two weekly photos.",
-    "title": "Settings",
-    "weather": "Weather",
-    "weatherCurrent": "Currently: {place}",
-    "weatherLead": "With a location the server fetches the daily temperature once a day and puts it next to the intake. In hot weather she often drinks more — this way you can see why. Only coordinates leave the device, no data about the child.",
-    "childRejected": {
-      "text": "A value is out of range — usually birth length or head circumference. Please enter it in centimetres (e.g. 52) and save.",
-      "title": "The child details are not being synced"
-    },
+    "placeSet": "Location set to {name}",
     "push": {
       "alsoAtNight": "At night too",
       "alsoAtNightHint": "Around the clock — tap to switch.",
@@ -450,18 +454,22 @@
       "testSentHint": "It should arrive shortly.",
       "title": "Bottle reminder"
     },
-    "shortcut": {
-      "history": "History",
-      "historyHint": "View, edit and add past entries",
-      "milestones": "Milestones",
-      "milestonesHint": "Tick off what she can already do",
-      "supply": "What we buy",
-      "supplyHint": "Formula, nappy size, shop",
-      "totals": "Numbers",
-      "totalsHint": "Totals, averages and records",
-      "travel": "Travel map",
-      "travelHint": "Everywhere she has been"
-    }
+    "saveChanges": "Save changes",
+    "saved": "Saved",
+    "saving": "Saving …",
+    "search": "Search",
+    "searching": "Searching …",
+    "signOut": "Sign out on this device",
+    "signOutNote": "Only clears the local copy on this phone. All entries stay on the server and on the other device.",
+    "timelapse": "Download time-lapse",
+    "timelapseBusy": "Building …",
+    "timelapseFailed": "Time-lapse not possible",
+    "timelapseServer": "The server could not build the video.",
+    "timelapseTooFew": "That needs at least two weekly photos.",
+    "title": "Settings",
+    "weather": "Weather",
+    "weatherCurrent": "Currently: {place}",
+    "weatherLead": "With a location the server fetches the daily temperature once a day and puts it next to the intake. In hot weather she often drinks more — this way you can see why. Only coordinates leave the device, no data about the child."
   },
   "setup": {
     "atBirth": "At birth",
@@ -477,6 +485,7 @@
   },
   "supply": {
     "at": "at {shop}",
+    "atShop": "at {shop}",
     "category": "Category",
     "changed": "Switched",
     "convert": "Actually a switch? Save as a new one",
@@ -520,7 +529,8 @@
     "offline": "offline",
     "pendingOffline": "{n} waiting offline",
     "syncing": "syncing",
-    "unauthorized": "not signed in"
+    "unauthorized": "not signed in",
+    "waiting": "{n} waiting"
   },
   "time": {
     "back": "Back",
@@ -547,13 +557,20 @@
     "changedTitle": "Nappy changed",
     "diaperAlready": "A {kind} nappy was already recorded",
     "diaperAlsoRecent": "{name} already recorded one {since}",
+    "diaperButton": {
+      "empty": "Empty",
+      "soiled": "Soiled",
+      "wet": "Wet"
+    },
     "diaperChangedTo": "Changed to {kind}",
+    "diaperDetail": "{kind} at {time}",
     "diaperLogged": "Nappy {kind} recorded",
     "diaperRegion": "Record a nappy",
     "duplicateDetail": "Just recorded — no second entry created.",
     "duplicateTitle": "Already recorded",
     "endPeriod": "End",
     "entryRegion": "Record",
+    "feedDetail": "{amount} ml at {time}",
     "feedHint": "{amount} ml suggested",
     "intake": "Today {amount} ml",
     "lastDiaper": "Nappy {since} · {detail}",
@@ -574,17 +591,14 @@
     "vitaminHintUrgent": "The day is running out.",
     "vitaminOpen": "Vitamin D still open today",
     "vitaminUndo": "Undo",
-    "weather": "Today up to {tmax} °C · {label}",
-    "diaperButton": {
-      "empty": "Empty",
-      "soiled": "Soiled",
-      "wet": "Wet"
-    }
+    "weather": "Today up to {tmax} °C · {label}"
   },
   "totals": {
     "avgPerDay": "On an average day",
     "bathDays": "bath days",
     "bottles": "bottles",
+    "daysTracked": "something recorded on {n} days",
+    "daysWith": "{n} days with {name}",
     "diapers": "nappies",
     "empty": "Once you have recorded a few days, the numbers gather here.",
     "entriesCount": "{n} entries",
@@ -603,6 +617,7 @@
   "travel": {
     "away": "Away",
     "home": "Home",
+    "inWeek": "week {n}",
     "mapAria": "Map of the trips so far",
     "none": "No trip recorded yet.",
     "note": "Trips come from the away entries: under “History → Add entry” create an away period and pick a place. That place also drives the weather for those days.",
@@ -610,7 +625,8 @@
     "startingPoint": "Starting point",
     "title": "Travel map",
     "toWeek": "To the week",
-    "trip": "Trip"
+    "trip": "Trip",
+    "wereIn": "In week {n} you were in {place}."
   },
   "undo": {
     "tapToUndo": "Tap to undo"

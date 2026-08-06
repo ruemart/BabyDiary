@@ -2,7 +2,7 @@
 import { computed, onUnmounted, ref } from "vue";
 import { localTimeLabel } from "@babymonitor/shared";
 import { useElapsed } from "../i18n/format.ts";
-import { useToast } from "sit-onyx";
+import { useConfirmToast } from "../composables/useConfirmations.ts";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
@@ -23,7 +23,7 @@ const { t } = useI18n();
 const { since: elapsedSinceLabel } = useElapsed();
 const data = useData();
 const confirmWithUndo = useUndo();
-const toast = useToast();
+const confirm = useConfirmToast();
 
 const feedSheetOpen = ref(false);
 
@@ -103,7 +103,10 @@ const lastFeedText = computed(() => {
   if (!feed) return null;
   return {
     since: elapsedSinceLabel(feed.startedAt, now.value),
-    detail: `${feed.amountMl} ml um ${localTimeLabel(feed.startedAt, data.timezone)}`,
+    detail: t("today.feedDetail", {
+      amount: feed.amountMl,
+      time: localTimeLabel(feed.startedAt, data.timezone),
+    }),
     by: otherPerson(feed),
     // Without this note the status line reads like an intake that happened.
     spatUp: feed.spatUp === true,
@@ -115,7 +118,10 @@ const lastDiaperText = computed(() => {
   if (!diaper) return null;
   return {
     since: elapsedSinceLabel(diaper.startedAt, now.value),
-    detail: `${t(DIAPER_KEY[diaper.diaper ?? "empty"]!)} um ${localTimeLabel(diaper.startedAt, data.timezone)}`,
+    detail: t("today.diaperDetail", {
+      kind: t(DIAPER_KEY[diaper.diaper ?? "empty"]!),
+      time: localTimeLabel(diaper.startedAt, data.timezone),
+    }),
     by: otherPerson(diaper),
   };
 });
@@ -151,9 +157,11 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   const result = await data.logDiaper(kind);
 
   // The double-tap guard must not act silently: someone who is not told their second
-  // tap was discarded will tap a third time.
+  // tap was discarded will tap a third time. With confirmations switched off the status
+  // card carries that instead — it already reads "just now" from the first tap, so the
+  // second one landing nowhere is exactly what it looks like.
   if (result.action === "duplicate") {
-    toast.show({
+    confirm({
       headline: t("today.diaperAlready", { kind: t(DIAPER_KEY[kind]!) }),
       description: t("today.duplicateDetail"),
       color: "neutral",
@@ -163,7 +171,7 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   }
 
   if (result.action === "corrected") {
-    toast.show({
+    confirm({
       headline: t("today.diaperChangedTo", { kind: t(DIAPER_KEY[kind]!) }),
       description: t("today.changedDetail"),
       color: "success",
@@ -212,14 +220,13 @@ async function startSleep() {
 
     <!-- Status line: the reason you switch the phone on at night at all. -->
     <section class="status" :aria-label="$t('today.statusRegion')">
-      <!-- Flasche und Windel nebeneinander und gleichrangig.
-           Vorher war die Windel eine graue Zeile unter der großen Flaschen-Zahl — und
-           genau deshalb ist zweimal dieselbe Windel eingetragen worden: Man sah sie
-           nicht, bevor man tippte.
-           Zwei Spalten statt zweier Blöcke untereinander, damit beides ohne Scrollen
-           im Blick ist. Und je ein Zeichen in der Farbe der Eintragsart: Zwei
-           gleich gestaltete Spalten muss man LESEN, um sie zu unterscheiden — Form und
-           Farbe erkennt man vorher. -->
+      <!-- Bottle and nappy side by side and of equal rank.
+           The nappy used to be a grey line under the large bottle figure — and that is
+           exactly why the same nappy got recorded twice: it was not seen before the tap.
+           Two columns rather than two blocks stacked, so both are in view without
+           scrolling. And one mark each in the colour of the entry type: two columns
+           styled alike have to be READ to be told apart, while shape and colour are
+           recognised before that. -->
       <div class="status__pair">
         <div class="status__primary">
           <p class="status__label">
@@ -518,9 +525,9 @@ async function startSleep() {
   color: var(--bm-diaper);
 }
 
-/* Der Name des anderen Geräts. Abgesetzt genug, um gesehen zu werden, aber OHNE die
-   Farbe einer Eintragsart: Er meint eine Person, keine Kategorie — trüge er das Grün
-   der Windel, läse man ihn als Teil der Windel-Angabe. */
+/* The other device's name. Set apart enough to be noticed, but WITHOUT the colour of an
+   entry type: it names a person, not a category — in nappy green it would read as part
+   of the nappy reading. */
 .status__by {
   margin: 0.25rem 0 0;
   align-self: start;

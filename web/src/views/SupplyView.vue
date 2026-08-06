@@ -277,7 +277,7 @@ async function remove() {
           <div class="current__text">
             <span class="current__value">{{ describe(periods(cat.value)[0]!.entry) }}</span>
             <span v-if="periods(cat.value)[0]!.entry.supplyShop" class="current__shop">
-              bei {{ periods(cat.value)[0]!.entry.supplyShop }}
+              {{ $t("supply.atShop", { shop: periods(cat.value)[0]!.entry.supplyShop }) }}
             </span>
             <span class="current__since">{{ since(periods(cat.value)[0]!) }}</span>
             <span v-if="periods(cat.value)[0]!.entry.note" class="current__note">

@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { useToast } from "sit-onyx";
+import { useConfirmToast } from "./useConfirmations.ts";
 import { useData } from "../stores/data.ts";
 import { uploadImage } from "../sync.ts";
 import { shrinkImage } from "../utils/image.ts";
@@ -19,6 +20,7 @@ export function usePhotoUpload() {
 
   const data = useData();
   const toast = useToast();
+  const confirm = useConfirmToast();
   const busy = ref(false);
 
   /**
@@ -66,7 +68,7 @@ export function usePhotoUpload() {
         }),
       );
 
-      toast.show({ headline: t("photo.savedForWeek", { week: lifeWeek }), color: "success" });
+      confirm({ headline: t("photo.savedForWeek", { week: lifeWeek }), color: "success" });
       return true;
     } catch (error) {
       reportFailure(error);

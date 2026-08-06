@@ -207,7 +207,7 @@ function jumpToWeek(week: number) {
           <span class="item__body">
             <span class="item__label">{{ trip.label }}</span>
             <span class="item__meta">
-              {{ trip.isHome ? trip.kind : `${trip.kind} · Woche ${trip.week}` }}
+              {{ trip.isHome ? trip.kind : `${trip.kind} · ${t("travel.inWeek", { n: trip.week })}` }}
               · {{ periodLabel(trip) }}
             </span>
           </span>
@@ -224,7 +224,7 @@ function jumpToWeek(week: number) {
     </ul>
 
     <p v-if="selectedTrip && !selectedTrip.isHome" class="hint">
-      In Woche {{ selectedTrip.week }} wart ihr in {{ selectedTrip.label }}.
+      {{ $t("travel.wereIn", { n: selectedTrip.week, place: selectedTrip.label }) }}
     </p>
   </div>
 </template>

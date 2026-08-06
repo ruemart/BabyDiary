@@ -77,7 +77,7 @@ const trendText = computed(() => {
   <div class="charts">
     <header class="charts__head">
       <h1>{{ $t("charts.title") }}</h1>
-      <p class="charts__sub">Die letzten {{ DAYS }} Tage</p>
+      <p class="charts__sub">{{ $t("charts.lastDays", { n: DAYS }) }}</p>
     </header>
 
     <p v-if="!hasFeeds" class="empty">

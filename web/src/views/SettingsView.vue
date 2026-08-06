@@ -4,11 +4,11 @@ import { useToast } from "sit-onyx";
 import type { Child } from "@babymonitor/shared";
 import { useData } from "../stores/data.ts";
 import { appearance, setAppearance, type AppearanceSetting } from "../composables/useAppearance.ts";
+import { confirmations, setConfirmations } from "../composables/useConfirmations.ts";
 import { wipeLocal } from "../db/local.ts";
 import ChildForm from "../components/ChildForm.vue";
 import { onMounted } from "vue";
 import { usePushNotifications } from "../composables/usePushNotifications.ts";
-import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { LOCALES, setLocale } from "../i18n/index.ts";
 import { REGIONS, regionByCode } from "../data/regions/index.ts";
@@ -110,7 +110,7 @@ async function choosePlace(place: Place) {
   });
   placeResults.value = [];
   placeQuery.value = "";
-  toast.show({ headline: `Ort auf ${place.name} gesetzt`, color: "success" });
+  toast.show({ headline: t("settings.placeSet", { name: place.name }), color: "success" });
 }
 
 async function save() {
@@ -186,27 +186,6 @@ async function signOut() {
       <p class="warning__reason">{{ childRejected.reason }}</p>
     </div>
 
-    <!-- Right at the top, because this is looked up at the shop and should not need
-         searching for. -->
-    <nav class="shortcuts">
-      <RouterLink to="/meilensteine" class="shortcut">
-        <span class="shortcut__label">{{ $t("settings.shortcut.milestones") }}</span>
-        <span class="shortcut__hint">{{ $t("settings.shortcut.milestonesHint") }}</span>
-      </RouterLink>
-      <RouterLink to="/zahlen" class="shortcut">
-        <span class="shortcut__label">{{ $t("settings.shortcut.totals") }}</span>
-        <span class="shortcut__hint">{{ $t("settings.shortcut.totalsHint") }}</span>
-      </RouterLink>
-      <RouterLink to="/vorrat" class="shortcut">
-        <span class="shortcut__label">{{ $t("settings.shortcut.supply") }}</span>
-        <span class="shortcut__hint">{{ $t("settings.shortcut.supplyHint") }}</span>
-      </RouterLink>
-      <RouterLink to="/reisen" class="shortcut">
-        <span class="shortcut__label">{{ $t("settings.shortcut.travel") }}</span>
-        <span class="shortcut__hint">{{ $t("settings.shortcut.travelHint") }}</span>
-      </RouterLink>
-    </nav>
-
     <section class="card">
       <h2 class="card__title">{{ $t("settings.child") }}</h2>
       <ChildForm v-model="form" />
@@ -281,6 +260,31 @@ async function signOut() {
         >
           <span class="option__label">{{ $t(option.key) }}</span>
           <span v-if="option.hintKey" class="option__hint">{{ $t(option.hintKey) }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card__title">{{ $t("settings.confirmations") }}</h2>
+      <p class="card__lead">{{ $t("settings.confirmationsLead") }}</p>
+      <div class="options">
+        <button
+          type="button"
+          class="option"
+          :class="{ 'option--active': confirmations }"
+          @click="setConfirmations(true)"
+        >
+          <span class="option__label">{{ $t("settings.confirmationsOn") }}</span>
+          <span class="option__hint">{{ $t("settings.confirmationsOnHint") }}</span>
+        </button>
+        <button
+          type="button"
+          class="option"
+          :class="{ 'option--active': !confirmations }"
+          @click="setConfirmations(false)"
+        >
+          <span class="option__label">{{ $t("settings.confirmationsOff") }}</span>
+          <span class="option__hint">{{ $t("settings.confirmationsOffHint") }}</span>
         </button>
       </div>
     </section>
@@ -423,32 +427,6 @@ async function signOut() {
   gap: 1.25rem;
 }
 
-.shortcuts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.shortcut {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.85rem 1.1rem;
-  border-radius: 1.25rem;
-  background: var(--bm-surface);
-  box-shadow: var(--bm-shadow-card);
-  color: inherit;
-  text-decoration: none;
-}
-
-.shortcut__label {
-  font-weight: 600;
-}
-
-.shortcut__hint {
-  font-size: 0.8125rem;
-  color: var(--bm-ink-soft);
-}
 
 .warning {
   padding: 0.9rem 1rem;

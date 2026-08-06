@@ -87,6 +87,7 @@
     "empty": "Sobald ein paar Mahlzeiten eingetragen sind, entstehen hier die Auswertungen.",
     "growth": "Wachstum",
     "growthLegend": "Graue Linien: WHO-Perzentile P3, P15, P50 (durchgezogen), P85 und P97.",
+    "lastDays": "Die letzten {n} Tage",
     "length": "Länge",
     "lessThanLastWeek": "{n} % weniger als letzte Woche",
     "lighter": "leichter oder gleich schwer",
@@ -325,6 +326,7 @@
     "check": "Abhaken",
     "done": "Kann sie schon",
     "doneAt": "Woche {week} · {date}",
+    "doneOf": "{done} von {total} abgehakt",
     "due": "Könnte jetzt dran sein",
     "later": "Kommt später",
     "note": "Die Zeitfenster sagen nicht, wann etwas passieren soll — sie zeigen, in welcher Spanne gesunde Kinder diesen Schritt machen, und die ist erstaunlich breit. Sechs davon (frei sitzen, mit Halt stehen, krabbeln, an der Hand laufen, frei stehen, frei laufen) stammen aus der WHO Motor Development Study, die übrigen sind übliche Erfahrungswerte.",
@@ -334,6 +336,17 @@
     "uncheck": "Haken entfernen",
     "usualIn": "Üblich in {window}",
     "window": "Woche {from}–{to}"
+  },
+  "more": {
+    "milestones": "Meilensteine",
+    "milestonesHint": "Abhaken, was sie schon kann",
+    "settingsHint": "Kind, Sprache, Benachrichtigungen, Gerät",
+    "supply": "Was wir kaufen",
+    "supplyHint": "Milchnahrung, Windelgröße, Laden",
+    "totals": "Zahlen",
+    "totalsHint": "Summen, Schnitte und Rekorde",
+    "travel": "Reisekarte",
+    "travelHint": "Wo sie schon überall war"
   },
   "nav": {
     "charts": "Kurven",
@@ -395,6 +408,16 @@
     "appearanceLead": "Nachts schaltet die App auf ein warmes, gedämpftes Erscheinungsbild — helles, blaustichiges Licht um drei Uhr macht das Wiedereinschlafen unnötig schwer.",
     "appearanceLight": "Immer hell",
     "child": "Kind",
+    "childRejected": {
+      "text": "Ein Wert liegt außerhalb des Erlaubten — meist die Geburtsgröße oder der Kopfumfang. Bitte in Zentimetern eintragen (z. B. 52) und speichern.",
+      "title": "Die Angaben zum Kind werden nicht übertragen"
+    },
+    "confirmations": "Bestätigungen",
+    "confirmationsLead": "Die kurzen Meldungen nach jedem Eintrag. Fehler und Warnungen erscheinen weiterhin.",
+    "confirmationsOff": "Aus",
+    "confirmationsOffHint": "Die Karte oben zeigt den Eintrag trotzdem sofort; rückgängig geht es im Verlauf",
+    "confirmationsOn": "An",
+    "confirmationsOnHint": "Zum Rückgängigmachen antippen",
     "device": "Dieses Gerät",
     "deviceLead": "Einträge werden als {name} gespeichert.",
     "deviceUs": "Wir",
@@ -404,26 +427,7 @@
     "photosLead": "{n} Foto gesammelt. | {n} Fotos gesammelt.",
     "photosLead2": "Aus den Wochenfotos macht der Server ein Video in Reihenfolge der Wochen.",
     "placePlaceholder": "Ort oder Postleitzahl",
-    "saveChanges": "Änderungen speichern",
-    "saved": "Gespeichert",
-    "saving": "Wird gespeichert …",
-    "search": "Suchen",
-    "searching": "Sucht …",
-    "signOut": "Von diesem Gerät abmelden",
-    "signOutNote": "Löscht nur die lokale Kopie auf diesem Telefon. Alle Einträge bleiben auf dem Server und auf dem anderen Gerät erhalten.",
-    "timelapse": "Zeitraffer herunterladen",
-    "timelapseBusy": "Wird erzeugt …",
-    "timelapseFailed": "Zeitraffer nicht möglich",
-    "timelapseServer": "Der Server konnte das Video nicht erzeugen.",
-    "timelapseTooFew": "Dafür braucht es mindestens zwei Wochenfotos.",
-    "title": "Einstellungen",
-    "weather": "Wetter",
-    "weatherCurrent": "Aktuell: {place}",
-    "weatherLead": "Mit einem Ort holt der Pi einmal täglich die Tagestemperatur und legt sie neben die Trinkmenge. Bei Hitze trinkt sie oft mehr — dann sieht man auch, warum. Es gehen nur Koordinaten hinaus, keine Daten über das Kind.",
-    "childRejected": {
-      "text": "Ein Wert liegt außerhalb des Erlaubten — meist die Geburtsgröße oder der Kopfumfang. Bitte in Zentimetern eintragen (z. B. 52) und speichern.",
-      "title": "Die Angaben zum Kind werden nicht übertragen"
-    },
+    "placeSet": "Ort auf {name} gesetzt",
     "push": {
       "alsoAtNight": "Auch nachts",
       "alsoAtNightHint": "Rund um die Uhr — zum Umschalten tippen.",
@@ -450,18 +454,22 @@
       "testSentHint": "Sie sollte gleich ankommen.",
       "title": "Erinnerung ans Fläschchen"
     },
-    "shortcut": {
-      "history": "Verlauf",
-      "historyHint": "Alles ansehen, ändern und nachtragen",
-      "milestones": "Meilensteine",
-      "milestonesHint": "Abhaken, was sie schon kann",
-      "supply": "Was wir kaufen",
-      "supplyHint": "Milchnahrung, Windelgröße, Laden",
-      "totals": "Zahlen",
-      "totalsHint": "Summen, Schnitte und Rekorde",
-      "travel": "Reisekarte",
-      "travelHint": "Wo sie schon überall war"
-    }
+    "saveChanges": "Änderungen speichern",
+    "saved": "Gespeichert",
+    "saving": "Wird gespeichert …",
+    "search": "Suchen",
+    "searching": "Sucht …",
+    "signOut": "Von diesem Gerät abmelden",
+    "signOutNote": "Löscht nur die lokale Kopie auf diesem Telefon. Alle Einträge bleiben auf dem Server und auf dem anderen Gerät erhalten.",
+    "timelapse": "Zeitraffer herunterladen",
+    "timelapseBusy": "Wird erzeugt …",
+    "timelapseFailed": "Zeitraffer nicht möglich",
+    "timelapseServer": "Der Server konnte das Video nicht erzeugen.",
+    "timelapseTooFew": "Dafür braucht es mindestens zwei Wochenfotos.",
+    "title": "Einstellungen",
+    "weather": "Wetter",
+    "weatherCurrent": "Aktuell: {place}",
+    "weatherLead": "Mit einem Ort holt der Pi einmal täglich die Tagestemperatur und legt sie neben die Trinkmenge. Bei Hitze trinkt sie oft mehr — dann sieht man auch, warum. Es gehen nur Koordinaten hinaus, keine Daten über das Kind."
   },
   "setup": {
     "atBirth": "Bei der Geburt",
@@ -477,6 +485,7 @@
   },
   "supply": {
     "at": "bei {shop}",
+    "atShop": "bei {shop}",
     "category": "Kategorie",
     "changed": "Gewechselt",
     "convert": "Doch ein Wechsel? Als neuen Stand anlegen",
@@ -520,7 +529,8 @@
     "offline": "offline",
     "pendingOffline": "{n} wartet offline",
     "syncing": "gleicht ab",
-    "unauthorized": "nicht angemeldet"
+    "unauthorized": "nicht angemeldet",
+    "waiting": "{n} wartet"
   },
   "time": {
     "back": "Zurück",
@@ -547,13 +557,20 @@
     "changedTitle": "Windel geändert",
     "diaperAlready": "Windel {kind} war schon eingetragen",
     "diaperAlsoRecent": "{name} hat {since} schon eine eingetragen",
+    "diaperButton": {
+      "empty": "Leer",
+      "soiled": "Voll",
+      "wet": "Feucht"
+    },
     "diaperChangedTo": "Auf {kind} geändert",
+    "diaperDetail": "{kind} um {time}",
     "diaperLogged": "Windel {kind} eingetragen",
     "diaperRegion": "Windel eintragen",
     "duplicateDetail": "Gerade eben erfasst — kein zweiter Eintrag angelegt.",
     "duplicateTitle": "Schon eingetragen",
     "endPeriod": "Beenden",
     "entryRegion": "Eintragen",
+    "feedDetail": "{amount} ml um {time}",
     "feedHint": "{amount} ml vorgeschlagen",
     "intake": "Heute {amount} ml",
     "lastDiaper": "Windel {since} · {detail}",
@@ -574,17 +591,14 @@
     "vitaminHintUrgent": "Der Tag wird knapp.",
     "vitaminOpen": "Vitamin D heute noch offen",
     "vitaminUndo": "Rückgängig",
-    "weather": "Heute bis {tmax} °C · {label}",
-    "diaperButton": {
-      "empty": "Leer",
-      "soiled": "Voll",
-      "wet": "Feucht"
-    }
+    "weather": "Heute bis {tmax} °C · {label}"
   },
   "totals": {
     "avgPerDay": "Im Schnitt pro Tag",
     "bathDays": "Badetage",
     "bottles": "Fläschchen",
+    "daysTracked": "an {n} Tagen etwas festgehalten",
+    "daysWith": "{n} Tage mit {name}",
     "diapers": "Windeln",
     "empty": "Sobald ihr ein paar Tage eingetragen habt, sammeln sich hier die Zahlen.",
     "entriesCount": "{n} Einträge",
@@ -603,6 +617,7 @@
   "travel": {
     "away": "Unterwegs",
     "home": "Zuhause",
+    "inWeek": "Woche {n}",
     "mapAria": "Karte der bisherigen Reisen",
     "none": "Noch keine Reise eingetragen.",
     "note": "Reisen entstehen aus den Urlaubs-Einträgen: unter „Verlauf → Nachtragen“ eine Abwesenheit anlegen und dort einen Ort auswählen. Der zählt dann auch für das Wetter dieser Tage.",
@@ -610,7 +625,8 @@
     "startingPoint": "Ausgangspunkt",
     "title": "Reisekarte",
     "toWeek": "Zur Woche",
-    "trip": "Reise"
+    "trip": "Reise",
+    "wereIn": "In Woche {n} wart ihr in {place}."
   },
   "undo": {
     "tapToUndo": "Tippen zum Rückgängigmachen"

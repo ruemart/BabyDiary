@@ -129,12 +129,23 @@ for (const [name, path] of [
   ["Weeks", "/wochen"],
   ["History", "/verlauf"],
   ["Charts", "/kurven"],
-  ["More", "/einstellungen"],
+  ["More", "/mehr"],
 ]) {
   await page.getByRole("link", { name }).click();
   await page.waitForTimeout(900);
   check(`navigation "${name}"`, new URL(page.url()).pathname === path, page.url());
 }
+
+// The settings sit one step behind "More" now. That step is a plain in-app link, which
+// is precisely what was dead in the installed app once before — so it gets checked.
+await page.getByRole("link", { name: /Settings/ }).click();
+await page.waitForTimeout(900);
+check("from More into the settings", new URL(page.url()).pathname === "/einstellungen", page.url());
+
+check(
+  "the confirmations switch is there",
+  (await page.getByRole("heading", { name: /Confirmations/ }).count()) === 1,
+);
 
 check("no script errors", errors.length === 0, errors.join(" | "));
 

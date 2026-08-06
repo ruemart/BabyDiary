@@ -38,7 +38,7 @@ const items = [
    */
   { to: "/verlauf", key: "nav.history", icon: "M4 7h16M4 12h16M4 17h10" },
   { to: "/kurven", key: "nav.charts", icon: "M4 19V5m0 14h16M8 15l3-4 3 3 4-6" },
-  { to: "/einstellungen", key: "nav.more", icon: "M12 6h.01M12 12h.01M12 18h.01" },
+  { to: "/mehr", key: "nav.more", icon: "M12 6h.01M12 12h.01M12 18h.01" },
 ] as const;
 </script>
 
