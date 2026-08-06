@@ -12,6 +12,7 @@ import {
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";
+import BackdateFab from "../components/BackdateFab.vue";
 import { numberWithinDay } from "../utils/dayOrdinals.ts";
 import { availableWeeks, buildWeek, dayAfterWeekChange } from "../utils/historyWeeks.ts";
 import { useI18n } from "vue-i18n";
@@ -21,7 +22,6 @@ import { useDuration } from "../i18n/format.ts";
 const { t } = useI18n();
 const duration = useDuration();
 const data = useData();
-const addOpen = ref(false);
 
 /**
  * One day at a time, chosen by week and weekday.
@@ -328,14 +328,7 @@ async function remove(entry: LocalEntry) {
          Nachtragen ist der Grund, warum man diese Seite überhaupt öffnet — der Knopf
          darf nicht von der Länge der Tagesliste abhängen. Er sitzt über der
          Navigationsleiste und in Daumenreichweite. -->
-    <button class="fab" type="button" :aria-label="$t('history.addEntry')" @click="addOpen = true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-        <path d="M12 5v14M5 12h14" stroke-linecap="round" />
-      </svg>
-      <span class="fab__label">{{ $t("history.addEntry") }}</span>
-    </button>
-
-    <AddEntrySheet v-model:open="addOpen" :default-at="day.key === today ? null : `${day.key}T12:00:00`" />
+    <BackdateFab :default-at="day.key === today ? null : `${day.key}T12:00:00`" />
     <AddEntrySheet v-model:open="editOpen" :entry="editing" />
   </div>
 </template>
@@ -372,39 +365,6 @@ async function remove(entry: LocalEntry) {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-}
-
-/* Über der Navigationsleiste (4,75 rem plus Home-Indicator) und rechts, wo der
-   Daumen ohnehin liegt. */
-.fab {
-  position: fixed;
-  inset-inline-end: 1rem;
-  bottom: calc(5.5rem + env(safe-area-inset-bottom));
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 3.25rem;
-  padding: 0 1.15rem 0 0.95rem;
-  border: none;
-  border-radius: 62.5rem;
-  background: var(--bm-feed);
-  color: #2a2028;
-  font: inherit;
-  font-weight: 600;
-  box-shadow: var(--bm-shadow-lift);
-  cursor: pointer;
-}
-
-.fab svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-/* Die Beschriftung bleibt: Ein nacktes Plus über einer Tagesliste kann auch
-   "Tag hinzufügen" heißen. */
-.fab__label {
-  font-size: 0.95rem;
 }
 
 .warning {

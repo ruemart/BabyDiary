@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from "vue";
-import { RouterLink } from "vue-router";
 import { localTimeLabel } from "@babymonitor/shared";
 import { useElapsed } from "../i18n/format.ts";
 import { useToast } from "sit-onyx";
@@ -8,6 +7,7 @@ import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
 import PhotoNudge from "../components/PhotoNudge.vue";
+import BackdateFab from "../components/BackdateFab.vue";
 import AppHeader from "../components/AppHeader.vue";
 import { useAlerts } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
@@ -392,20 +392,15 @@ async function startSleep() {
 
     <p v-if="intake.orientationMl" class="intake-note">{{ $t("intake.note") }}</p>
 
-    <RouterLink to="/verlauf" class="history-link">
-      {{ $t("today.historyLink") }}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <path d="m9 18 6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </RouterLink>
-
     <FeedSheet v-model:open="feedSheetOpen" />
+    <BackdateFab />
   </div>
 </template>
 
 <style scoped>
 .today {
-  padding: 0 1rem 2rem;
+  /* Room at the bottom for the floating button — otherwise it sits on the last card. */
+  padding: 0 1rem 5.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -901,22 +896,4 @@ async function startSleep() {
 
 /* ── Footer ───────────────────────────────────────────────────────────────── */
 
-.history-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.9rem 1.1rem;
-  border-radius: 1.125rem;
-  background: var(--bm-surface);
-  color: var(--bm-ink-soft);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  box-shadow: var(--bm-shadow-card);
-}
-
-.history-link svg {
-  width: 1.1rem;
-  height: 1.1rem;
-}
 </style>

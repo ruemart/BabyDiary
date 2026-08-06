@@ -125,6 +125,7 @@
     "placeholder": "z. B. 52"
   },
   "common": {
+    "backdate": "Nachtragen",
     "cancel": "Abbrechen",
     "close": "Schließen",
     "delete": "Löschen",
@@ -189,7 +190,6 @@
     }
   },
   "history": {
-    "addEntry": "Nachtragen",
     "dayTitleToday": "{day} · heute",
     "deleteAria": "{type} um {time} löschen",
     "factsDiapers": "1 Windel | {n} Windeln",
@@ -555,7 +555,6 @@
     "endPeriod": "Beenden",
     "entryRegion": "Eintragen",
     "feedHint": "{amount} ml vorgeschlagen",
-    "historyLink": "Verlauf ansehen und nachtragen",
     "intake": "Heute {amount} ml",
     "lastDiaper": "Windel {since} · {detail}",
     "lastDiaperLabel": "Letzte Windel",

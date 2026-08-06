@@ -125,6 +125,7 @@
     "placeholder": "e.g. 52"
   },
   "common": {
+    "backdate": "Add entry",
     "cancel": "Cancel",
     "close": "Close",
     "delete": "Delete",
@@ -189,7 +190,6 @@
     }
   },
   "history": {
-    "addEntry": "Add entry",
     "dayTitleToday": "{day} · today",
     "deleteAria": "Delete {type} at {time}",
     "factsDiapers": "1 nappy | {n} nappies",
@@ -555,7 +555,6 @@
     "endPeriod": "End",
     "entryRegion": "Record",
     "feedHint": "{amount} ml suggested",
-    "historyLink": "View history and add past entries",
     "intake": "Today {amount} ml",
     "lastDiaper": "Nappy {since} · {detail}",
     "lastDiaperLabel": "Last nappy",
