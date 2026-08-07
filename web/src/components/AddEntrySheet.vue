@@ -5,6 +5,7 @@ import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
 import { vitaminHolderOn } from "../composables/useVitaminD.ts";
 import { useUndo } from "../composables/useUndo.ts";
+import { entryFields, PERIOD_TYPES } from "../utils/entryFields.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
@@ -146,7 +147,6 @@ const temperatureDc = ref<number | null>(null);
  * runs it appears under "Currently running" and is ended there with one tap.
  */
 const hasEnd = ref(false);
-const PERIOD_TYPES = new Set<EntryType>(["sleep", "illness", "absence"]);
 
 /* ── Ort bei Abwesenheiten ────────────────────────────────────────────────── */
 
@@ -275,26 +275,25 @@ function num(value: string): number | null {
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
-/** The type-dependent fields — identical when creating and when editing. */
+/** Everything the sheet holds, handed to the rule that decides what the type keeps. */
 function fields() {
-  return {
-    amountMl: type.value === "feed" ? amountMl.value : null,
-    spatUp: type.value === "feed" ? spatUp.value : false,
-    vitaminD: type.value === "feed" ? vitaminD.value : false,
-    diaper: type.value === "diaper" ? diaper.value : null,
-    endedAt:
-      PERIOD_TYPES.has(type.value) && hasEnd.value ? endAt.value.toISOString() : null,
-    temperatureDc: type.value === "illness" ? temperatureDc.value : null,
-    latitude: type.value === "absence" ? (place.value?.latitude ?? null) : null,
-    longitude: type.value === "absence" ? (place.value?.longitude ?? null) : null,
-    placeName: type.value === "absence" ? (place.value?.placeName ?? null) : null,
-    weightG: type.value === "growth" ? weightG.value : null,
-    lengthMm: type.value === "growth" ? lengthMm.value : null,
-    headMm: type.value === "growth" ? headMm.value : null,
-    label:
-      type.value === "illness" || type.value === "absence" ? label.value.trim() : null,
-    note: note.value.trim() || null,
-  };
+  return entryFields({
+    type: type.value,
+    amountMl: amountMl.value,
+    spatUp: spatUp.value,
+    vitaminD: vitaminD.value,
+    colicDrops: colicDrops.value,
+    diaper: diaper.value,
+    hasEnd: hasEnd.value,
+    endAt: endAt.value,
+    temperatureDc: temperatureDc.value,
+    place: place.value,
+    weightG: weightG.value,
+    lengthMm: lengthMm.value,
+    headMm: headMm.value,
+    label: label.value,
+    note: note.value,
+  });
 }
 
 async function save() {
