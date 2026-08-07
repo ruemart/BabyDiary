@@ -64,15 +64,25 @@ await page.waitForTimeout(900);
 const sheet = await page.evaluate(() => {
   const d = document.querySelector("dialog.sheet");
   if (!d) return null;
-  const r = d.getBoundingClientRect();
+  const panel = d.querySelector(".sheet__panel");
+  const body = d.querySelector(".sheet__body");
   const footer = d.querySelector(".sheet__actions");
+  const box = (el) => (el ? el.getBoundingClientRect() : null);
+  const p = box(panel) ?? box(d);
+  const b = box(body);
+  // The topmost thing you are meant to operate: the first button of the form.
+  const firstControl = box(body?.querySelector("button, input, textarea, select"));
   return {
     viewport: window.innerHeight,
-    bottom: Math.round(r.bottom),
-    top: Math.round(r.top),
-    footerBottom: footer ? Math.round(footer.getBoundingClientRect().bottom) : null,
-    // A stuck `transform` was the cause of the iPhone bug.
-    transform: getComputedStyle(d).transform,
+    top: Math.round(p.top),
+    bottom: Math.round(p.bottom),
+    height: Math.round(p.height),
+    bodyHeight: b ? Math.round(b.height) : null,
+    bodyScrollHeight: body ? body.scrollHeight : null,
+    firstControlBottom: firstControl ? Math.round(firstControl.bottom) : null,
+    footerBottom: footer ? Math.round(box(footer).bottom) : null,
+    // A stuck `transform` was one of the causes of the iPhone bug.
+    transform: getComputedStyle(panel ?? d).transform,
   };
 });
 
@@ -92,6 +102,29 @@ if (sheet) {
     "no stuck transform",
     sheet.transform === "none" || sheet.transform === "matrix(1, 0, 0, 1, 0, 0)",
     sheet.transform,
+  );
+  /**
+   * The three checks above all passed while the sheet was unusable on the iPhone: the
+   * form between the title and the save button had been squeezed to a couple of pixels,
+   * and measuring only the OUTER edges cannot see that. So the inside gets measured too.
+   *
+   * Half the screen is not a design decision, it is the line below which nothing can
+   * still be a form. `flex: 1` in place of `flex: 1 1 auto` produced 20 px.
+   */
+  check(
+    "the form has room, not just the title and the button",
+    sheet.bodyHeight !== null && sheet.bodyHeight > sheet.viewport / 2,
+    `content area ${sheet.bodyHeight} px of ${sheet.viewport}`,
+  );
+  check(
+    "the first control of the form is on screen",
+    sheet.firstControlBottom !== null && sheet.firstControlBottom <= sheet.viewport + 1,
+    `ends at ${sheet.firstControlBottom}`,
+  );
+  check(
+    "the rest of the form is reachable by scrolling",
+    sheet.bodyScrollHeight > sheet.bodyHeight,
+    `${sheet.bodyScrollHeight} px of form in ${sheet.bodyHeight} px of window`,
   );
 }
 
