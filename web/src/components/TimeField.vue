@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { getDisplayLocale } from "@milo/shared";
+import { getDisplayLocale } from "@babydiary/shared";
 
 
 const { t } = useI18n();

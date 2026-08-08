@@ -7,7 +7,7 @@ import {
   type Entry,
   type EntryType,
   type InvalidEntry,
-} from "@milo/shared";
+} from "@babydiary/shared";
 import {
   META_CHILD_ID,
   META_DEVICE_NAME,

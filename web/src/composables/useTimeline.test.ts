@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createApp } from "vue";
-import type { Child } from "@milo/shared";
+import type { Child } from "@babydiary/shared";
 import { i18n } from "../i18n/index.ts";
 import { useTimeline, type TimelinePin } from "./useTimeline.ts";
 import { MILESTONES } from "../data/milestones.ts";

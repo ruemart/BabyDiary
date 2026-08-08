@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Milo — one command from a fresh clone to a running app.
+# Baby Diary — one command from a fresh clone to a running app.
 #
 # Everything this script does, you could do by hand in five minutes. It exists
 # because the five minutes are spent at the worst possible time: you have a
@@ -177,7 +177,7 @@ secret=$(grep '^HOUSEHOLD_SECRET=' .env | cut -d= -f2-)
 
 cat <<BANNER
 
-${GREEN}${BOLD}Milo is running.${OFF}
+${GREEN}${BOLD}Baby Diary is running.${OFF}
 
 Open this link ${BOLD}once per device${OFF} — phone, tablet, laptop:
 

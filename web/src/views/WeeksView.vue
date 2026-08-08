@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { calendarDateLabel, lifeWeekStart } from "@milo/shared";
+import { calendarDateLabel, lifeWeekStart } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
 import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";

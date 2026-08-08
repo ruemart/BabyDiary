@@ -1,4 +1,4 @@
-import type { Child, InvalidEntry, SyncResponse } from "@milo/shared";
+import type { Child, InvalidEntry, SyncResponse } from "@babydiary/shared";
 import {
   META_CURSOR,
   applyServerEntries,

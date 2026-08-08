@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import type { EntryType } from "@milo/shared";
+import type { EntryType } from "@babydiary/shared";
 import { useElapsed } from "../i18n/format.ts";
 import type { LocalEntry } from "../db/local.ts";
 import { useI18n } from "vue-i18n";

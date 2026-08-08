@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { lifeWeek as calcLifeWeek, localDayKey, type SupplyCategory } from "@milo/shared";
+import { lifeWeek as calcLifeWeek, localDayKey, type SupplyCategory } from "@babydiary/shared";
 import { useI18n } from "vue-i18n";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";

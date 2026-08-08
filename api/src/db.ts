@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { readFileSync, readdirSync, mkdirSync, existsSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Child, Entry, StoredEntry } from "@milo/shared";
+import type { Child, Entry, StoredEntry } from "@babydiary/shared";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -28,12 +28,18 @@ export function openDatabase(path: string): Db {
 }
 
 /**
- * Takes over the database file of the old name.
+ * Takes over the database file of an earlier name.
  *
- * The project used to be called Milo, so the file was `milo.db`. Leaving it
- * behind would not lose anything — but it would start an empty database next to a full
- * one, and the app would come up looking as if every entry were gone. That is the sort of
- * moment where somebody restores a backup over the top and really does lose something.
+ * The project has been renamed twice — `babymonitor.db`, then `milo.db`, now
+ * `babydiary.db`. Leaving an old file behind would not lose anything, but it would start
+ * an EMPTY database next to a full one, and the app would come up looking as if every
+ * entry were gone. That is the sort of moment where somebody restores a backup over the
+ * top and really does lose something.
+ *
+ * A LIST, not one predecessor. The first rename replaced the single old name it knew
+ * about, which works exactly once: a household still on the very first name would have
+ * been skipped by the second rename and silently handed an empty database. Newest first,
+ * so an installation carrying several old files takes over the most recent one.
  *
  * Renamed rather than copied: two files that both look like the database is exactly the
  * confusion to avoid. All three parts move together — with WAL active, `-wal` and `-shm`
@@ -43,14 +49,21 @@ export function openDatabase(path: string): Db {
  * Runs before the file is opened, which is the only safe moment: at this point in the
  * container's life nothing holds a handle on it.
  */
-function adoptRenamedFile(path: string): void {
-  const previous = join(dirname(path), "babymonitor.db");
-  if (previous === path || existsSync(path) || !existsSync(previous)) return;
+const EARLIER_DB_NAMES = ["milo.db", "babymonitor.db"];
 
-  for (const suffix of ["", "-wal", "-shm"]) {
-    if (existsSync(previous + suffix)) renameSync(previous + suffix, path + suffix);
+function adoptRenamedFile(path: string): void {
+  if (existsSync(path)) return;
+
+  for (const name of EARLIER_DB_NAMES) {
+    const previous = join(dirname(path), name);
+    if (previous === path || !existsSync(previous)) continue;
+
+    for (const suffix of ["", "-wal", "-shm"]) {
+      if (existsSync(previous + suffix)) renameSync(previous + suffix, path + suffix);
+    }
+    console.log(`[db] took over ${previous} as ${path}`);
+    return;
   }
-  console.log(`[db] took over ${previous} as ${path}`);
 }
 
 /**

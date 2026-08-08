@@ -2,7 +2,7 @@ import weightGirls from "./weight-girls.json";
 import weightBoys from "./weight-boys.json";
 import lengthGirls from "./length-girls.json";
 import lengthBoys from "./length-boys.json";
-import type { Sex } from "@milo/shared";
+import type { Sex } from "@babydiary/shared";
 
 /**
  * WHO Child Growth Standards.

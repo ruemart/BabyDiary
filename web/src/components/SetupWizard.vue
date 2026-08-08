@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { uuidv7, type Child } from "@milo/shared";
+import { uuidv7, type Child } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
 import ChildForm from "./ChildForm.vue";
 import { useI18n } from "vue-i18n";

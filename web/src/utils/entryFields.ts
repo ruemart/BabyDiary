@@ -1,4 +1,4 @@
-import type { Entry, EntryType } from "@milo/shared";
+import type { Entry, EntryType } from "@babydiary/shared";
 
 /**
  * Which fields an entry carries, decided by its type.

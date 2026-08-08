@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localDayKey, setDisplayLocale } from "@milo/shared";
+import { localDayKey, setDisplayLocale } from "@babydiary/shared";
 import { supplyPeriods } from "./supplyPeriods.ts";
 
 const TZ = "Europe/Berlin";

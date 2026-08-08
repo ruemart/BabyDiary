@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ENTRY_TYPES, type Child, type Entry } from "@milo/shared";
+import { ENTRY_TYPES, type Child, type Entry } from "@babydiary/shared";
 import { createStore, openDatabase, type Store } from "./db.ts";
 
 const CHILD_ID = "child-1";

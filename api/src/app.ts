@@ -4,13 +4,14 @@ import { mkdir, stat, writeFile } from "node:fs/promises";
 import { join, extname } from "node:path";
 import { z } from "zod";
 import {
+  appName,
   childSchema,
   entrySchema,
   syncEnvelopeSchema,
   uuidv7,
   type Entry,
   type SyncResponse,
-} from "@milo/shared";
+} from "@babydiary/shared";
 import { config } from "./config.ts";
 import {
   SESSION_COOKIE,
@@ -59,8 +60,13 @@ export async function buildApp(
   const weather = opts.weather;
   const push = opts.push;
 
-  /** Everything under /api/ needs a valid cookie — except the three exceptions. */
-  const OPEN_ROUTES = new Set(["/api/health", "/api/session", "/api/session/check"]);
+  /** Everything under /api/ needs a valid cookie — except the four exceptions. */
+  const OPEN_ROUTES = new Set([
+    "/api/health",
+    "/api/session",
+    "/api/session/check",
+    "/api/manifest.webmanifest",
+  ]);
 
   app.addHook("onRequest", async (req: FastifyRequest, reply: FastifyReply) => {
     if (!req.url.startsWith("/api/")) return;
@@ -89,6 +95,45 @@ export async function buildApp(
      */
     defaultRegion: config.defaultRegion,
   }));
+
+  /**
+   * The web app manifest, carrying the child's name.
+   *
+   * Served here rather than built into the image, because the name is not known at build
+   * time and belongs to the household, not to the release. It is what the install prompt
+   * and the Android launcher read; iOS prefers the meta tag in the page, which the app
+   * sets for itself.
+   *
+   * OPEN, and deliberately so. A manifest is fetched without credentials unless the link
+   * tag says otherwise, and a device that has not signed in yet fetches it on the invite
+   * screen. Refusing it there would cost the install prompt its name for the sake of
+   * withholding a first name from someone who already reached this host — which is not a
+   * trade worth making. Without a session it answers with the generic name.
+   */
+  app.get("/api/manifest.webmanifest", async (req, reply) => {
+    const signedIn = !!verifySession(req.cookies[SESSION_COOKIE], config.cookieSecret);
+    const name = appName(signedIn ? store.getChild()?.name : null);
+
+    reply.type("application/manifest+json");
+    // Never from the cache: renaming the child has to reach the next install prompt.
+    reply.header("Cache-Control", "no-cache");
+    return {
+      name,
+      short_name: name,
+      description: "Track feeds, nappies, sleep and development",
+      lang: "en",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#f7f4ee",
+      theme_color: "#e8a33d",
+      orientation: "portrait",
+      icons: [
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+    };
+  });
 
   /* ── Sitzung ──────────────────────────────────────────────────────────────── */
 

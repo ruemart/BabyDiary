@@ -17,7 +17,7 @@ export const config = {
   port: Number(process.env["PORT"] ?? 3010),
   host: process.env["HOST"] ?? "0.0.0.0",
   dataDir,
-  databasePath: process.env["DATABASE_PATH"] ?? join(dataDir, "milo.db"),
+  databasePath: process.env["DATABASE_PATH"] ?? join(dataDir, "babydiary.db"),
   mediaDir: process.env["MEDIA_DIR"] ?? join(dataDir, "media"),
 
   /** Anyone who knows this value in the invite link may register a device. */

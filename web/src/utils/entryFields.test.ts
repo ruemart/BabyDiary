@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EntryType } from "@milo/shared";
+import type { EntryType } from "@babydiary/shared";
 import { entryFields, PERIOD_TYPES, type EntryForm } from "./entryFields.ts";
 
 /** A filled-in form. Each test changes only what it is about. */

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { OnyxToast } from "sit-onyx";
+import { appName } from "@babydiary/shared";
 import { useData } from "./stores/data.ts";
 import { checkSession, fetchDefaultRegion } from "./sync.ts";
 import { wipeLocal } from "./db/local.ts";
@@ -26,6 +27,27 @@ let syncTimer: ReturnType<typeof setInterval> | null = null;
 
 /** The invite screen brings its own layout. */
 const isJoinRoute = computed(() => route.name === "start");
+
+/**
+ * The app calls itself after the child.
+ *
+ * Both places have to be written, because two different things read them. The browser
+ * tab and the app switcher take `document.title`; iOS takes the meta tag when the page
+ * is added to the home screen, and prefers it over everything else — including the
+ * manifest. It reads the live DOM at that moment, which is why setting it from here
+ * works at all.
+ *
+ * An already installed home-screen icon keeps the label it was added with; iOS never
+ * revisits it. Renaming the child therefore renames the tab straight away and the icon
+ * only when it is added anew, and there is nothing on our side that could change that.
+ */
+watchEffect(() => {
+  const name = appName(data.child?.name);
+  document.title = name;
+  document
+    .querySelector('meta[name="apple-mobile-web-app-title"]')
+    ?.setAttribute("content", name);
+});
 
 const needsSetup = computed(
   () =>

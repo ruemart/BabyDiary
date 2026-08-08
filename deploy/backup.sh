@@ -19,13 +19,16 @@ chown "$OWNER" /backups 2>/dev/null || true
 
 while true; do
   STAMP="$(date +%Y%m%d)"
-  TARGET="/backups/milo-$STAMP.db"
+  TARGET="/backups/babydiary-$STAMP.db"
 
-  # Falls back to the old file name for one cycle: if the API has not restarted since the
-  # rename, that is still what is on disk — and a backup loop that quietly does nothing is
-  # worse than no backup loop at all, because it looks like it is working.
-  SOURCE=/data/milo.db
-  [ -f "$SOURCE" ] || SOURCE=/data/babymonitor.db
+  # Falls back through the earlier file names: if the API has not restarted since a
+  # rename, one of those is still what is on disk — and a backup loop that quietly does
+  # nothing is worse than no backup loop at all, because it looks like it is working.
+  # Newest first, matching EARLIER_DB_NAMES in api/src/db.ts.
+  SOURCE=/data/babydiary.db
+  for candidate in /data/babydiary.db /data/milo.db /data/babymonitor.db; do
+    [ -f "$candidate" ] && SOURCE="$candidate" && break
+  done
 
   if sqlite3 "$SOURCE" ".backup '$TARGET'"; then
     gzip -f "$TARGET"
@@ -38,6 +41,9 @@ while true; do
     echo "[backup] $STAMP FAILED" >&2
   fi
 
-  find /backups -name 'milo-*.db.gz' -mtime "+$KEEP_DAYS" -delete
+  # Any prefix, not just the current one. Matching the project's name here meant that
+  # after a rename the older backups were never swept up again and the directory grew
+  # forever — quietly, because nothing about it looks broken.
+  find /backups -name '*.db.gz' -mtime "+$KEEP_DAYS" -delete
   sleep "$INTERVAL"
 done

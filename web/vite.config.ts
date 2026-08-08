@@ -20,29 +20,15 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,woff2,png,svg}"],
       },
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
-      manifest: {
-        name: "Milo",
-        short_name: "Milo",
-        description: "Track feeds, nappies, sleep and development",
-        // English, like the app's own default. The device language decides at first
-        // launch; this is only what the install prompt speaks.
-        lang: "en",
-        start_url: "/",
-        display: "standalone",
-        background_color: "#f7f4ee",
-        theme_color: "#e8a33d",
-        orientation: "portrait",
-        icons: [
-          { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
-          {
-            src: "/icon-maskable-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-      },
+      /**
+       * No manifest is built into the image — the API serves it, because it carries the
+       * child's name and that is not known here. `index.html` links it directly, so this
+       * plugin must not inject a second link pointing at a file that is not there.
+       *
+       * Only the WEB APP manifest is meant; the precache manifest above is a different
+       * thing with an unfortunately similar name and is unaffected.
+       */
+      manifest: false,
       devOptions: { enabled: false },
     }),
   ],

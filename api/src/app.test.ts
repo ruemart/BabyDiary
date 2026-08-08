@@ -5,7 +5,7 @@ import multipart from "@fastify/multipart";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Entry, SyncResponse } from "@milo/shared";
+import type { Entry, SyncResponse } from "@babydiary/shared";
 
 const INVITE = "test-household-secret-0123456789";
 process.env["HOUSEHOLD_SECRET"] = INVITE;
@@ -78,6 +78,76 @@ async function login(name = "Mama"): Promise<string> {
   const setCookie = res.headers["set-cookie"];
   return String(Array.isArray(setCookie) ? setCookie[0] : setCookie).split(";")[0]!;
 }
+
+describe("The manifest carries the child's name", () => {
+  const child = {
+    id: CHILD_ID,
+    name: "Lotte",
+    sex: "female" as const,
+    birthDate: "2026-06-15",
+    dueDate: null,
+    birthWeightG: null,
+    birthLengthMm: null,
+    birthHeadMm: null,
+    timezone: "Europe/Berlin",
+    latitude: null,
+    longitude: null,
+    placeName: null,
+    editedAt: "2026-08-04T10:00:00.000Z",
+  };
+
+  async function manifest(cookie?: string) {
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/manifest.webmanifest",
+      ...(cookie ? { headers: { cookie } } : {}),
+    });
+    expect(res.statusCode).toBe(200);
+    return res;
+  }
+
+  /**
+   * Open on purpose: a device on the invite screen has no session yet and still fetches
+   * the manifest. A 401 there would cost the install prompt its name.
+   */
+  it("answers without a session, with the generic name", async () => {
+    expect((await manifest()).json().name).toBe("Baby Diary");
+  });
+
+  it("says the child's name to a signed-in device", async () => {
+    const jar = await login();
+    await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: jar },
+      payload: { childId: CHILD_ID, since: 0, changes: [], child },
+    });
+
+    const body = (await manifest(jar)).json();
+    // Both: the launcher reads one, the install prompt the other.
+    expect(body.name).toBe("Lotte");
+    expect(body.short_name).toBe("Lotte");
+  });
+
+  it("keeps the name to itself when nobody is signed in", async () => {
+    const jar = await login();
+    await app.inject({
+      method: "POST",
+      url: "/api/sync",
+      headers: { cookie: jar },
+      payload: { childId: CHILD_ID, since: 0, changes: [], child },
+    });
+
+    expect((await manifest()).json().name).toBe("Baby Diary");
+  });
+
+  it("is served as a manifest and never from the cache", async () => {
+    const res = await manifest();
+    expect(res.headers["content-type"]).toContain("application/manifest+json");
+    // A renamed child has to reach the next install prompt.
+    expect(res.headers["cache-control"]).toBe("no-cache");
+  });
+});
 
 describe("Invitation", () => {
   it("sets a long-lived cookie", async () => {

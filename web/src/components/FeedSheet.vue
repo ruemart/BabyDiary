@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { localDayKey } from "@milo/shared";
+import { localDayKey } from "@babydiary/shared";
 import { vitaminHolderOn } from "../composables/useVitaminD.ts";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";

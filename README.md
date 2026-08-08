@@ -1,4 +1,4 @@
-# Milo
+# Baby Diary
 
 A small, private web app for the first years: record bottles, nappies, sleep and
 growth, and see on a timeline what is coming next — developmental leaps, check-ups,
@@ -16,8 +16,8 @@ Runs on your own hardware. A Raspberry Pi is plenty.
 ## Install
 
 ```bash
-git clone https://github.com/<your-account>/milo.git
-cd milo
+git clone https://github.com/<your-account>/baby-diary.git
+cd baby-diary
 ./install.sh
 ```
 
@@ -101,8 +101,8 @@ The app binds to `127.0.0.1` only. That is deliberate: nothing is exposed until 
 decide it should be.
 
 **Cloudflare Tunnel** (what the author uses) — no open ports, no dynamic DNS:
-`milo-web` joins the external Docker network `cloudflare_proxy`, and in the
-Cloudflare dashboard you add a public hostname pointing at `http://milo-web:80`.
+`babydiary-web` joins the external Docker network `cloudflare_proxy`, and in the
+Cloudflare dashboard you add a public hostname pointing at `http://babydiary-web:80`.
 
 **A reverse proxy** you already run works just as well. Point it at port 8090.
 
@@ -173,8 +173,8 @@ the backup, record intact):
 
 ```bash
 docker compose stop api
-gunzip -c backups/milo-YYYYMMDD.db.gz > data/milo.db
-rm -f data/milo.db-wal data/milo.db-shm
+gunzip -c backups/babydiary-YYYYMMDD.db.gz > data/babydiary.db
+rm -f data/babydiary.db-wal data/babydiary.db-shm
 docker compose start api
 ```
 

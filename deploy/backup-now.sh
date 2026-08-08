@@ -22,28 +22,29 @@ cd "$(dirname "$0")/.."
 
 label="${1:-manual}"
 stamp="$(date +%Y%m%d-%H%M%S)"
-name="milo-${stamp}-${label}.db"
+name="babydiary-${stamp}-${label}.db"
 
-# The project used to be called BabyMonitor. The API renames the file on its next start,
-# but this script runs BEFORE that — on exactly the deploy that performs the rename, the
-# file is still called the old name, and a check for the new one alone would skip the
-# backup at the one moment it matters most.
-source="milo.db"
-if [ ! -f "data/${source}" ] && [ -f data/babymonitor.db ]; then
-  source="babymonitor.db"
-fi
+# The project has been renamed twice. The API renames the file on its next start, but
+# this script runs BEFORE that — on exactly the deploy that performs a rename, the file
+# is still called by its old name, and checking for the new one alone would skip the
+# backup at the one moment it matters most. Newest first, matching EARLIER_DB_NAMES in
+# api/src/db.ts.
+source=""
+for candidate in babydiary.db milo.db babymonitor.db; do
+  [ -f "data/${candidate}" ] && source="$candidate" && break
+done
 
-if [ ! -f "data/${source}" ]; then
+if [ -z "$source" ]; then
   echo "  no database yet — nothing to back up"
   exit 0
 fi
 
-container=milo-backup
-if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$container"; then
-  container=babymonitor-backup
-fi
+container=""
+for candidate in babydiary-backup milo-backup babymonitor-backup; do
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$candidate" && container="$candidate" && break
+done
 
-if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$container"; then
+if [ -z "$container" ]; then
   echo "  backup container is not running — skipping the pre-deploy backup" >&2
   exit 0
 fi

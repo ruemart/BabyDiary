@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { calendarDateLabel, lifeWeek as calcLifeWeek, localDayKey } from "@milo/shared";
+import { calendarDateLabel, lifeWeek as calcLifeWeek, localDayKey } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
 import { MILESTONES, type Milestone } from "../data/milestones.ts";
 import SheetDialog from "../components/SheetDialog.vue";

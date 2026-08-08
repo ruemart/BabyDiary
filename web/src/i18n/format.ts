@@ -1,5 +1,5 @@
 import { useI18n } from "vue-i18n";
-import { elapsedSince, type Elapsed } from "@milo/shared";
+import { elapsedSince, type Elapsed } from "@babydiary/shared";
 
 /**
  * Put elapsed time into words — the words come from the language files.

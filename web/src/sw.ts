@@ -41,7 +41,7 @@ registerRoute(
 type PushPayload = { title: string; body: string; tag?: string; url?: string };
 
 self.addEventListener("push", (event) => {
-  let payload: PushPayload = { title: "Milo", body: "" };
+  let payload: PushPayload = { title: "Baby Diary", body: "" };
   try {
     if (event.data) payload = { ...payload, ...(event.data.json() as PushPayload) };
   } catch {
@@ -53,7 +53,7 @@ self.addEventListener("push", (event) => {
       body: payload.body,
       // The same `tag` replaces an older message instead of stacking it: two reminders
       // about the same bottle underneath each other would just be noise.
-      tag: payload.tag ?? "milo",
+      tag: payload.tag ?? "babydiary",
       renotify: false,
       icon: "/icon-192.png",
       badge: "/icon-192.png",

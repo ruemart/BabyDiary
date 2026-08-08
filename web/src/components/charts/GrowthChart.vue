@@ -2,7 +2,7 @@
 import { computed, type ComputedRef } from "vue";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
-import type { Sex } from "@milo/shared";
+import type { Sex } from "@babydiary/shared";
 import {
   PERCENTILE_LINES,
   valueAtZ,
