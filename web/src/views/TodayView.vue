@@ -13,7 +13,8 @@ import { useAlerts } from "../composables/useAlerts.ts";
 import { useWeather, describeTemperature } from "../composables/useWeather.ts";
 import { useDailyIntake } from "../composables/useDailyIntake.ts";
 import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
-import { useVitaminD } from "../composables/useVitaminD.ts";
+import { useMedicines, type MedicineStatus } from "../composables/useMedicine.ts";
+import { useDose } from "../i18n/format.ts";
 import { ageInDays, localDayKey } from "@babydiary/shared";
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -35,18 +36,45 @@ const { alerts } = useAlerts(
 
 const intake = useDailyIntake(() => data.entries, () => data.timezone);
 
-const vitaminD = useVitaminD(() => data.entries, () => data.timezone, () => now.value);
+const dose = useDose();
+
+const medicines = useMedicines(
+  () => data.entries,
+  () => data.timezone,
+  () => now.value,
+  () => data.medicines,
+);
 
 /**
- * Set vitamin D retrospectively on today's last feed — or take it back off. That way
- * nobody has to go into the history just because the tick was forgotten while recording.
+ * Record a dose here, without a bottle.
+ *
+ * The everyday path is the tick in the bottle sheet — the drops go in the bottle. This
+ * is for everything that does not: a pill in the morning, a dose the day nobody drank
+ * from a bottle at the right time, or simply the tick that was forgotten.
  */
-async function toggleVitaminD() {
-  const targetId = vitaminD.value.entryId ?? vitaminD.value.latestFeedId;
-  if (!targetId) return;
-  const entry = data.entries.find((e) => e.id === targetId);
-  if (!entry) return;
-  await data.update({ ...entry, vitaminD: !entry.vitaminD });
+async function giveMedicine(medicine: MedicineStatus) {
+  const id = await data.logMedicine(medicine.plan, new Date());
+  confirmWithUndo(t("medicine.saved", { name: medicine.name }), id);
+}
+
+/** Taking it back off: the same button, once everything for the day is given. */
+async function undoMedicine(medicine: MedicineStatus) {
+  if (medicine.lastDoseId) await data.remove(medicine.lastDoseId);
+}
+
+/** "1 drop · given 08:12", "2 of 3 today", "not yet today" — whatever is true. */
+function medicineStatusText(medicine: MedicineStatus): string {
+  if (medicine.timesPerDay === null) {
+    return medicine.givenToday === 0
+      ? t("medicine.asNeeded")
+      : t("medicine.timesToday", { n: medicine.givenToday, time: medicine.lastAtLabel });
+  }
+  // One a day has a time worth naming — "given at 08:12" answers the question exactly.
+  // Beyond one, the count is the answer and the times would be a list.
+  if (medicine.complete && medicine.timesPerDay === 1) {
+    return t("medicine.doneAt", { time: medicine.lastAtLabel });
+  }
+  return t("medicine.openToday", { given: medicine.givenToday, target: medicine.timesPerDay });
 }
 
 /** Everything currently running — sleep, illness, being away. Several at once possible. */
@@ -287,43 +315,48 @@ async function startSleep() {
 
     </section>
 
-    <!-- Vitamin D: its own card, not one line among many. The daily dose gets forgotten
-         precisely because it is so small — and by the evening nobody is sure any more
-         whether it happened. -->
-    <section
-      class="vitamin"
-      :class="{ 'vitamin--done': vitaminD.given, 'vitamin--urgent': vitaminD.urgent }"
-      aria-label="Vitamin D"
-    >
-      <span class="vitamin__mark" aria-hidden="true">
-        <svg v-if="vitaminD.given" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8v4.5" stroke-linecap="round" />
-          <path d="M12 16h.01" stroke-linecap="round" />
-        </svg>
-      </span>
-      <span class="vitamin__text">
-        <span class="vitamin__label">
-          {{ vitaminD.given ? $t("today.vitaminDone", { time: vitaminD.atLabel }) : $t("today.vitaminOpen") }}
-        </span>
-        <span v-if="!vitaminD.given && !vitaminD.latestFeedId" class="vitamin__hint">
-          {{ $t("today.vitaminHintNoFeed") }}
-        </span>
-        <span v-else-if="!vitaminD.given" class="vitamin__hint">
-          {{ vitaminD.urgent ? $t("today.vitaminHintUrgent") : $t("today.vitaminHint") }}
-        </span>
-      </span>
-      <button
-        v-if="vitaminD.latestFeedId || vitaminD.entryId"
-        class="vitamin__action"
-        type="button"
-        @click="toggleVitaminD"
+    <!-- Medicine: one line per medicine set up, and nothing at all while the list is
+         empty. A daily dose gets forgotten precisely because it is so small — no
+         occasion of its own, no feedback, and by the evening nobody is sure any more
+         whether it happened. That is the one question this answers. -->
+    <section v-if="medicines.length" class="meds" :aria-label="$t('medicine.title')">
+      <div
+        v-for="medicine in medicines"
+        :key="medicine.id"
+        class="med"
+        :class="{ 'med--done': medicine.complete, 'med--urgent': medicine.urgent }"
       >
-        {{ vitaminD.given ? $t("today.vitaminUndo") : $t("today.vitaminDoneAction") }}
-      </button>
+        <span class="med__mark" aria-hidden="true">
+          <svg v-if="medicine.complete" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v4.5" stroke-linecap="round" />
+            <path d="M12 16h.01" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="med__text">
+          <span class="med__label">{{ medicine.name }}</span>
+          <span class="med__hint">
+            {{ medicineStatusText(medicine) }}
+            <template v-if="dose(medicine.amount, medicine.unit)">
+              · {{ dose(medicine.amount, medicine.unit) }}
+            </template>
+          </span>
+        </span>
+        <button
+          v-if="medicine.complete"
+          class="med__action"
+          type="button"
+          @click="undoMedicine(medicine)"
+        >
+          {{ $t("medicine.undo") }}
+        </button>
+        <button v-else class="med__action" type="button" @click="giveMedicine(medicine)">
+          {{ $t("medicine.give") }}
+        </button>
+      </div>
     </section>
 
     <!-- What is currently running. One tap ends it at the present moment — without
@@ -689,7 +722,13 @@ async function startSleep() {
   transform: scale(0.97);
 }
 
-.vitamin {
+.meds {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.med {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -700,19 +739,19 @@ async function startSleep() {
   box-shadow: var(--bm-shadow-card);
 }
 
-.vitamin--done {
+.med--done {
   border-color: color-mix(in srgb, var(--bm-diaper) 45%, transparent);
   background: var(--bm-diaper-soft);
 }
 
 /* Only clearer in the evening. A forgotten day is not an emergency — the app
    reminds, it does not nag. */
-.vitamin--urgent {
+.med--urgent {
   border-color: color-mix(in srgb, var(--bm-feed) 65%, transparent);
   background: var(--bm-feed-soft);
 }
 
-.vitamin__mark {
+.med__mark {
   width: 2rem;
   height: 2rem;
   flex: none;
@@ -723,37 +762,37 @@ async function startSleep() {
   color: var(--bm-ink-soft);
 }
 
-.vitamin--done .vitamin__mark {
+.med--done .med__mark {
   background: var(--bm-diaper);
   color: #fff;
 }
 
-.vitamin--urgent .vitamin__mark {
+.med--urgent .med__mark {
   color: var(--bm-ink);
 }
 
-.vitamin__mark svg {
+.med__mark svg {
   width: 1.15rem;
   height: 1.15rem;
 }
 
-.vitamin__text {
+.med__text {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.vitamin__label {
+.med__label {
   font-weight: 600;
 }
 
-.vitamin__hint {
+.med__hint {
   font-size: 0.8125rem;
   color: var(--bm-ink-soft);
 }
 
-.vitamin__action {
+.med__action {
   flex: none;
   min-height: 2.5rem;
   padding: 0 0.9rem;

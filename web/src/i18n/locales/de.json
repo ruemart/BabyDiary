@@ -13,6 +13,11 @@
     "end": "Ende",
     "endKnown": "Ende ist schon bekannt",
     "endPickBelow": "Zeitpunkt unten wählen",
+    "group": {
+      "everyday": "Alltag",
+      "occasional": "Ab und zu",
+      "period": "Zeitraum mit Anfang und Ende"
+    },
     "head": "Kopfumfang",
     "kind": "Art",
     "length": "Länge",
@@ -26,12 +31,7 @@
     "titleNew": "Eintrag nachtragen",
     "weight": "Gewicht",
     "whatsWrong": "Was ist los?",
-    "where": "Wo? (optional)",
-    "group": {
-      "everyday": "Alltag",
-      "occasional": "Ab und zu",
-      "period": "Zeitraum mit Anfang und Ende"
-    }
+    "where": "Wo? (optional)"
   },
   "alerts": {
     "disclaimer": "Diese Hinweise beschreiben nur, was in euren Einträgen steht — sie sind keine ärztliche Beurteilung. Wenn ihr euch Sorgen macht, ruft die Kinderarztpraxis an; im Zweifel lieber einmal zu früh.",
@@ -81,6 +81,13 @@
   "charts": {
     "avgFeeds": "Ø Mahlzeiten",
     "avgPerDay": "Ø pro Tag",
+    "bath": "Baden",
+    "bathCaption": "Badetage der letzten {n} Wochen",
+    "bathEvery": "Im Schnitt alle {n} Tage",
+    "bathLast": "zuletzt gestern | zuletzt vor {n} Tagen",
+    "bathLead": "Wochentage nach unten, Wochen nach rechts. Gebadet wird im Wochentakt — ablesen lässt sich hier der Rhythmus, und ob daraus unbemerkt vierzehn Tage geworden sind.",
+    "bathOn": "Gebadet am {day}, {date}",
+    "bathToday": "heute gebadet",
     "dailyVolume": "Trinkmenge pro Tag",
     "diaperHeatmapCaption": "Windeln der letzten {days} Tage nach Stunde",
     "diapersByHour": "Windeln nach Stunde",
@@ -92,6 +99,22 @@
     "lessThanLastWeek": "{n} % weniger als letzte Woche",
     "lighter": "leichter oder gleich schwer",
     "measureAria": "Messgröße",
+    "medicine": "Medikamente",
+    "medicineCell": {
+      "complete": "{n}× gegeben",
+      "missed": "nicht gegeben",
+      "none": "nichts fällig",
+      "partial": "{n}× gegeben, nicht alle"
+    },
+    "medicineDays": "an {given} von {total} Tag gegeben | an {given} von {total} Tagen gegeben",
+    "medicineLead": "Eine Zeile je Medikament, ein Kästchen je Tag der letzten {n}. Interessant ist hier nicht die Menge — die ist jeden Tag gleich —, sondern ob es durchgehalten wurde.",
+    "medicineLegend": {
+      "complete": "gegeben",
+      "missed": "ausgelassen",
+      "partial": "teilweise"
+    },
+    "medicineStreak": "{n} Tage am Stück",
+    "medicineSummary": "{name}: an {given} von {total} Tagen gegeben, {missed} ausgelassen.",
     "moreThanLastWeek": "{n} % mehr als letzte Woche",
     "needsWeight": "Braucht einen Gewichtseintrag",
     "noMeasurements": "Noch keine Messwerte. Über „Verlauf → Nachtragen“ lassen sich Gewicht und Länge eintragen — etwa die Werte von der letzten Vorsorgeuntersuchung.",
@@ -142,12 +165,10 @@
   },
   "describe": {
     "boughtAt": "bei {shop}",
-    "colicDrops": "Tropfen",
     "head": "KU {cm} cm",
     "running": "läuft noch",
     "spatUp": "ausgespuckt",
     "until": "bis {time}",
-    "vitaminD": "Vitamin D",
     "weekN": "Woche {n}"
   },
   "diaper": {
@@ -167,6 +188,7 @@
     "feed": "Flasche",
     "growth": "Wachstum",
     "illness": "Krankheit",
+    "medicine": "Medikament",
     "milestone": "Meilenstein",
     "note": "Notiz",
     "photo": "Foto",
@@ -176,18 +198,9 @@
   "feed": {
     "saved": "Flasche {amount} ml gespeichert",
     "savedSpatUp": "Flasche {amount} ml — ausgespuckt",
-    "colicDrops": {
-      "hint": "z. B. Simeticon — ins Fläschchen gegeben",
-      "label": "Tropfen gegen Blähungen"
-    },
     "spatUp": {
       "hint": "Zählt nicht zur Tagesmenge",
       "label": "Alles wieder ausgespuckt"
-    },
-    "vitaminD": {
-      "hint": "Die tägliche Gabe — einmal am Tag genügt",
-      "hintLocked": "An diesem Tag schon eingetragen",
-      "label": "Vitamin D gegeben"
     }
   },
   "history": {
@@ -196,6 +209,11 @@
     "factsDiapers": "1 Windel | {n} Windeln",
     "factsFeeds": "1 Flasche | {n} Flaschen",
     "factsSleep": "{duration} Schlaf",
+    "invalid": {
+      "many": "{n} Einträge konnten nicht übertragen werden",
+      "one": "Ein Eintrag konnte nicht übertragen werden",
+      "text": "Die Werte liegen außerhalb des Erlaubten. Bitte den Eintrag antippen und korrigieren — danach wird er automatisch übertragen."
+    },
     "jumpToday": "Heute",
     "nextWeek": "Nächste Woche",
     "nothingThatDay": "An diesem Tag wurde nichts eingetragen.",
@@ -206,12 +224,7 @@
     "tabMl": "{n} Milliliter",
     "tabNothing": "nichts eingetragen",
     "title": "Verlauf",
-    "weekday": "Wochentag",
-    "invalid": {
-      "many": "{n} Einträge konnten nicht übertragen werden",
-      "one": "Ein Eintrag konnte nicht übertragen werden",
-      "text": "Die Werte liegen außerhalb des Erlaubten. Bitte den Eintrag antippen und korrigieren — danach wird er automatisch übertragen."
-    }
+    "weekday": "Wochentag"
   },
   "illness": {
     "cold": "Erkältung",
@@ -239,10 +252,6 @@
     "wrongToken": "Der Einladungs-Link stimmt nicht. Bitte beim anderen Elternteil nachfragen."
   },
   "leap": {
-    "afterwards": "Was danach oft dazukommt:",
-    "disclaimer": "Die Sprungwochen stammen aus einem verbreiteten, wissenschaftlich aber umstrittenen Modell. Nehmt sie als groben Anhaltspunkt, nicht als Fahrplan — jedes Kind hat seinen eigenen.",
-    "eyebrow": "Sprung {n} · Woche {week}",
-    "title": "Sprung {n}: {name}",
     "1": {
       "description": "Die Sinne werden wacher. Viele Babys wirken schreckhafter und wollen mehr getragen werden.",
       "newSkills": "Längeres Wachbleiben, aufmerksameres Schauen, erstes bewusstes Lächeln.",
@@ -292,7 +301,55 @@
       "description": "Regeln werden erprobt, indem sie gebrochen werden. Viele Eltern erleben hier die ersten Trotzmomente.",
       "newSkills": "Verhandelt, probiert Grenzen aus, spielt so tun als ob.",
       "title": "Grundsätze"
-    }
+    },
+    "afterwards": "Was danach oft dazukommt:",
+    "disclaimer": "Die Sprungwochen stammen aus einem verbreiteten, wissenschaftlich aber umstrittenen Modell. Nehmt sie als groben Anhaltspunkt, nicht als Fahrplan — jedes Kind hat seinen eigenen.",
+    "eyebrow": "Sprung {n} · Woche {week}",
+    "title": "Sprung {n}: {name}"
+  },
+  "medicine": {
+    "add": "Medikament hinzufügen",
+    "asNeeded": "Nach Bedarf",
+    "asNeededHint": "Keine Vorgabe — es kann nichts fehlen.",
+    "doneAt": "Gegeben um {time}",
+    "dose": "Eine Gabe",
+    "doseHint": "Leer lassen, wenn es wechselt oder du dich nicht festlegen willst.",
+    "dosePlaceholder": "z. B. 5",
+    "edit": "Ändern",
+    "give": "Gegeben",
+    "lead": "Was sie regelmäßig bekommt. Was hier steht, lässt sich beim Fläschchen abhaken oder auf dem Startbildschirm eintragen.",
+    "lockedFull": "An dem Tag schon {n}× gegeben",
+    "name": "Name",
+    "namePlaceholder": "z. B. BiGaia, Vitamin D",
+    "noDose": "Menge nicht angegeben",
+    "none": "Noch nichts eingerichtet.",
+    "notOnListAnyMore": "Nicht mehr auf der Liste",
+    "openToday": "{given} von {target} heute",
+    "perDay": "Wie oft am Tag",
+    "perDayHint": "Ein Tag darunter erscheint in der Auswertung als Lücke.",
+    "perDayN": "{n}× täglich",
+    "planned": "Eingerichtet mit {dose}",
+    "remove": "Von der Liste nehmen",
+    "removeHint": "Die schon eingetragenen Gaben bleiben im Verlauf.",
+    "saveEdit": "Änderungen speichern",
+    "saved": "{name} eingetragen",
+    "timesN": "{n}×",
+    "timesToday": "{n}× heute · zuletzt um {time}",
+    "title": "Medikamente",
+    "titleEdit": "Medikament ändern",
+    "titleNew": "Medikament hinzufügen",
+    "undo": "Rückgängig",
+    "unit": {
+      "drops": "{n} Tropfen | {n} Tropfen",
+      "ml": "{n} ml | {n} ml",
+      "pills": "{n} Tablette | {n} Tabletten"
+    },
+    "unitLabel": {
+      "drops": "Tropfen",
+      "ml": "ml",
+      "pills": "Tabletten"
+    },
+    "which": "Welches Medikament"
   },
   "milestone": {
     "babble": "Bildet Silben (ba-ba, da-da)",
@@ -365,17 +422,17 @@
     "sleep": "Schlaf"
   },
   "photo": {
-    "loading": "Lädt …",
-    "savedForWeek": "Foto für Woche {week} gespeichert",
     "failed": {
       "offline": "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen.",
       "retry": "Bitte noch einmal versuchen.",
       "title": "Foto konnte nicht gespeichert werden"
     },
+    "loading": "Lädt …",
     "nudge": {
       "action": "Hinzufügen",
       "text": "Foto für Woche {week} fehlt noch"
-    }
+    },
+    "savedForWeek": "Foto für Woche {week} gespeichert"
   },
   "pin": {
     "checkup": "Untersuchung",
@@ -585,13 +642,6 @@
     "spatUp": "ausgespuckt",
     "startSleep": "Schlaf starten",
     "statusRegion": "Aktueller Stand",
-    "vitaminDone": "Vitamin D gegeben · {time}",
-    "vitaminDoneAction": "Erledigt",
-    "vitaminHint": "Beim Fläschchen ankreuzen oder hier eintragen.",
-    "vitaminHintNoFeed": "Beim nächsten Fläschchen mit ankreuzen.",
-    "vitaminHintUrgent": "Der Tag wird knapp.",
-    "vitaminOpen": "Vitamin D heute noch offen",
-    "vitaminUndo": "Rückgängig",
     "weather": "Heute bis {tmax} °C · {label}"
   },
   "totals": {

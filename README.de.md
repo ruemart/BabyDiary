@@ -16,10 +16,11 @@ Uhr nachts, ein Arm frei.** Daraus folgt fast alles andere.
 |---|---|
 | **Heute** | Wie lange die letzte Flasche her ist, groß und lesbar. Ein Tap für die Flasche (Menge auf den Median der letzten sieben Mahlzeiten vorbelegt), ein Tap für die Windel, ein Tap für den Schlaf. Jede Aktion mit Rückgängig-Möglichkeit. |
 | **Wochenband** | Waagrechter Zeitstrahl über 80 Lebenswochen, beim Öffnen auf die aktuelle Woche gescrollt. Die Wochenfotos sitzen auf der Achse. Dazu Sprung-Bänder, U-Termine, Impfungen und eine „Demnächst“-Liste. |
-| **Kurven** | Trinkmenge pro Tag mit gleitendem Wochenmittel, Mahlzeiten-Rhythmus über Tageszeit, Windel-Raster nach Stunde, Wachstum gegen die WHO-Perzentile. |
+| **Kurven** | Trinkmenge pro Tag mit gleitendem Wochenmittel, Mahlzeiten-Rhythmus über Tageszeit, Windel-Raster nach Stunde, Medikamenten-Raster nach Tag, Badetage nach Wochentag, Wachstum gegen die WHO-Perzentile. |
 | **Verlauf** | Ein Tag auf einmal, gewählt über Woche und Wochentag. Die Tagesleiste zeigt Trinkmenge und Windelzahl aller sieben Tage auf einen Blick. Nachtragen für jede Eintragsart mit frei wählbarem Zeitpunkt — auf dem angezeigten Tag vorbelegt. |
 | **Was wir kaufen** | Milchnahrung, Windelgröße und Sonstiges — jeweils der aktuelle Stand groß, mit Foto der Verpackung fürs Regal, darunter zugeklappt die Wechsel-Historie mit Zeitraum und Dauer. |
-| **Einstellungen** | Kind-Stammdaten, Darstellung, Wetterort, Zeitraffer-Export der Wochenfotos als MP4, Benachrichtigungen. |
+| **Medikamente** | Eine selbst angelegte Liste — Name, wie oft am Tag, wie viel je Gabe. Was daraufsteht, lässt sich beim Fläschchen abhaken oder auf dem Startbildschirm eintragen; die Auswertung zeigt, ob es durchgehalten wurde. |
+| **Einstellungen** | Kind-Stammdaten, Medikamente, Darstellung, Wetterort, Zeitraffer-Export der Wochenfotos als MP4, Benachrichtigungen. |
 
 **Offline benutzbar.** Jede Eingabe geht zuerst in die lokale Datenbank des Geräts und
 erscheint sofort. Der Abgleich läuft im Hintergrund. Ein Neustart des Pi, ein Funkloch

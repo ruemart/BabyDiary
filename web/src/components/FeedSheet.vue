@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { localDayKey } from "@babydiary/shared";
-import { vitaminHolderOn } from "../composables/useVitaminD.ts";
+import { ref, watch } from "vue";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import FlagToggle from "./FlagToggle.vue";
+import MedicineToggles from "./MedicineToggles.vue";
 import { useI18n } from "vue-i18n";
 
 
@@ -21,19 +20,8 @@ const amount = ref(0);
 const at = ref(new Date());
 const note = ref("");
 const spatUp = ref(false);
-const vitaminD = ref(false);
-const colicDrops = ref(false);
-
-/**
- * Does the day this entry falls on already carry the vitamin D somewhere?
- *
- * Then the switch is locked — this sheet always creates a NEW entry, so a second tick on
- * the same day would be either a slip or a double dose. The question is about the day of
- * the entry, because the time can be moved back here too.
- */
-const vitaminAlreadyThatDay = computed(
-  () => !!vitaminHolderOn(data.entries, data.timezone, localDayKey(at.value, data.timezone)),
-);
+/** Ids of the medicines given with this bottle — see MedicineToggles. */
+const medicines = ref<string[]>([]);
 
 /**
  * Prefill freshly on open: amount to the median of the last seven feeds, time to now.
@@ -45,19 +33,18 @@ watch(open, (isOpen) => {
   at.value = new Date();
   note.value = "";
   spatUp.value = false;
-  vitaminD.value = false;
-  colicDrops.value = false;
+  medicines.value = [];
 });
 
 async function save() {
   const entry = data.draft("feed", at.value, {
     amountMl: amount.value,
     spatUp: spatUp.value,
-    vitaminD: vitaminD.value,
-    colicDrops: colicDrops.value,
     note: note.value.trim() || null,
   });
   await data.add(entry);
+  // Only now: a dose hangs off the feed and needs its id.
+  await data.syncFeedDoses(entry.id, at.value, medicines.value);
   open.value = false;
   confirmWithUndo(
     spatUp.value
@@ -80,18 +67,7 @@ async function save() {
         :label="$t('feed.spatUp.label')"
         :hint="$t('feed.spatUp.hint')"
       />
-      <FlagToggle
-        v-model="vitaminD"
-        :label="$t('feed.vitaminD.label')"
-        :hint="$t('feed.vitaminD.hint')"
-        :locked="vitaminAlreadyThatDay"
-        :locked-hint="$t('feed.vitaminD.hintLocked')"
-      />
-      <FlagToggle
-        v-model="colicDrops"
-        :label="$t('feed.colicDrops.label')"
-        :hint="$t('feed.colicDrops.hint')"
-      />
+      <MedicineToggles v-model="medicines" :at="at" />
 
       <label class="note">
         <span class="note__label">{{ $t("common.noteLabel") }}</span>

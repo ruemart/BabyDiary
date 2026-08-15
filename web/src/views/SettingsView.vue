@@ -7,6 +7,9 @@ import { appearance, setAppearance, type AppearanceSetting } from "../composable
 import { confirmations, setConfirmations } from "../composables/useConfirmations.ts";
 import { wipeLocal } from "../db/local.ts";
 import ChildForm from "../components/ChildForm.vue";
+import MedicineSheet from "../components/MedicineSheet.vue";
+import type { LocalEntry } from "../db/local.ts";
+import { useDose } from "../i18n/format.ts";
 import { onMounted } from "vue";
 import { usePushNotifications } from "../composables/usePushNotifications.ts";
 import { useI18n } from "vue-i18n";
@@ -29,6 +32,33 @@ const APPEARANCES: { value: AppearanceSetting; key: string; hintKey: string }[] 
 ];
 
 const photoCount = computed(() => data.photosByWeek.size);
+
+/* ── Medikamente ──────────────────────────────────────────────────────────── */
+
+const dose = useDose();
+
+const medicineSheetOpen = ref(false);
+const editingMedicine = ref<LocalEntry | null>(null);
+
+function addMedicine() {
+  editingMedicine.value = null;
+  medicineSheetOpen.value = true;
+}
+
+function editMedicine(plan: LocalEntry) {
+  editingMedicine.value = plan;
+  medicineSheetOpen.value = true;
+}
+
+/** "1× a day · 1 drop" — the parts that are known, in the order they are asked about. */
+function medicineDetail(plan: LocalEntry): string {
+  return [
+    plan.medicineTimesPerDay === null
+      ? t("medicine.asNeeded")
+      : t("medicine.perDayN", { n: plan.medicineTimesPerDay }),
+    dose(plan.medicineAmount, plan.medicineUnit) ?? t("medicine.noDose"),
+  ].join(" · ");
+}
 
 const activeRegion = computed(() => regionByCode(form.value.region));
 
@@ -191,6 +221,32 @@ async function signOut() {
       <ChildForm v-model="form" />
       <button class="primary" type="button" :disabled="saving" @click="save">
         {{ saving ? $t("settings.saving") : $t("settings.saveChanges") }}
+      </button>
+    </section>
+
+    <!-- Medicine: the list the bottle sheet and the home screen offer.
+         Empty until somebody fills it — the app brings no medicine of its own, not even
+         vitamin D. What is given to a child is not for an app to presume. -->
+    <section class="card">
+      <h2 class="card__title">{{ $t("medicine.title") }}</h2>
+      <p class="card__lead">{{ $t("medicine.lead") }}</p>
+
+      <p v-if="data.medicines.length === 0" class="card__note">{{ $t("medicine.none") }}</p>
+
+      <ul v-else class="meds">
+        <li v-for="plan in data.medicines" :key="plan.id">
+          <button type="button" class="med" @click="editMedicine(plan)">
+            <span class="med__text">
+              <span class="med__name">{{ plan.label }}</span>
+              <span class="med__detail">{{ medicineDetail(plan) }}</span>
+            </span>
+            <span class="med__edit">{{ $t("medicine.edit") }}</span>
+          </button>
+        </li>
+      </ul>
+
+      <button class="secondary" type="button" @click="addMedicine">
+        {{ $t("medicine.add") }}
       </button>
     </section>
 
@@ -416,6 +472,8 @@ async function signOut() {
         {{ $t("settings.signOutNote") }}
       </p>
     </section>
+
+    <MedicineSheet v-model:open="medicineSheetOpen" :plan="editingMedicine" />
   </div>
 </template>
 
@@ -574,6 +632,54 @@ async function signOut() {
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+.meds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.med {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--bm-hairline);
+  border-radius: 0.875rem;
+  background: var(--bm-surface-sunk);
+  color: var(--bm-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.med__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.med__name {
+  font-weight: 600;
+}
+
+.med__detail {
+  font-size: 0.8125rem;
+  color: var(--bm-ink-soft);
+}
+
+.med__edit {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bm-ink-soft);
 }
 
 .options {

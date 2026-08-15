@@ -35,10 +35,11 @@ invite link. It is safe to run again — an existing `.env` is never overwritten
 |---|---|
 | **Today** | How long ago the last bottle was, large and legible. One tap for a bottle (amount pre-filled with the median of the last seven feeds), one tap for a nappy, one tap for sleep. Every action can be undone. |
 | **Weeks** | A horizontal timeline across 80 weeks of life, scrolled to the current week on open. The weekly photos sit on the axis, along with leap bands, check-ups, vaccinations and a "coming up" list. |
-| **Charts** | Daily intake with a rolling weekly average, feeding rhythm across the time of day, a nappy grid by hour, growth against the WHO percentiles. |
+| **Charts** | Daily intake with a rolling weekly average, feeding rhythm across the time of day, a nappy grid by hour, a medicine grid by day, bath days by weekday, growth against the WHO percentiles. |
 | **History** | One day at a time, chosen by week and weekday. The day strip shows intake and nappy count for all seven days at a glance. |
 | **What we buy** | Formula, nappy size and anything else — the current one large, with a photo of the packaging for the shop, and the switch history underneath. |
-| **Settings** | Child details, language, appearance, weather location, notifications, time-lapse export. |
+| **Medicine** | A list you set up yourself — name, how often a day, how big a dose. Whatever is on it can be ticked with a bottle or recorded on the home screen, and the chart shows whether it was kept up. |
+| **Settings** | Child details, medicine, language, appearance, weather location, notifications, time-lapse export. |
 
 **Works offline.** Every entry goes into the device's local database first and appears
 immediately. Syncing happens in the background. A router reboot, a dead spot in the

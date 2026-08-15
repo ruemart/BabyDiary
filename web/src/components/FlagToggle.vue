@@ -2,13 +2,14 @@
 import { computed } from "vue";
 
 /**
- * A yes/no flag on a feed: brought back up, vitamin D, anti-colic drops.
+ * A yes/no flag on a feed: brought back up, and one per medicine given with it.
  *
  * One component for all of them, because they are the same thing: a property of the same
  * feed, recorded in the same moment, with the same gesture. Three near-identical copies
  * of this markup existed before, and the third one was the point at which they would
  * start drifting apart — a different hit area here, a different tick there, and suddenly
- * two things that mean the same look different.
+ * two things that mean the same look different. There is no fixed number of them any
+ * more, which only makes the point sharper.
  */
 const model = defineModel<boolean>({ required: true });
 
@@ -17,9 +18,10 @@ const props = withDefaults(
     label: string;
     hint?: string;
     /**
-     * Locked: the flag already sits on another entry of the same day and a second one
-     * would be either a slip or a double dose. Only used by vitamin D — the drops are
-     * given with several feeds, and bringing a feed back up is per feed anyway.
+     * Locked: the day's quota for this medicine is already used up elsewhere, and a
+     * second tick would be either a slip or a double dose. Only medicines with a "times
+     * a day" lock — one given as needed has no number to exceed, and bringing a feed
+     * back up is per feed anyway.
      */
     locked?: boolean;
     /** Replaces `hint` while locked, to say why. */

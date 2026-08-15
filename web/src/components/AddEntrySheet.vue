@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { localDayKey, type EntryType } from "@babydiary/shared";
+import type { EntryType } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
 import type { LocalEntry } from "../db/local.ts";
-import { vitaminHolderOn } from "../composables/useVitaminD.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import { entryFields, PERIOD_TYPES } from "../utils/entryFields.ts";
 import SheetDialog from "./SheetDialog.vue";
 import TimeField from "./TimeField.vue";
 import AmountStepper from "./AmountStepper.vue";
 import FlagToggle from "./FlagToggle.vue";
+import MedicineToggles from "./MedicineToggles.vue";
 import CmField from "./CmField.vue";
+import { useDose } from "../i18n/format.ts";
 import { useI18n } from "vue-i18n";
 
 
@@ -42,6 +43,7 @@ const props = defineProps<{
 
 const data = useData();
 const confirmWithUndo = useUndo();
+const dose = useDose();
 
 const isEditing = computed(() => !!props.entry);
 
@@ -67,31 +69,52 @@ const BACKDATE_MEMORY_MS = 45 * 60 * 1000;
  *
  * Nothing is hidden: everything stays one tap away, only the weight follows frequency.
  */
-const TYPE_GROUPS: { titleKey: string; types: { value: EntryType; key: string }[] }[] = [
-  {
-    titleKey: "add.group.everyday",
-    types: [
-      { value: "feed", key: "entry.feed" },
-      { value: "diaper", key: "entry.diaper" },
-      { value: "sleep", key: "entry.sleep" },
-      { value: "bath", key: "entry.bath" },
-    ],
-  },
-  {
-    titleKey: "add.group.occasional",
-    types: [
-      { value: "growth", key: "entry.growth" },
-      { value: "note", key: "entry.note" },
-    ],
-  },
-  {
-    titleKey: "add.group.period",
-    types: [
-      { value: "illness", key: "entry.illness" },
-      { value: "absence", key: "add.absence" },
-    ],
-  },
-];
+/**
+ * Medicine only appears once one has been set up.
+ *
+ * A tile leading to an empty picker is a promise the app cannot keep — and the way to
+ * the list (Settings) is not something to explain in a sheet. Which is also why the
+ * groups are computed instead of constant.
+ */
+const TYPE_GROUPS = computed<{ titleKey: string; types: { value: EntryType; key: string }[] }[]>(
+  () => [
+    {
+      titleKey: "add.group.everyday",
+      types: [
+        { value: "feed" as const, key: "entry.feed" },
+        { value: "diaper" as const, key: "entry.diaper" },
+        { value: "sleep" as const, key: "entry.sleep" },
+        { value: "bath" as const, key: "entry.bath" },
+        ...(data.medicines.length
+          ? [{ value: "medicine" as const, key: "entry.medicine" }]
+          : []),
+      ],
+    },
+    {
+      titleKey: "add.group.occasional",
+      types: [
+        { value: "growth", key: "entry.growth" },
+        { value: "note", key: "entry.note" },
+      ],
+    },
+    {
+      titleKey: "add.group.period",
+      types: [
+        { value: "illness", key: "entry.illness" },
+        { value: "absence", key: "add.absence" },
+      ],
+    },
+  ],
+);
+
+/**
+ * Five tiles in a row leave 66 px each on a narrow phone, and "Medikament" does not fit
+ * in that. Above four they break into two rows instead of getting narrower — the tile
+ * has to stay hittable, and the word has to stay readable.
+ */
+function columns(count: number): number {
+  return count > 4 ? 3 : count;
+}
 
 /** Common illnesses to tap — free text stays possible all the same. */
 const ILLNESS_PRESETS = [
@@ -119,25 +142,45 @@ const headMm = ref<number | null>(null);
 const label = ref("");
 const note = ref("");
 const spatUp = ref(false);
+/**
+ * The two historic flags. Not shown, not settable — only carried through, so editing an
+ * old feed does not quietly drop what it recorded. See `EntryForm`.
+ */
 const vitaminD = ref(false);
 const colicDrops = ref(false);
+/** Medicines given with this feed, and — for a dose — which medicine it is. */
+const medicines = ref<string[]>([]);
+const medicineId = ref<string | null>(null);
+const medicineAmount = ref("");
+const withEntryId = ref<string | null>(null);
+const temperatureDc = ref<number | null>(null);
+
+const chosenMedicine = computed(() =>
+  data.medicines.find((plan) => plan.id === medicineId.value),
+);
 
 /**
- * Does ANOTHER feed on the SAME DAY already carry the vitamin D?
+ * The dose follows the medicine, and only until it is touched.
  *
- * What counts is the day of the entry, not today — when adding yesterday's feed the tick
- * must remain settable for yesterday. The entry's own tick does not count, otherwise a
- * tick once set could never be removed again.
+ * Prefilling from the plan is what makes recording one tap of work; overwriting a number
+ * somebody just typed because they then corrected the medicine would not be.
  */
-const vitaminAlreadyThatDay = computed(() => {
-  const holder = vitaminHolderOn(
-    data.entries,
-    data.timezone,
-    localDayKey(at.value, data.timezone),
-  );
-  return !!holder && holder.id !== props.entry?.id;
-});
-const temperatureDc = ref<number | null>(null);
+function chooseMedicine(id: string) {
+  const plan = data.medicines.find((p) => p.id === id);
+  medicineId.value = id;
+  if (!medicineAmount.value.trim()) {
+    medicineAmount.value = plan?.medicineAmount === null || plan?.medicineAmount === undefined
+      ? ""
+      : String(plan.medicineAmount);
+  }
+}
+
+function parsedMedicineAmount(): number | null {
+  const trimmed = medicineAmount.value.trim().replace(",", ".");
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
 
 /**
  * Whether the end is already known.
@@ -202,6 +245,15 @@ watch(open, (isOpen) => {
     spatUp.value = existing.spatUp === true;
     vitaminD.value = existing.vitaminD === true;
     colicDrops.value = existing.colicDrops === true;
+    // The ticks of a feed are not on the feed: they are its doses.
+    medicines.value = data.entries
+      .filter((e) => e.type === "medicine" && e.withEntryId === existing.id)
+      .map((e) => e.medicineId!)
+      .filter(Boolean);
+    medicineId.value = existing.medicineId;
+    medicineAmount.value =
+      existing.medicineAmount === null ? "" : String(existing.medicineAmount);
+    withEntryId.value = existing.withEntryId;
     temperatureDc.value = existing.temperatureDc;
     hasEnd.value = existing.endedAt !== null;
     place.value =
@@ -230,6 +282,14 @@ watch(open, (isOpen) => {
   spatUp.value = false;
   vitaminD.value = false;
   colicDrops.value = false;
+  medicines.value = [];
+  // One medicine set up means there is nothing to choose — preselect it.
+  medicineId.value = data.medicines.length === 1 ? data.medicines[0]!.id : null;
+  medicineAmount.value =
+    data.medicines.length === 1 && data.medicines[0]!.medicineAmount !== null
+      ? String(data.medicines[0]!.medicineAmount)
+      : "";
+  withEntryId.value = null;
   temperatureDc.value = null;
   hasEnd.value = false;
   place.value = null;
@@ -254,6 +314,8 @@ const canSave = computed(() => {
         label.value.trim().length > 0 &&
         (!hasEnd.value || endAt.value.getTime() > at.value.getTime())
       );
+    case "medicine":
+      return medicineId.value !== null;
     default:
       return true;
   }
@@ -283,6 +345,11 @@ function fields() {
     spatUp: spatUp.value,
     vitaminD: vitaminD.value,
     colicDrops: colicDrops.value,
+    medicineId: medicineId.value,
+    medicineName: chosenMedicine.value?.label ?? props.entry?.label ?? "",
+    medicineAmount: parsedMedicineAmount(),
+    medicineUnit: chosenMedicine.value?.medicineUnit ?? props.entry?.medicineUnit ?? null,
+    withEntryId: withEntryId.value,
     diaper: diaper.value,
     hasEnd: hasEnd.value,
     endAt: endAt.value,
@@ -308,6 +375,9 @@ async function save() {
       startedAt: at.value.toISOString(),
       ...fields(),
     });
+    if (type.value === "feed") {
+      await data.syncFeedDoses(existing.id, at.value, medicines.value);
+    }
     open.value = false;
     return;
   }
@@ -318,6 +388,7 @@ async function save() {
 
   const entry = data.draft(type.value, at.value, fields());
   await data.add(entry);
+  if (type.value === "feed") await data.syncFeedDoses(entry.id, at.value, medicines.value);
   open.value = false;
   confirmWithUndo(t("add.saved"), entry.id);
 }
@@ -335,7 +406,7 @@ async function save() {
           :aria-label="$t(group.titleKey)"
         >
           <p class="types__title">{{ $t(group.titleKey) }}</p>
-          <div class="types__row" :style="{ '--cols': group.types.length }">
+          <div class="types__row" :style="{ '--cols': columns(group.types.length) }">
             <button
               v-for="option in group.types"
               :key="option.value"
@@ -358,19 +429,44 @@ async function save() {
           :label="$t('feed.spatUp.label')"
           :hint="$t('feed.spatUp.hint')"
         />
-        <FlagToggle
-          v-model="vitaminD"
-          :label="$t('feed.vitaminD.label')"
-          :hint="$t('feed.vitaminD.hint')"
-          :locked="vitaminAlreadyThatDay"
-          :locked-hint="$t('feed.vitaminD.hintLocked')"
-        />
-        <FlagToggle
-          v-model="colicDrops"
-          :label="$t('feed.colicDrops.label')"
-          :hint="$t('feed.colicDrops.hint')"
-        />
+        <MedicineToggles v-model="medicines" :at="at" :feed-id="entry?.id ?? null" />
       </div>
+
+      <template v-else-if="type === 'medicine'">
+        <div class="field">
+          <span class="field__label">{{ $t("medicine.which") }}</span>
+          <div class="chips">
+            <button
+              v-for="plan in data.medicines"
+              :key="plan.id"
+              type="button"
+              class="chip"
+              :class="{ 'chip--active': medicineId === plan.id }"
+              @click="chooseMedicine(plan.id)"
+            >
+              {{ plan.label }}
+            </button>
+          </div>
+        </div>
+        <!-- The amount only once the medicine is known: without one there is no unit to
+             put behind the field, and nothing to prefill it with. -->
+        <label v-if="chosenMedicine" class="field">
+          <span class="field__label">{{ $t("medicine.dose") }}</span>
+          <span class="field__group">
+            <input v-model="medicineAmount" type="text" inputmode="decimal" />
+            <span class="field__unit">
+              {{ chosenMedicine.medicineUnit ? $t(`medicine.unitLabel.${chosenMedicine.medicineUnit}`) : "" }}
+            </span>
+          </span>
+          <span class="field__hint">
+            {{
+              dose(chosenMedicine.medicineAmount, chosenMedicine.medicineUnit)
+                ? $t("medicine.planned", { dose: dose(chosenMedicine.medicineAmount, chosenMedicine.medicineUnit) })
+                : $t("medicine.noDose")
+            }}
+          </span>
+        </label>
+      </template>
 
       <template v-else-if="type === 'diaper'">
         <div class="field">
@@ -602,6 +698,12 @@ async function save() {
 .field__unit {
   color: var(--bm-ink-soft);
   font-size: 0.9rem;
+}
+
+.field__hint {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--bm-ink-soft);
 }
 
 .field input,

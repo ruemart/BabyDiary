@@ -119,6 +119,15 @@
   --bm-chart-feed: #b8770f;
   --bm-chart-sleep: #2f5fa8;
   --bm-chart-diaper: #2e7d4f;
+  /*
+   * Medicine. NOT a fourth series colour — the exception that proves the rule above.
+   *
+   * It never appears beside the three: the medicine grid is a chart of its own, and
+   * within it the hue carries a ranking (given / partly / missed) rather than a set of
+   * categories, the same single-hue ladder the nappy grid uses. So what it has to pass
+   * is contrast against both surfaces, not separability from bottle, sleep and nappy.
+   */
+  --bm-chart-medicine: #7b4bab;
   --bm-chart-grid: #e5ddd3;
   --bm-chart-axis: #6b615f;
   --bm-chart-reference: #2a2028;
@@ -155,6 +164,7 @@
   --bm-chart-feed: #bd7d26;
   --bm-chart-sleep: #6285cf;
   --bm-chart-diaper: #43a066;
+  --bm-chart-medicine: #a684dd;
   --bm-chart-grid: #322820;
   --bm-chart-axis: #a3948a;
   --bm-chart-reference: #ede0d2;

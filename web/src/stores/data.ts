@@ -23,6 +23,7 @@ import {
 } from "../db/local.ts";
 import { sync, type SyncState } from "../sync.ts";
 import { DIAPER_GUARD_MS, classifyDiaperTap } from "./diaperGuard.ts";
+import { planDoseChanges } from "../utils/feedDoses.ts";
 
 export type DiaperResult = { action: "created" | "corrected" | "duplicate"; id: string };
 
@@ -56,6 +57,43 @@ export const useData = defineStore("data", () => {
   const activeSleep = computed(() =>
     byTimeDesc.value.find((e) => e.type === "sleep" && e.endedAt === null),
   );
+
+  /**
+   * The medicines set up under Settings, in the order they were added.
+   *
+   * By age rather than alphabetically: the list is short, and the order it is read in
+   * should not rearrange itself because a medicine was renamed. Empty until somebody
+   * sets one up — the app knows no medicine of its own, not even vitamin D.
+   */
+  const medicines = computed(() =>
+    entries.value
+      .filter((e) => e.type === "medicineplan")
+      .sort((a, b) => a.startedAt.localeCompare(b.startedAt)),
+  );
+
+  /**
+   * Record a dose.
+   *
+   * Amount and unit are copied off the plan rather than looked up later: the plan is a
+   * living setting — a dose gets increased as the child grows — and a history that
+   * rewrites itself when that happens would be recording today's setting, not what was
+   * actually given.
+   */
+  async function logMedicine(
+    plan: LocalEntry,
+    at: Date = new Date(),
+    withEntryId: string | null = null,
+  ): Promise<string> {
+    const entry = draft("medicine", at, {
+      medicineId: plan.id,
+      label: plan.label,
+      medicineAmount: plan.medicineAmount,
+      medicineUnit: plan.medicineUnit,
+      withEntryId,
+    });
+    await add(entry);
+    return entry.id;
+  }
 
   /**
    * Prefill for the ml field: the median of the last seven feeds.
@@ -131,6 +169,11 @@ export const useData = defineStore("data", () => {
       supplyCategory: null,
       supplySize: null,
       supplyShop: null,
+      medicineId: null,
+      medicineAmount: null,
+      medicineUnit: null,
+      medicineTimesPerDay: null,
+      withEntryId: null,
       lifeWeek: null,
       mediaId: null,
       note: null,
@@ -184,6 +227,34 @@ export const useData = defineStore("data", () => {
     const entry = draft("diaper", new Date(), { diaper: kind });
     await add(entry);
     return { action: "created", id: entry.id };
+  }
+
+  /**
+   * Bring the doses hanging off a feed in line with what the sheet has ticked.
+   *
+   * Lives in the store rather than in the sheet because BOTH sheets do it — the quick
+   * bottle and the one for adding a feed later. The last thing that was maintained twice
+   * here was the list of fields per entry type, and it broke exactly the way you would
+   * expect. What has to change is worked out by `planDoseChanges`; this only carries it
+   * out.
+   */
+  async function syncFeedDoses(
+    feedId: string,
+    at: Date,
+    selectedMedicineIds: string[],
+  ): Promise<void> {
+    const existing = entries.value.filter((e) => e.type === "medicine" && e.withEntryId === feedId);
+    const changes = planDoseChanges(existing, selectedMedicineIds, at.toISOString());
+
+    for (const id of changes.remove) await remove(id);
+    for (const moved of changes.move) {
+      const dose = entries.value.find((e) => e.id === moved.id);
+      if (dose) await update({ ...dose, startedAt: moved.startedAt });
+    }
+    for (const id of changes.create) {
+      const plan = medicines.value.find((p) => p.id === id);
+      if (plan) await logMedicine(plan, at, feedId);
+    }
   }
 
   async function saveChild(next: Child): Promise<void> {
@@ -247,6 +318,9 @@ export const useData = defineStore("data", () => {
     lastFeed,
     lastDiaper,
     activeSleep,
+    medicines,
+    logMedicine,
+    syncFeedDoses,
     suggestedAmountMl,
     currentWeek,
     photosByWeek,

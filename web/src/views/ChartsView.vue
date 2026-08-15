@@ -5,6 +5,8 @@ import { useStats } from "../composables/useStats.ts";
 import DailyVolumeChart from "../components/charts/DailyVolumeChart.vue";
 import RhythmChart from "../components/charts/RhythmChart.vue";
 import DiaperHeatmap from "../components/charts/DiaperHeatmap.vue";
+import MedicineGrid from "../components/charts/MedicineGrid.vue";
+import BathCalendar from "../components/charts/BathCalendar.vue";
 import GrowthChart from "../components/charts/GrowthChart.vue";
 import { ageInDays } from "@babydiary/shared";
 import { zScore, zToPercentile, type GrowthMeasure } from "../data/who/index.ts";
@@ -15,13 +17,22 @@ const { t } = useI18n();
 const DAYS = 30;
 
 const data = useData();
-const { dailyTotals, rhythm, diaperGrid, summary } = useStats(
+const { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, summary } = useStats(
   () => data.entries,
   () => data.timezone,
   DAYS,
 );
 
 const hasFeeds = computed(() => rhythm.value.length > 0);
+/**
+ * Bath and medicine have their own conditions, deliberately outside the feed gate.
+ *
+ * The rest of this screen hangs off "are there any feeds", because that is what the
+ * intake charts need. Whether she has been bathed has nothing to do with it, and a bath
+ * chart that stays hidden because nobody recorded a bottle would be a puzzle.
+ */
+const hasBaths = computed(() => bathDays.value.total > 0);
+const hasMedicine = computed(() => medicineDays.value.length > 0);
 
 /* ── Wachstum ─────────────────────────────────────────────────────────────── */
 
@@ -135,6 +146,18 @@ const trendText = computed(() => {
         <DiaperHeatmap :rows="diaperGrid" />
       </section>
     </template>
+
+    <section v-if="hasMedicine" class="card">
+      <h2 class="card__title">{{ $t("charts.medicine") }}</h2>
+      <p class="card__lead">{{ $t("charts.medicineLead", { n: DAYS }) }}</p>
+      <MedicineGrid :rows="medicineDays" />
+    </section>
+
+    <section v-if="hasBaths" class="card">
+      <h2 class="card__title">{{ $t("charts.bath") }}</h2>
+      <p class="card__lead">{{ $t("charts.bathLead") }}</p>
+      <BathCalendar :calendar="bathDays" />
+    </section>
 
     <section v-if="data.child" class="card">
       <div class="growth__head">

@@ -13,6 +13,11 @@
     "end": "End",
     "endKnown": "The end is already known",
     "endPickBelow": "Choose the time below",
+    "group": {
+      "everyday": "Everyday",
+      "occasional": "Now and then",
+      "period": "Period with a start and an end"
+    },
     "head": "Head circumference",
     "kind": "Kind",
     "length": "Length",
@@ -26,12 +31,7 @@
     "titleNew": "Add a past entry",
     "weight": "Weight",
     "whatsWrong": "What is going on?",
-    "where": "Where? (optional)",
-    "group": {
-      "everyday": "Everyday",
-      "occasional": "Now and then",
-      "period": "Period with a start and an end"
-    }
+    "where": "Where? (optional)"
   },
   "alerts": {
     "disclaimer": "These notes only describe what your own entries say — they are not a medical assessment. If you are worried, call your paediatric practice; when in doubt, rather once too early.",
@@ -81,6 +81,13 @@
   "charts": {
     "avgFeeds": "Avg feeds",
     "avgPerDay": "Avg per day",
+    "bath": "Baths",
+    "bathCaption": "Bath days of the last {n} weeks",
+    "bathEvery": "Every {n} days on average",
+    "bathLast": "last one yesterday | last one {n} days ago",
+    "bathLead": "Weekdays downwards, weeks to the right. A bath is a weekly thing — what you can read here is the rhythm, and whether it has quietly become a fortnight.",
+    "bathOn": "Bath on {day}, {date}",
+    "bathToday": "bathed today",
     "dailyVolume": "Daily intake",
     "diaperHeatmapCaption": "Nappies of the last {days} days by hour",
     "diapersByHour": "Nappies by hour",
@@ -92,6 +99,22 @@
     "lessThanLastWeek": "{n} % less than last week",
     "lighter": "lighter or the same weight",
     "measureAria": "Measure",
+    "medicine": "Medicine",
+    "medicineCell": {
+      "complete": "{n}× given",
+      "missed": "not given",
+      "none": "nothing due",
+      "partial": "{n}× given, not all of them"
+    },
+    "medicineDays": "given on {given} of {total} day | given on {given} of {total} days",
+    "medicineLead": "One row per medicine, one box per day of the last {n}. What matters here is not the amount — it is the same every day — but whether it was kept up.",
+    "medicineLegend": {
+      "complete": "given",
+      "missed": "missed",
+      "partial": "partly"
+    },
+    "medicineStreak": "{n} days in a row",
+    "medicineSummary": "{name}: given on {given} of {total} days, {missed} missed.",
     "moreThanLastWeek": "{n} % more than last week",
     "needsWeight": "Needs a weight entry",
     "noMeasurements": "No measurements yet. Under “History → Add entry” you can record weight and length — for example the values from the last check-up.",
@@ -142,12 +165,10 @@
   },
   "describe": {
     "boughtAt": "at {shop}",
-    "colicDrops": "drops",
     "head": "head {cm} cm",
     "running": "still running",
     "spatUp": "brought back up",
     "until": "until {time}",
-    "vitaminD": "Vitamin D",
     "weekN": "Week {n}"
   },
   "diaper": {
@@ -167,6 +188,7 @@
     "feed": "Bottle",
     "growth": "Growth",
     "illness": "Illness",
+    "medicine": "Medicine",
     "milestone": "Milestone",
     "note": "Note",
     "photo": "Photo",
@@ -176,18 +198,9 @@
   "feed": {
     "saved": "Bottle {amount} ml saved",
     "savedSpatUp": "Bottle {amount} ml — brought back up",
-    "colicDrops": {
-      "hint": "e.g. simeticone — given in the bottle",
-      "label": "Anti-colic drops"
-    },
     "spatUp": {
       "hint": "Not counted towards the daily total",
       "label": "Brought it all back up"
-    },
-    "vitaminD": {
-      "hint": "The daily dose — once a day is enough",
-      "hintLocked": "Already recorded for this day",
-      "label": "Vitamin D given"
     }
   },
   "history": {
@@ -196,6 +209,11 @@
     "factsDiapers": "1 nappy | {n} nappies",
     "factsFeeds": "1 bottle | {n} bottles",
     "factsSleep": "{duration} of sleep",
+    "invalid": {
+      "many": "{n} entries could not be synced",
+      "one": "One entry could not be synced",
+      "text": "The values are out of range. Please tap the entry and correct it — after that it syncs automatically."
+    },
     "jumpToday": "Today",
     "nextWeek": "Next week",
     "nothingThatDay": "Nothing was recorded on this day.",
@@ -206,12 +224,7 @@
     "tabMl": "{n} millilitres",
     "tabNothing": "nothing recorded",
     "title": "History",
-    "weekday": "Weekday",
-    "invalid": {
-      "many": "{n} entries could not be synced",
-      "one": "One entry could not be synced",
-      "text": "The values are out of range. Please tap the entry and correct it — after that it syncs automatically."
-    }
+    "weekday": "Weekday"
   },
   "illness": {
     "cold": "Cold",
@@ -239,10 +252,6 @@
     "wrongToken": "The invite link is not right. Please ask the other parent."
   },
   "leap": {
-    "afterwards": "What often comes next:",
-    "disclaimer": "The leap weeks come from a popular but scientifically contested model. Take them as a rough pointer, not a timetable — every child has their own.",
-    "eyebrow": "Leap {n} · week {week}",
-    "title": "Leap {n}: {name}",
     "1": {
       "description": "The senses wake up. Many babies seem more easily startled and want to be carried more.",
       "newSkills": "Staying awake longer, looking more attentively, a first real smile.",
@@ -292,7 +301,55 @@
       "description": "Testing what happens when. Boundaries get explored deliberately.",
       "newSkills": "Running, climbing, two-word sentences.",
       "title": "Principles"
-    }
+    },
+    "afterwards": "What often comes next:",
+    "disclaimer": "The leap weeks come from a popular but scientifically contested model. Take them as a rough pointer, not a timetable — every child has their own.",
+    "eyebrow": "Leap {n} · week {week}",
+    "title": "Leap {n}: {name}"
+  },
+  "medicine": {
+    "add": "Add medicine",
+    "asNeeded": "As needed",
+    "asNeededHint": "No target — nothing can be missed.",
+    "doneAt": "Given at {time}",
+    "dose": "One dose",
+    "doseHint": "Leave empty if it varies or you would rather not pin it down.",
+    "dosePlaceholder": "e.g. 5",
+    "edit": "Edit",
+    "give": "Given",
+    "lead": "What she is given regularly. Whatever is on this list can be ticked with a bottle or recorded on the home screen.",
+    "lockedFull": "Already given {n}× that day",
+    "name": "Name",
+    "namePlaceholder": "e.g. BiGaia, vitamin D",
+    "noDose": "Dose not stated",
+    "none": "Nothing set up yet.",
+    "notOnListAnyMore": "No longer on the list",
+    "openToday": "{given} of {target} today",
+    "perDay": "How often a day",
+    "perDayHint": "A day short of that shows as a gap in the chart.",
+    "perDayN": "{n}× a day",
+    "planned": "Set up as {dose}",
+    "remove": "Take off the list",
+    "removeHint": "The doses already recorded stay in the history.",
+    "saveEdit": "Save changes",
+    "saved": "{name} recorded",
+    "timesN": "{n}×",
+    "timesToday": "{n}× today · last at {time}",
+    "title": "Medicine",
+    "titleEdit": "Edit medicine",
+    "titleNew": "Add medicine",
+    "undo": "Undo",
+    "unit": {
+      "drops": "{n} drop | {n} drops",
+      "ml": "{n} ml | {n} ml",
+      "pills": "{n} pill | {n} pills"
+    },
+    "unitLabel": {
+      "drops": "Drops",
+      "ml": "ml",
+      "pills": "Pills"
+    },
+    "which": "Which medicine"
   },
   "milestone": {
     "babble": "Forms syllables (ba-ba, da-da)",
@@ -365,17 +422,17 @@
     "sleep": "Sleep"
   },
   "photo": {
-    "loading": "Uploading …",
-    "savedForWeek": "Photo for week {week} saved",
     "failed": {
       "offline": "No connection to the server. Please try again on Wi-Fi.",
       "retry": "Please try again.",
       "title": "Photo could not be saved"
     },
+    "loading": "Uploading …",
     "nudge": {
       "action": "Add",
       "text": "Photo for week {week} still missing"
-    }
+    },
+    "savedForWeek": "Photo for week {week} saved"
   },
   "pin": {
     "checkup": "Check-up",
@@ -585,13 +642,6 @@
     "spatUp": "brought back up",
     "startSleep": "Start sleep",
     "statusRegion": "Current status",
-    "vitaminDone": "Vitamin D given · {time}",
-    "vitaminDoneAction": "Done",
-    "vitaminHint": "Tick it with a bottle, or record it here.",
-    "vitaminHintNoFeed": "Tick it with the next bottle.",
-    "vitaminHintUrgent": "The day is running out.",
-    "vitaminOpen": "Vitamin D still open today",
-    "vitaminUndo": "Undo",
     "weather": "Today up to {tmax} °C · {label}"
   },
   "totals": {

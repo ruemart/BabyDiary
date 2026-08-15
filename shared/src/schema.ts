@@ -20,6 +20,10 @@ export const ENTRY_TYPES = [
   "absence",
   "supply",
   "bath",
+  /** One dose actually given. */
+  "medicine",
+  /** A medicine set up under Settings — the list the doses point at. */
+  "medicineplan",
 ] as const;
 export type EntryType = (typeof ENTRY_TYPES)[number];
 
@@ -28,6 +32,16 @@ export type DiaperKind = (typeof DIAPER_KINDS)[number];
 
 export const SUPPLY_CATEGORIES = ["formula", "diaper", "other"] as const;
 export type SupplyCategory = (typeof SUPPLY_CATEGORIES)[number];
+
+/**
+ * How a dose is counted.
+ *
+ * Drops and pills are what a household actually gives; millilitres come along because
+ * the syringe of an antibiotic is measured that way and there is no reason to make
+ * somebody count that in drops.
+ */
+export const MEDICINE_UNITS = ["drops", "pills", "ml"] as const;
+export type MedicineUnit = (typeof MEDICINE_UNITS)[number];
 
 export const SEXES = ["female", "male"] as const;
 export type Sex = (typeof SEXES)[number];
@@ -66,11 +80,17 @@ export const entrySchema = z
      */
     spatUp: z.boolean().default(false),
     /**
-     * Vitamin D given with this feed.
+     * Vitamin D given with this feed. HISTORIC — nothing writes this any more.
      *
-     * The daily prophylaxis has no occasion of its own — it hangs off a feed. Hence a
-     * flag on the entry rather than a type of its own: it gets recorded where it
-     * actually happens, and the app can say whether it has been done today.
+     * It was a flag on the feed because the daily prophylaxis has no occasion of its
+     * own. That held for exactly as long as there was one medicine; the second one
+     * (anti-colic drops) got its own column next to it, and a third would have got a
+     * third. Medicines are now a list you set up, and a dose is an entry of its own —
+     * see `medicineId` below.
+     *
+     * The column stays and keeps its old values: migration 013 turned every flagged feed
+     * into a dose, and throwing the flags away afterwards would leave nothing to compare
+     * that conversion against.
      */
     vitaminD: z.boolean().default(false),
     /** diaper */
@@ -83,14 +103,7 @@ export const entrySchema = z
 
     /** milestone / photo / illness / absence */
     label: z.string().max(200).nullable().default(null),
-    /**
-     * Anti-colic drops given with this feed.
-     *
-     * Like the vitamin D flag: no occasion of its own, it goes into the bottle. Recording
-     * it costs one tap and makes the later question answerable — were the fussy evenings
-     * any different on the days it was given? Which product it was belongs under
-     * "What we buy", not on every single feed.
-     */
+    /** Anti-colic drops given with this feed. HISTORIC — see `vitaminD`. */
     colicDrops: z.boolean().default(false),
 
     /**
@@ -125,6 +138,45 @@ export const entrySchema = z
     supplyCategory: z.enum(SUPPLY_CATEGORIES).nullable().default(null),
     supplySize: z.string().max(60).nullable().default(null),
     supplyShop: z.string().max(80).nullable().default(null),
+
+    /**
+     * medicine: which medicine this dose belongs to — the id of its `medicineplan`.
+     *
+     * The dose ALSO carries the name in `label`, which looks like duplication and is
+     * not: the plan can be deleted when a course of treatment ends, and a history that
+     * then reads "medicine" without saying which one would be worthless. The id links
+     * what is still set up, the name survives what is not.
+     *
+     * Null on the plan itself — a plan is identified by its own entry id.
+     */
+    medicineId: z.string().max(64).nullable().default(null),
+    /**
+     * The size of a single dose. Null means "not stated".
+     *
+     * Nullable because migration 013 could not invent one: the old flags recorded THAT
+     * the drops were given, never how many. A made-up number in a medicine list is worse
+     * than a gap — it looks like something somebody checked.
+     */
+    medicineAmount: z.number().min(0).max(10000).nullable().default(null),
+    medicineUnit: z.enum(MEDICINE_UNITS).nullable().default(null),
+    /**
+     * medicineplan: how often a day it is due. Null means "as needed".
+     *
+     * That distinction is the whole point of the number. Vitamin D is one a day and a
+     * day without it is a day missed; anti-colic drops are given when the evening calls
+     * for them, and counting those as missed would be the app inventing a duty nobody
+     * set. Only a medicine with a number can fall short of it.
+     */
+    medicineTimesPerDay: z.number().int().min(1).max(24).nullable().default(null),
+    /**
+     * medicine: given together with this feed.
+     *
+     * The everyday case is still the bottle — the drops go in it. The dose is
+     * nevertheless an entry of its own, so that any number of medicines can hang off one
+     * feed; this is what ties them back together, so ticking the box off again in the
+     * feed sheet finds the dose it created.
+     */
+    withEntryId: z.string().max(64).nullable().default(null),
 
     /** photo: the week of life the photo counts for (0 = first week of life) */
     lifeWeek: z.number().int().min(0).max(1000).nullable().default(null),
@@ -197,6 +249,16 @@ export const entrySchema = z
         break;
       case "note":
         require(!!e.note?.trim(), "note", "The note is empty");
+        break;
+      case "medicineplan":
+        require(!!e.label?.trim(), "label", "Name fehlt");
+        require(e.medicineUnit !== null, "medicineUnit", "Einheit fehlt");
+        break;
+      case "medicine":
+        require(!!e.medicineId, "medicineId", "Medikament fehlt");
+        // The name comes along on every dose, see `medicineId`. Without it a dose whose
+        // plan has been deleted could no longer be read.
+        require(!!e.label?.trim(), "label", "Name fehlt");
         break;
     }
   });

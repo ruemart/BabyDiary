@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import { ageInDays, localDayKey } from "@babydiary/shared";
 import type { LocalEntry } from "../db/local.ts";
+import { isEvent } from "../utils/entryFields.ts";
 
 /**
  * The numbers to browse: totals, averages, records.
@@ -13,10 +14,16 @@ import type { LocalEntry } from "../db/local.ts";
 export type Record_ = { labelKey: string; value: string; detail?: string };
 
 export function useTotals(
-  entries: () => LocalEntry[],
+  rawEntries: () => LocalEntry[],
   timezone: () => string,
   birthDate: () => string | null,
 ) {
+  /**
+   * Only what actually happened. A medicine set up under Settings is an entry, but not
+   * one of these numbers — see `isEvent`.
+   */
+  const entries = () => rawEntries().filter(isEvent);
+
   const feeds = computed(() => entries().filter((e) => e.type === "feed"));
   const diapers = computed(() => entries().filter((e) => e.type === "diaper"));
   const sleeps = computed(() => entries().filter((e) => e.type === "sleep" && e.endedAt));

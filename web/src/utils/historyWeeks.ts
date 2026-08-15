@@ -1,5 +1,9 @@
 import { addDays, daysBetween, localDayKey, startOfWeek } from "@babydiary/shared";
 import type { LocalEntry } from "../db/local.ts";
+// "BiGaia added to the list" in the day list between a bottle and a nappy would be the
+// settings screen leaking into the diary — and it would open a week of its own in the
+// picker. See `isEvent`.
+import { isEvent } from "./entryFields.ts";
 
 /**
  * The history, broken into weeks.
@@ -58,6 +62,7 @@ export function buildWeek(
 ): HistoryWeek {
   const byDay = new Map<string, LocalEntry[]>();
   for (const entry of entries) {
+    if (!isEvent(entry)) continue;
     const key = localDayKey(entry.startedAt, timezone);
     const list = byDay.get(key);
     if (list) list.push(entry);
@@ -108,6 +113,7 @@ export function availableWeeks(
   const current = startOfWeek(today);
   let oldest = current;
   for (const entry of entries) {
+    if (!isEvent(entry)) continue;
     const week = startOfWeek(localDayKey(entry.startedAt, timezone));
     if (week < oldest) oldest = week;
   }

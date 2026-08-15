@@ -16,11 +16,12 @@ import BackdateFab from "../components/BackdateFab.vue";
 import { numberWithinDay } from "../utils/dayOrdinals.ts";
 import { availableWeeks, buildWeek, dayAfterWeekChange } from "../utils/historyWeeks.ts";
 import { useI18n } from "vue-i18n";
-import { useDuration } from "../i18n/format.ts";
+import { useDose, useDuration } from "../i18n/format.ts";
 
 
 const { t } = useI18n();
 const duration = useDuration();
+const dose = useDose();
 const data = useData();
 
 /**
@@ -134,12 +135,14 @@ const DIAPER_KEY: Record<string, string> = {
 function describe(entry: LocalEntry): string {
   switch (entry.type) {
     case "feed":
-      return [
-        `${entry.amountMl} ml`,
-        entry.spatUp ? t("describe.spatUp") : null,
-        entry.vitaminD ? t("describe.vitaminD") : null,
-        entry.colicDrops ? t("describe.colicDrops") : null,
-      ]
+      /**
+       * The medicine given with a bottle is NOT named here.
+       *
+       * It has its own entry now — at the same minute, directly underneath. Naming it on
+       * the feed as well would show one dose twice, and the second reading would be the
+       * one you cannot correct or delete.
+       */
+      return [`${entry.amountMl} ml`, entry.spatUp ? t("describe.spatUp") : null]
         .filter(Boolean)
         .join(" · ");
     case "diaper":
@@ -172,6 +175,12 @@ function describe(entry: LocalEntry): string {
       return entry.label ?? "";
     case "supply":
       return [entry.label, entry.supplySize, entry.supplyShop && t("describe.boughtAt", { shop: entry.supplyShop })]
+        .filter(Boolean)
+        .join(" · ");
+    case "medicine":
+      // The name comes off the dose itself, not off the list: a medicine no longer set
+      // up must still be readable here.
+      return [entry.label, dose(entry.medicineAmount, entry.medicineUnit)]
         .filter(Boolean)
         .join(" · ");
     default:
@@ -639,6 +648,12 @@ async function remove(entry: LocalEntry) {
 }
 .entry__dot--bath {
   background: var(--bm-sleep);
+}
+/* A ring rather than a dot. Medicine sits next to a bottle it was given with, and two
+   filled dots of related colours in adjacent rows read as one thing recorded twice. */
+.entry__dot--medicine {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--bm-growth);
 }
 
 .entry__body {

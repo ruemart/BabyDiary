@@ -10,6 +10,11 @@ const form = (over: Partial<EntryForm> = {}): EntryForm => ({
   vitaminD: true,
   colicDrops: true,
   diaper: "soiled",
+  medicineId: "medplan-vitamin-d",
+  medicineName: "Vitamin D",
+  medicineAmount: 1,
+  medicineUnit: "drops",
+  withEntryId: "feed-1",
   hasEnd: false,
   endAt: new Date("2026-08-08T10:30:00.000Z"),
   temperatureDc: 385,
@@ -57,7 +62,32 @@ describe("What an entry keeps, by type", () => {
       weightG: null,
       temperatureDc: null,
       label: null,
+      medicineId: null,
+      medicineAmount: null,
+      medicineUnit: null,
+      withEntryId: null,
     });
+  });
+
+  /**
+   * The dose is a snapshot: which medicine, how much, and the feed it went into. The
+   * name comes along because the medicine can later be taken off the list, and a history
+   * that then reads "medicine" without saying which one would be worthless.
+   */
+  it("a dose keeps the medicine, the amount and the feed it belongs to", () => {
+    expect(entryFields(form({ type: "medicine" }))).toMatchObject({
+      medicineId: "medplan-vitamin-d",
+      medicineAmount: 1,
+      medicineUnit: "drops",
+      withEntryId: "feed-1",
+      label: "Vitamin D",
+      amountMl: null,
+      diaper: null,
+    });
+  });
+
+  it("a dose without a stated amount stays without one", () => {
+    expect(entryFields(form({ type: "medicine", medicineAmount: null })).medicineAmount).toBeNull();
   });
 
   it("a growth entry keeps its measurements and nothing else", () => {

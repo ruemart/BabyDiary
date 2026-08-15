@@ -1,4 +1,4 @@
-import type { Entry, EntryType } from "@babydiary/shared";
+import type { Entry, EntryType, MedicineUnit } from "@babydiary/shared";
 
 /**
  * Which fields an entry carries, decided by its type.
@@ -18,14 +18,44 @@ import type { Entry, EntryType } from "@babydiary/shared";
  */
 export const PERIOD_TYPES = new Set<EntryType>(["sleep", "illness", "absence"]);
 
+/**
+ * Stored as an entry, but not something that HAPPENED.
+ *
+ * A medicine set up under Settings carries a timestamp like everything else — it has to,
+ * it is an entry, and that is what gets it synced to the other phone for free. That does
+ * not make it an event. It has no place in the day list, it must not open a week of its
+ * own in the history, and it must not count as an entry somebody made: the conversion in
+ * migration 013 would otherwise put a person called "Migration" into "who records".
+ */
+const NOT_AN_EVENT = new Set<EntryType>(["medicineplan"]);
+
+export function isEvent(entry: { type: EntryType }): boolean {
+  return !NOT_AN_EVENT.has(entry.type);
+}
+
 /** What the sheet holds, in plain values — the same shape whether creating or editing. */
 export type EntryForm = {
   type: EntryType;
   amountMl: number;
   spatUp: boolean;
+  /**
+   * The two historic flags, carried through rather than edited.
+   *
+   * Nothing sets them any more — medicines are a list and a dose is an entry (see
+   * migration 013). They stay in this list all the same, because they are still ON the
+   * old feeds: leaving them out would mean the first edit of a feed from July quietly
+   * dropped what it recorded. The sheet passes through what the entry already had.
+   */
   vitaminD: boolean;
   colicDrops: boolean;
   diaper: "empty" | "wet" | "soiled";
+  /** medicine: which one, and how much of it was given. */
+  medicineId: string | null;
+  medicineName: string;
+  medicineAmount: number | null;
+  medicineUnit: MedicineUnit | null;
+  /** medicine: the feed it was given with, kept when the dose is edited. */
+  withEntryId: string | null;
   /** A period without an end counts as running; see the sheet. */
   hasEnd: boolean;
   endAt: Date;
@@ -43,6 +73,7 @@ export function entryFields(form: EntryForm): Partial<Entry> {
   const isFeed = form.type === "feed";
   const isPeriod = PERIOD_TYPES.has(form.type);
   const isNamed = form.type === "illness" || form.type === "absence";
+  const isMedicine = form.type === "medicine";
 
   return {
     amountMl: isFeed ? form.amountMl : null,
@@ -58,7 +89,13 @@ export function entryFields(form: EntryForm): Partial<Entry> {
     weightG: form.type === "growth" ? form.weightG : null,
     lengthMm: form.type === "growth" ? form.lengthMm : null,
     headMm: form.type === "growth" ? form.headMm : null,
-    label: isNamed ? form.label.trim() : null,
+    medicineId: isMedicine ? form.medicineId : null,
+    medicineAmount: isMedicine ? form.medicineAmount : null,
+    medicineUnit: isMedicine ? form.medicineUnit : null,
+    withEntryId: isMedicine ? form.withEntryId : null,
+    // A dose carries the medicine's name as its label — that is what keeps the history
+    // readable after the medicine has been taken off the list.
+    label: isNamed ? form.label.trim() : isMedicine ? form.medicineName.trim() : null,
     note: form.note.trim() || null,
   };
 }
