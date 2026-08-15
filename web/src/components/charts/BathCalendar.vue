@@ -20,18 +20,6 @@ const { t } = useI18n();
 
 const weekdayShort = (i: number) => t(`weekday.short.${i}`);
 const weekdayLong = (i: number) => t(`weekday.long.${i}`);
-
-/**
- * Every second column carries a date, counted from the right.
- *
- * Ten dates in a row do not fit across a phone, and a heading wider than its column
- * widens the column — which pushed the current week, the one actually being asked
- * about, off the edge. Counted from the right so the newest week is always the one
- * that keeps its label.
- */
-function showsLabel(index: number, total: number): boolean {
-  return (total - 1 - index) % 2 === 0;
-}
 </script>
 
 <template>
@@ -44,15 +32,8 @@ function showsLabel(index: number, total: number): boolean {
         <thead>
           <tr>
             <th scope="col" class="corner"><span class="visually-hidden">{{ $t("history.weekday") }}</span></th>
-            <th
-              v-for="(week, index) in calendar.weeks"
-              :key="week.start"
-              scope="col"
-              class="week"
-            >
-              <span :class="{ 'visually-hidden': !showsLabel(index, calendar.weeks.length) }">
-                {{ week.label }}
-              </span>
+            <th v-for="week in calendar.weeks" :key="week.start" scope="col" class="week">
+              {{ week.label }}
             </th>
           </tr>
         </thead>
@@ -95,10 +76,20 @@ function showsLabel(index: number, total: number): boolean {
   padding-inline: 0.25rem;
 }
 
+/*
+ * Fixed layout: the columns are equal because the table is told to make them equal, not
+ * because their contents happen to be the same width. Content-driven widths are what
+ * made every second column wider than its neighbours — and in a calendar an uneven
+ * column reads as an uneven week.
+ *
+ * Only the weekday column gets a width of its own; the rest share what is left, and a
+ * heading that would not fit is clipped rather than allowed to push its column wider.
+ */
 table {
   border-collapse: separate;
   border-spacing: 3px;
   width: 100%;
+  table-layout: fixed;
 }
 
 .corner,
@@ -109,9 +100,12 @@ table {
   color: var(--bm-ink-soft);
   padding: 0;
   white-space: nowrap;
+  overflow: hidden;
 }
 
+.corner,
 .day {
+  width: 1.5rem;
   text-align: end;
   padding-inline-end: 0.35rem;
 }
@@ -122,7 +116,6 @@ table {
 
 .cell {
   height: 1.1rem;
-  min-width: 1.1rem;
   border-radius: 3px;
   background: var(--bm-surface-sunk);
   text-align: center;

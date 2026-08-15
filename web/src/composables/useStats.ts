@@ -376,8 +376,16 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
   return { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, summary };
 }
 
-/** Ten weeks: long enough for a rhythm to show, short enough to stay one screen wide. */
-const BATH_WEEKS = 10;
+/**
+ * Eight weeks: long enough for a rhythm to show, short enough that every column can
+ * carry its own date.
+ *
+ * Ten fitted across the screen too, but only by labelling every second column — and a
+ * heading is what sets a column's width, so the labelled ones came out visibly wider
+ * than their neighbours. A calendar whose columns are not equal reads as if the weeks
+ * were not equal either.
+ */
+const BATH_WEEKS = 8;
 
 /** The earlier of "set up on" and "first dose recorded for". */
 function earliestDay(planDay: string, perDay: Map<string, number> | undefined): string {
