@@ -173,6 +173,7 @@ export const useData = defineStore("data", () => {
       medicineAmount: null,
       medicineUnit: null,
       medicineTimesPerDay: null,
+      medicineMaxPerDay: null,
       withEntryId: null,
       lifeWeek: null,
       mediaId: null,

@@ -1,0 +1,11 @@
+-- The most a medicine may be given in one day.
+--
+-- A different question from `medicine_times_per_day`, which is why it is a column of its
+-- own rather than a reinterpretation of that one: the first says what SHOULD happen, this
+-- says what must not be exceeded. The anti-colic drops are the case that asked for it —
+-- given when the evening calls for them, no target at all, and never more than six times.
+-- A medicine can equally have three doses planned and four permitted.
+--
+-- Null everywhere to start with, including for the two medicines migration 013 brought
+-- over: a limit is what the packet says, and the app has no business inventing one.
+ALTER TABLE entries ADD COLUMN medicine_max_per_day INTEGER;

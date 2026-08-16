@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayQuotaUsed, dosesOnDay } from "./useMedicine.ts";
+import { dailyCap, dayQuotaUsed, dosesOnDay } from "./useMedicine.ts";
 import type { LocalEntry } from "../db/local.ts";
 
 /**
@@ -10,8 +10,13 @@ import type { LocalEntry } from "../db/local.ts";
 
 const TZ = "Europe/Berlin";
 
-function plan(id: string, timesPerDay: number | null): LocalEntry {
-  return { id, type: "medicineplan", medicineTimesPerDay: timesPerDay } as LocalEntry;
+function plan(id: string, timesPerDay: number | null, maxPerDay: number | null = null): LocalEntry {
+  return {
+    id,
+    type: "medicineplan",
+    medicineTimesPerDay: timesPerDay,
+    medicineMaxPerDay: maxPerDay,
+  } as LocalEntry;
 }
 
 function dose(id: string, startedAt: string, medicineId: string, withEntryId?: string): LocalEntry {
@@ -67,13 +72,49 @@ describe("Whether the day's quota is used up", () => {
     expect(dayQuotaUsed(entries, TZ, "2026-08-15", drops)).toBe(true);
   });
 
-  /** Nobody set a number, so the app has none to enforce. */
-  it("as needed is never full", () => {
+  /** Nobody set a number of any kind, so the app has none to enforce. */
+  it("as needed with no ceiling is never full", () => {
     const asNeeded = plan("simeticon", null);
     const entries = Array.from({ length: 9 }, (_, i) =>
       dose(`d${i}`, `2026-08-15T0${i}:00:00.000Z`, "simeticon"),
     );
     expect(dayQuotaUsed(entries, TZ, "2026-08-15", asNeeded)).toBe(false);
+  });
+
+  /**
+   * The case the ceiling was added for: given when the evening calls for it, and never
+   * more than six times.
+   */
+  it("as needed with a ceiling stops at the ceiling", () => {
+    const capped = plan("simeticon", null, 6);
+    const entries = Array.from({ length: 5 }, (_, i) =>
+      dose(`d${i}`, `2026-08-15T0${i}:00:00.000Z`, "simeticon"),
+    );
+    expect(dayQuotaUsed(entries, TZ, "2026-08-15", capped)).toBe(false);
+    entries.push(dose("d5", "2026-08-15T19:00:00.000Z", "simeticon"));
+    expect(dayQuotaUsed(entries, TZ, "2026-08-15", capped)).toBe(true);
+  });
+
+  /**
+   * Three planned, four permitted: the fourth must not be refused. The ceiling is the
+   * harder boundary, so it is the one that decides — the plan only says what should
+   * happen.
+   */
+  it("the ceiling wins over the planned number, not the other way round", () => {
+    const both = plan("paracetamol", 3, 4);
+    expect(dailyCap(both)).toBe(4);
+
+    const entries = Array.from({ length: 3 }, (_, i) =>
+      dose(`d${i}`, `2026-08-15T0${i}:00:00.000Z`, "paracetamol"),
+    );
+    expect(dayQuotaUsed(entries, TZ, "2026-08-15", both)).toBe(false);
+    entries.push(dose("d3", "2026-08-15T20:00:00.000Z", "paracetamol"));
+    expect(dayQuotaUsed(entries, TZ, "2026-08-15", both)).toBe(true);
+  });
+
+  it("without a ceiling the planned number still stops it", () => {
+    expect(dailyCap(plan("vitamin-d", 1))).toBe(1);
+    expect(dailyCap(plan("simeticon", null))).toBeNull();
   });
 
   /**

@@ -29,8 +29,11 @@ export type DailyTotal = {
 export type MedicineCell = {
   day: string;
   given: number;
-  /** `none` = the medicine did not exist yet, or nothing was due and nothing given. */
-  state: "none" | "missed" | "partial" | "complete";
+  /**
+   * `none` = the medicine did not exist yet, or nothing was due and nothing given.
+   * `over` = more was given than the household's own ceiling allows.
+   */
+  state: "none" | "missed" | "partial" | "complete" | "over";
 };
 
 export type MedicineRow = {
@@ -38,6 +41,8 @@ export type MedicineRow = {
   name: string;
   /** Null = as needed. Such a medicine can never have a missed day. */
   timesPerDay: number | null;
+  /** The household's own ceiling, if they stated one. */
+  maxPerDay: number | null;
   cells: MedicineCell[];
   /** Days with at least one dose, out of the days the medicine has existed. */
   daysGiven: number;
@@ -197,11 +202,18 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       }
     }
 
-    const rows: { id: string; name: string; timesPerDay: number | null; start: string; active: boolean }[] =
-      plans.map((plan) => ({
+    const rows: {
+      id: string;
+      name: string;
+      timesPerDay: number | null;
+      maxPerDay: number | null;
+      start: string;
+      active: boolean;
+    }[] = plans.map((plan) => ({
         id: plan.id,
         name: plan.label ?? "",
         timesPerDay: plan.medicineTimesPerDay,
+        maxPerDay: plan.medicineMaxPerDay,
         // A medicine begins when it was set up — or earlier, if doses were entered for a
         // time before that. Recording the past is allowed; being marked down for it is not.
         start: earliestDay(localDayKey(plan.startedAt, tz), counts.get(plan.id)),
@@ -215,6 +227,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
         id,
         name,
         timesPerDay: null,
+        maxPerDay: null,
         start: earliestDay(today, counts.get(id)),
         active: false,
       });
@@ -230,7 +243,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
         cells.push({
           day,
           given,
-          state: cellState(day, given, row.start, row.timesPerDay, today),
+          state: cellState(day, given, row.start, row.timesPerDay, row.maxPerDay, today),
         });
       }
 
@@ -247,6 +260,7 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
         id: row.id,
         name: row.name,
         timesPerDay: row.timesPerDay,
+        maxPerDay: row.maxPerDay,
         cells,
         daysGiven: cells.filter((cell) => cell.given > 0).length,
         daysPossible,
@@ -399,9 +413,18 @@ function cellState(
   given: number,
   start: string,
   timesPerDay: number | null,
+  maxPerDay: number | null,
   today: string,
 ): MedicineCell["state"] {
   if (day < start) return "none";
+  /**
+   * Over the ceiling outranks everything else the day could be called.
+   *
+   * A day with seven of a permitted six is not a "complete" day, and colouring it as one
+   * would hide the single thing on this chart worth going back for. It stays visible for
+   * as long as the entries do — this is the record, not a notification that scrolls away.
+   */
+  if (maxPerDay !== null && given > maxPerDay) return "over";
   /**
    * Today is not a missed day. It is an unfinished one.
    *

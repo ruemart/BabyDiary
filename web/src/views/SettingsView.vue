@@ -50,14 +50,19 @@ function editMedicine(plan: LocalEntry) {
   medicineSheetOpen.value = true;
 }
 
-/** "1× a day · 1 drop" — the parts that are known, in the order they are asked about. */
+/** "1× a day · max 6 · 1 drop" — the parts that are known, in the order they are asked about. */
 function medicineDetail(plan: LocalEntry): string {
   return [
     plan.medicineTimesPerDay === null
       ? t("medicine.asNeeded")
       : t("medicine.perDayN", { n: plan.medicineTimesPerDay }),
+    plan.medicineMaxPerDay === null
+      ? null
+      : t("medicine.maxN", { n: plan.medicineMaxPerDay }),
     dose(plan.medicineAmount, plan.medicineUnit) ?? t("medicine.noDose"),
-  ].join(" · ");
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 const activeRegion = computed(() => regionByCode(form.value.region));

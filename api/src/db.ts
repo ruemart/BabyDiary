@@ -132,6 +132,7 @@ type EntryRow = {
   medicine_amount: number | null;
   medicine_unit: string | null;
   medicine_times_per_day: number | null;
+  medicine_max_per_day: number | null;
   with_entry_id: string | null;
   life_week: number | null;
   media_id: string | null;
@@ -170,6 +171,7 @@ function toEntry(row: EntryRow): StoredEntry {
     medicineAmount: row.medicine_amount,
     medicineUnit: row.medicine_unit as Entry["medicineUnit"],
     medicineTimesPerDay: row.medicine_times_per_day,
+    medicineMaxPerDay: row.medicine_max_per_day,
     withEntryId: row.with_entry_id,
     lifeWeek: row.life_week,
     mediaId: row.media_id,
@@ -223,12 +225,12 @@ export function createStore(db: Db) {
     INSERT INTO entries (
       id, child_id, type, started_at, ended_at, amount_ml, spat_up, vitamin_d, colic_drops, diaper,
       weight_g, length_mm, head_mm, label, milestone_key, temperature_dc, latitude, longitude, place_name, supply_category, supply_size, supply_shop, life_week, media_id, note,
-      medicine_id, medicine_amount, medicine_unit, medicine_times_per_day, with_entry_id,
+      medicine_id, medicine_amount, medicine_unit, medicine_times_per_day, medicine_max_per_day, with_entry_id,
       created_by, edited_at, rev, deleted
     ) VALUES (
       @id, @child_id, @type, @started_at, @ended_at, @amount_ml, @spat_up, @vitamin_d, @colic_drops, @diaper,
       @weight_g, @length_mm, @head_mm, @label, @milestone_key, @temperature_dc, @latitude, @longitude, @place_name, @supply_category, @supply_size, @supply_shop, @life_week, @media_id, @note,
-      @medicine_id, @medicine_amount, @medicine_unit, @medicine_times_per_day, @with_entry_id,
+      @medicine_id, @medicine_amount, @medicine_unit, @medicine_times_per_day, @medicine_max_per_day, @with_entry_id,
       @created_by, @edited_at, @rev, @deleted
     )
     ON CONFLICT(id) DO UPDATE SET
@@ -259,6 +261,7 @@ export function createStore(db: Db) {
       medicine_amount = excluded.medicine_amount,
       medicine_unit = excluded.medicine_unit,
       medicine_times_per_day = excluded.medicine_times_per_day,
+      medicine_max_per_day = excluded.medicine_max_per_day,
       with_entry_id = excluded.with_entry_id,
       created_by = excluded.created_by,
       edited_at = excluded.edited_at,
@@ -394,6 +397,7 @@ const selectChild = db.prepare<[], Record<string, unknown>>(
           medicine_amount: entry.medicineAmount,
           medicine_unit: entry.medicineUnit,
           medicine_times_per_day: entry.medicineTimesPerDay,
+          medicine_max_per_day: entry.medicineMaxPerDay,
           with_entry_id: entry.withEntryId,
           life_week: entry.lifeWeek,
           media_id: entry.mediaId,

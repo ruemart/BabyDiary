@@ -39,6 +39,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     medicineAmount: null,
     medicineUnit: null,
     medicineTimesPerDay: null,
+    medicineMaxPerDay: null,
     withEntryId: null,
     diaper: null,
     weightG: null,

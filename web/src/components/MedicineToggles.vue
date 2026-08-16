@@ -47,10 +47,15 @@ const rows = computed(() => {
       /**
        * Locked once the day's quota is used up elsewhere. A second tick would then be
        * either a slip or a double dose — the same guard vitamin D always had, now
-       * derived from the medicine's own "times a day" instead of hard-coded to one.
+       * derived from the medicine's own numbers instead of hard-coded to one.
        */
       locked: dayQuotaUsed(data.entries, data.timezone, day, plan, props.feedId ?? null),
-      lockedHint: t("medicine.lockedFull", { n: givenThatDay }),
+      // Which of the two numbers stopped it, because they mean different things: a plan
+      // fulfilled is not the same as a limit reached.
+      lockedHint:
+        plan.medicineMaxPerDay !== null
+          ? t("medicine.lockedMax", { n: givenThatDay, max: plan.medicineMaxPerDay })
+          : t("medicine.lockedFull", { n: givenThatDay }),
     };
   });
 });

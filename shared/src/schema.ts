@@ -169,6 +169,19 @@ export const entrySchema = z
      */
     medicineTimesPerDay: z.number().int().min(1).max(24).nullable().default(null),
     /**
+     * medicineplan: the most that may be given in one day. Null means none was stated.
+     *
+     * A different question from `medicineTimesPerDay`, and the reason both exist: one is
+     * what SHOULD happen, the other what must not be exceeded. Anti-colic drops are
+     * given when the evening calls for them and never more than six times — no target at
+     * all, but a hard ceiling. A medicine can equally have three doses planned and four
+     * permitted.
+     *
+     * The app does not know a single dose limit of its own and never will. This is the
+     * household writing down what their own packet says.
+     */
+    medicineMaxPerDay: z.number().int().min(1).max(24).nullable().default(null),
+    /**
      * medicine: given together with this feed.
      *
      * The everyday case is still the bottle — the drops go in it. The dose is
@@ -253,6 +266,15 @@ export const entrySchema = z
       case "medicineplan":
         require(!!e.label?.trim(), "label", "Name fehlt");
         require(e.medicineUnit !== null, "medicineUnit", "Einheit fehlt");
+        // A ceiling below the plan would contradict itself: every single day would be
+        // both due and forbidden.
+        require(
+          e.medicineMaxPerDay === null ||
+            e.medicineTimesPerDay === null ||
+            e.medicineMaxPerDay >= e.medicineTimesPerDay,
+          "medicineMaxPerDay",
+          "Die Höchstmenge liegt unter der geplanten Anzahl",
+        );
         break;
       case "medicine":
         require(!!e.medicineId, "medicineId", "Medikament fehlt");

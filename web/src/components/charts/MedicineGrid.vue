@@ -29,9 +29,15 @@ function meta(row: MedicineRow): string {
   else if (row.timesPerDay === null) parts.push(t("medicine.asNeeded"));
   else parts.push(t("medicine.perDayN", { n: row.timesPerDay }));
 
-  parts.push(
-    t("charts.medicineDays", { given: row.daysGiven, total: row.daysPossible }, row.daysPossible),
-  );
+  if (row.active && row.maxPerDay !== null) parts.push(t("medicine.maxN", { n: row.maxPerDay }));
+
+  // "given on 0 of 0 days" is what a medicine set up this morning would say, and it says
+  // nothing. Left out until there is a day to count.
+  if (row.daysPossible > 0) {
+    parts.push(
+      t("charts.medicineDays", { given: row.daysGiven, total: row.daysPossible }, row.daysPossible),
+    );
+  }
   if (row.streak !== null && row.streak > 1) {
     parts.push(t("charts.medicineStreak", { n: row.streak }));
   }
@@ -53,6 +59,16 @@ const summary = (row: MedicineRow) =>
 
 /** Only a medicine with a "times a day" can miss one — otherwise the key is a lie. */
 const hasMissed = computed(() => props.rows.some((row) => row.timesPerDay !== null));
+
+/**
+ * The ceiling only appears in the key once a day has actually gone over it.
+ *
+ * A legend entry for something that has never happened is an accusation waiting for
+ * someone to read it as a warning.
+ */
+const hasOver = computed(() =>
+  props.rows.some((row) => row.cells.some((cell) => cell.state === "over")),
+);
 </script>
 
 <template>
@@ -79,6 +95,9 @@ const hasMissed = computed(() => props.rows.some((row) => row.timesPerDay !== nu
       <li><span class="legend__swatch cell--partial" />{{ $t("charts.medicineLegend.partial") }}</li>
       <li v-if="hasMissed">
         <span class="legend__swatch cell--missed" />{{ $t("charts.medicineLegend.missed") }}
+      </li>
+      <li v-if="hasOver">
+        <span class="legend__swatch cell--over" />{{ $t("charts.medicineLegend.over") }}
       </li>
     </ul>
   </div>
@@ -136,6 +155,13 @@ const hasMissed = computed(() => props.rows.some((row) => row.timesPerDay !== nu
 .cell--missed {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--bm-chart-medicine) 40%, transparent);
+}
+
+/* A day over the household's own ceiling steps off the ladder entirely — it is not
+   "even more given", it is a different kind of fact. Hence the only other hue on this
+   chart, and the rose the app already uses where something wants a second look. */
+.cell--over {
+  background: var(--bm-photo);
 }
 
 .legend {

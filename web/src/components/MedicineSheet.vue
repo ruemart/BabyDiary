@@ -7,7 +7,7 @@ import SheetDialog from "./SheetDialog.vue";
 import { useI18n } from "vue-i18n";
 
 /**
- * Setting up a medicine: name, how often a day, how much per dose.
+ * Setting up a medicine: name, how often a day, how much per dose, and at most how often.
  *
  * This is a SETTING, not an entry — which is why it lives behind Settings and not behind
  * the plus button. It is filled in once when a treatment starts and read a dozen times a
@@ -31,6 +31,8 @@ const unit = ref<MedicineUnit>("drops");
 const amount = ref("");
 /** Null = as needed. The chips below make that a choice rather than an empty field. */
 const timesPerDay = ref<number | null>(1);
+/** Null = no ceiling stated. */
+const maxPerDay = ref("");
 
 const TIMES_OPTIONS = [null, 1, 2, 3, 4, 6] as const;
 
@@ -43,7 +45,30 @@ watch(open, (isOpen) => {
     ? ""
     : String(plan.medicineAmount);
   timesPerDay.value = plan ? plan.medicineTimesPerDay : 1;
+  maxPerDay.value =
+    plan?.medicineMaxPerDay === null || plan?.medicineMaxPerDay === undefined
+      ? ""
+      : String(plan.medicineMaxPerDay);
 });
+
+const parsedMax = computed<number | null>(() => {
+  const trimmed = maxPerDay.value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 24 ? parsed : null;
+});
+
+/**
+ * A ceiling below the planned number would contradict itself — every day would be both
+ * due and forbidden. Said here rather than only refused on save, so the number can be
+ * corrected while it is still on screen.
+ */
+const maxTooLow = computed(
+  () =>
+    parsedMax.value !== null &&
+    timesPerDay.value !== null &&
+    parsedMax.value < timesPerDay.value,
+);
 
 /**
  * "0,5" and "0.5" both mean half a pill.
@@ -59,7 +84,7 @@ function parsedAmount(): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
-const canSave = computed(() => name.value.trim().length > 0);
+const canSave = computed(() => name.value.trim().length > 0 && !maxTooLow.value);
 
 async function save() {
   if (!canSave.value) return;
@@ -69,6 +94,7 @@ async function save() {
     medicineUnit: unit.value,
     medicineAmount: parsedAmount(),
     medicineTimesPerDay: timesPerDay.value,
+    medicineMaxPerDay: parsedMax.value,
   };
 
   if (props.plan) {
@@ -144,6 +170,26 @@ async function remove() {
         </div>
         <p class="field__hint">{{ $t("medicine.doseHint") }}</p>
       </div>
+
+      <!-- The ceiling, separate from the plan: one says what should happen, the other
+           what must not be exceeded. Whatever the packet says — the app knows no limit
+           of its own. -->
+      <label class="field">
+        <span class="field__label">{{ $t("medicine.maxPerDay") }}</span>
+        <span class="max">
+          <input
+            v-model="maxPerDay"
+            type="text"
+            inputmode="numeric"
+            class="max__input"
+            :placeholder="$t('medicine.maxPlaceholder')"
+          />
+          <span class="max__unit">{{ $t("medicine.maxUnit") }}</span>
+        </span>
+        <span class="field__hint" :class="{ 'field__hint--warn': maxTooLow }">
+          {{ maxTooLow ? $t("medicine.maxTooLow", { n: timesPerDay }) : $t("medicine.maxHint") }}
+        </span>
+      </label>
 
       <!-- Removing is not deleting: the doses given stay in the history, because they
            happened. Only the medicine stops being offered. -->
@@ -224,10 +270,26 @@ async function remove() {
   color: #fff;
 }
 
-.dose {
+.field__hint--warn {
+  color: var(--bm-photo);
+  font-weight: 600;
+}
+
+.dose,
+.max {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+.max__input {
+  flex: 0 0 5.5rem;
+  text-align: center;
+}
+
+.max__unit {
+  font-size: 0.9rem;
+  color: var(--bm-ink-soft);
 }
 
 .dose__amount {

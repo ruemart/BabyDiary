@@ -29,6 +29,7 @@ function entry(over: Partial<Entry> & Pick<Entry, "id">): Entry {
     medicineAmount: null,
     medicineUnit: null,
     medicineTimesPerDay: null,
+    medicineMaxPerDay: null,
     withEntryId: null,
     diaper: null,
     weightG: null,
@@ -263,6 +264,48 @@ describe("Every entry type survives the round trip", () => {
     expect(byId.get("note")!.note).toBe("Unruhige Nacht");
     expect(byId.get("photo")!.lifeWeek).toBe(7);
     expect(byId.get("photo")!.mediaId).toBe("abc.jpg");
+  });
+
+  /**
+   * A medicine and its doses. The ceiling belongs to the plan, the amount to the dose:
+   * the plan is a living setting, the dose is what was actually given.
+   */
+  it("keeps a medicine's plan and its doses apart", () => {
+    store.applyChanges(
+      CHILD_ID,
+      [
+        entry({
+          id: "plan",
+          type: "medicineplan",
+          amountMl: null,
+          label: "Simeticon",
+          medicineUnit: "drops",
+          medicineAmount: 5,
+          medicineTimesPerDay: null,
+          medicineMaxPerDay: 6,
+        }),
+        entry({
+          id: "dose",
+          type: "medicine",
+          amountMl: null,
+          label: "Simeticon",
+          medicineId: "plan",
+          medicineUnit: "drops",
+          medicineAmount: 5,
+          withEntryId: "feed-1",
+        }),
+      ],
+      null,
+    );
+
+    const byId = new Map(store.entriesSince(CHILD_ID, 0).map((e) => [e.id, e]));
+    expect(byId.get("plan")!.medicineMaxPerDay).toBe(6);
+    expect(byId.get("plan")!.medicineTimesPerDay).toBeNull();
+    expect(byId.get("dose")!.medicineId).toBe("plan");
+    expect(byId.get("dose")!.withEntryId).toBe("feed-1");
+    expect(byId.get("dose")!.medicineAmount).toBe(5);
+    // The ceiling is the plan's business, never the individual dose's.
+    expect(byId.get("dose")!.medicineMaxPerDay).toBeNull();
   });
 });
 

@@ -28,7 +28,13 @@ export type MedicineStatus = {
   unit: MedicineUnit | null;
   /** Null = as needed. Only a medicine with a number can fall short of it. */
   timesPerDay: number | null;
+  /** The most that may be given in a day, if the household stated one. */
+  maxPerDay: number | null;
   givenToday: number;
+  /** The day's ceiling is reached — the quick way to record another is closed. */
+  atMax: boolean;
+  /** More was given than the ceiling allows. Recorded, and said out loud. */
+  overMax: boolean;
   /** Time of the most recent dose today, for the line on the home screen. */
   lastAtLabel: string | null;
   /** The dose to take back off again — the newest of the day. */
@@ -57,13 +63,24 @@ export function dosesOnDay(
 }
 
 /**
+ * How many doses a day this medicine stops at — the maximum where one is stated,
+ * otherwise the planned number.
+ *
+ * The maximum wins because it is the harder boundary. A medicine with three planned and
+ * four permitted must not refuse the fourth; a medicine given as needed has no planned
+ * number at all and is bounded only by its maximum. Where neither is set — as needed,
+ * no ceiling — nothing bounds it, and the app has nothing to enforce.
+ */
+export function dailyCap(plan: LocalEntry): number | null {
+  return plan.medicineMaxPerDay ?? plan.medicineTimesPerDay;
+}
+
+/**
  * Is the day's quota already used up — ignoring what one particular feed carries?
  *
  * This is what locks the tick in the bottle sheet. The exception is what makes it usable
  * while editing: a feed that already carries the dose must be able to give it up again,
  * and without the exception its own dose would be the reason it may not.
- *
- * As needed means never full: nobody set a number, so the app has none to enforce.
  */
 export function dayQuotaUsed(
   entries: LocalEntry[],
@@ -72,11 +89,12 @@ export function dayQuotaUsed(
   plan: LocalEntry,
   exceptWithEntryId: string | null = null,
 ): boolean {
-  if (plan.medicineTimesPerDay === null) return false;
+  const cap = dailyCap(plan);
+  if (cap === null) return false;
   const given = dosesOnDay(entries, timezone, dayKey, plan.id).filter(
     (dose) => !exceptWithEntryId || dose.withEntryId !== exceptWithEntryId,
   );
-  return given.length >= plan.medicineTimesPerDay;
+  return given.length >= cap;
 }
 
 export function useMedicines(
@@ -94,6 +112,7 @@ export function useMedicines(
       const doses = dosesOnDay(all, tz, today, plan.id);
       const target = plan.medicineTimesPerDay;
       const complete = target !== null && doses.length >= target;
+      const max = plan.medicineMaxPerDay;
 
       return {
         plan,
@@ -102,7 +121,12 @@ export function useMedicines(
         amount: plan.medicineAmount,
         unit: plan.medicineUnit,
         timesPerDay: target,
+        maxPerDay: max,
         givenToday: doses.length,
+        atMax: max !== null && doses.length >= max,
+        // Possible even with the guard: the deliberate path stays open, and the other
+        // phone may have recorded one at the same moment.
+        overMax: max !== null && doses.length > max,
         lastAtLabel: doses[0] ? localTimeLabel(doses[0].startedAt, tz) : null,
         lastDoseId: doses[0]?.id ?? null,
         complete,

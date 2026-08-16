@@ -21,13 +21,19 @@ beforeEach(() => {
 
 afterEach(() => vi.useRealTimers());
 
-function plan(id: string, startedAt: string, timesPerDay: number | null): LocalEntry {
+function plan(
+  id: string,
+  startedAt: string,
+  timesPerDay: number | null,
+  maxPerDay: number | null = null,
+): LocalEntry {
   return {
     id,
     type: "medicineplan",
     label: id,
     startedAt,
     medicineTimesPerDay: timesPerDay,
+    medicineMaxPerDay: maxPerDay,
   } as LocalEntry;
 }
 
@@ -149,6 +155,29 @@ describe("Medicine, day by day", () => {
       dose("2026-08-14T08:00:00.000Z", "vitamin-d"),
     ];
     expect(stats(entries).medicineDays.value[0]!.streak).toBe(1);
+  });
+
+  /**
+   * A day over the household's own ceiling is not a "complete" day. Colouring it as one
+   * would hide the single thing on this chart worth going back for.
+   */
+  it("a day over the ceiling is marked as such, whatever else it would have been", () => {
+    /** n doses spread over one day, an hour apart. */
+    const doses = (n: number, day: string) =>
+      Array.from({ length: n }, (_, i) =>
+        dose(`${day}T${String(i + 6).padStart(2, "0")}:00:00.000Z`, "simeticon"),
+      );
+
+    const entries = [
+      plan("simeticon", "2026-08-01T08:00:00.000Z", null, 6),
+      ...doses(6, "2026-08-12"),
+      ...doses(7, "2026-08-13"),
+    ];
+    const row = stats(entries).medicineDays.value[0]!;
+
+    expect(cellOn(row, "2026-08-12").state).toBe("complete");
+    expect(cellOn(row, "2026-08-13").state).toBe("over");
+    expect(row.maxPerDay).toBe(6);
   });
 
   /**

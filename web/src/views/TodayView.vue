@@ -64,6 +64,16 @@ async function undoMedicine(medicine: MedicineStatus) {
 
 /** "1 drop · given 08:12", "2 of 3 today", "not yet today" — whatever is true. */
 function medicineStatusText(medicine: MedicineStatus): string {
+  /**
+   * The ceiling speaks first once it is reached. It is the only line here that is about
+   * a limit rather than a routine, and reading it after "3× today" would bury it.
+   */
+  if (medicine.overMax) {
+    return t("medicine.overMax", { n: medicine.givenToday, max: medicine.maxPerDay });
+  }
+  if (medicine.atMax) {
+    return t("medicine.atMax", { max: medicine.maxPerDay });
+  }
   if (medicine.timesPerDay === null) {
     return medicine.givenToday === 0
       ? t("medicine.asNeeded")
@@ -324,10 +334,25 @@ async function startSleep() {
         v-for="medicine in medicines"
         :key="medicine.id"
         class="med"
-        :class="{ 'med--done': medicine.complete, 'med--urgent': medicine.urgent }"
+        :class="{
+          'med--done': (medicine.complete || medicine.atMax) && !medicine.overMax,
+          'med--urgent': medicine.urgent,
+          'med--over': medicine.overMax,
+        }"
       >
         <span class="med__mark" aria-hidden="true">
-          <svg v-if="medicine.complete" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg v-if="medicine.overMax" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+            <path d="M12 4 2.5 20h19L12 4Z" stroke-linejoin="round" />
+            <path d="M12 10v4" stroke-linecap="round" />
+            <path d="M12 17h.01" stroke-linecap="round" />
+          </svg>
+          <svg
+            v-else-if="medicine.complete || medicine.atMax"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
             <path d="m5 12 5 5L19 7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -345,8 +370,13 @@ async function startSleep() {
             </template>
           </span>
         </span>
+        <!-- At the ceiling the one-tap way to record another closes, and what is left is
+             the way back. Not a dead end: an eighth dose that really was given still
+             goes in through "Add entry", deliberately, where the number can be seen.
+             An app that refuses to record what happened would be keeping a diary of
+             what should have happened. -->
         <button
-          v-if="medicine.complete"
+          v-if="medicine.complete || medicine.atMax"
           class="med__action"
           type="button"
           @click="undoMedicine(medicine)"
@@ -749,6 +779,19 @@ async function startSleep() {
 .med--urgent {
   border-color: color-mix(in srgb, var(--bm-feed) 65%, transparent);
   background: var(--bm-feed-soft);
+}
+
+/* Over the household's own ceiling. The one state here that is not about a routine,
+   so the only one that gets a colour of its own — still no red, and still no alarm:
+   it says what the entries say and leaves the conclusion to the people reading it. */
+.med--over {
+  border-color: color-mix(in srgb, var(--bm-photo) 60%, transparent);
+  background: var(--bm-photo-soft);
+}
+
+.med--over .med__mark {
+  background: var(--bm-photo);
+  color: #fff;
 }
 
 .med__mark {
