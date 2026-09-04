@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { localParts } from "@babydiary/shared";
+import { localParts, predictNext } from "@babydiary/shared";
 import { config } from "./config.ts";
 import type { Db } from "./db.ts";
 import type { Store } from "./db.ts";
@@ -122,32 +122,21 @@ export type NextFeed = {
   dueAt: number;
 };
 
+/**
+ * The arithmetic itself lives in `shared/rhythm`, and deliberately so: the home screen
+ * shows the same estimate under "last bottle". A notification saying half past two next
+ * to a screen saying quarter past three is worse than either on its own.
+ */
 export function predictNextFeed(store: Store, childId: string): NextFeed | null {
-  const feeds = store
-    .entriesSince(childId, 0)
-    .filter((e) => e.type === "feed" && !e.deleted)
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-    .slice(0, 12);
+  const feeds = store.entriesSince(childId, 0).filter((e) => e.type === "feed" && !e.deleted);
+  const rhythm = predictNext(feeds, { minEvents: MIN_FEEDS_FOR_RHYTHM });
+  if (!rhythm) return null;
 
-  if (feeds.length < MIN_FEEDS_FOR_RHYTHM) return null;
-
-  const gaps: number[] = [];
-  for (let i = 1; i < feeds.length; i++) {
-    const gap = Date.parse(feeds[i - 1]!.startedAt) - Date.parse(feeds[i]!.startedAt);
-    // Two entries in the same minute are a correction, not a rhythm.
-    if (gap > 15 * 60_000) gaps.push(gap);
-  }
-  if (gaps.length < 3) return null;
-
-  gaps.sort((a, b) => a - b);
-  const median = gaps[Math.floor(gaps.length / 2)]!;
-
-  const last = feeds[0]!;
   return {
-    lastFeedId: last.id,
-    lastFeedAt: Date.parse(last.startedAt),
-    typicalGapMinutes: Math.round(median / 60_000),
-    dueAt: Date.parse(last.startedAt) + median,
+    lastFeedId: rhythm.lastId,
+    lastFeedAt: rhythm.lastAt,
+    typicalGapMinutes: rhythm.typicalGapMinutes,
+    dueAt: rhythm.dueAt,
   };
 }
 

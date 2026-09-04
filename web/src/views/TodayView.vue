@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from "vue";
-import { localTimeLabel } from "@babydiary/shared";
-import { useElapsed } from "../i18n/format.ts";
+import { localTimeLabel, predictNext, type Rhythm } from "@babydiary/shared";
+import { useDose, useDuration, useElapsed } from "../i18n/format.ts";
 import { useConfirmToast } from "../composables/useConfirmations.ts";
 import { useData } from "../stores/data.ts";
 import { useUndo } from "../composables/useUndo.ts";
@@ -14,7 +14,6 @@ import { useWeather, describeTemperature } from "../composables/useWeather.ts";
 import { useDailyIntake } from "../composables/useDailyIntake.ts";
 import { useOpenPeriods } from "../composables/useOpenPeriods.ts";
 import { useMedicines, type MedicineStatus } from "../composables/useMedicine.ts";
-import { useDose } from "../i18n/format.ts";
 import { ageInDays, localDayKey } from "@babydiary/shared";
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,6 +21,7 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const { since: elapsedSinceLabel } = useElapsed();
+const duration = useDuration();
 const data = useData();
 const confirmWithUndo = useUndo();
 const confirm = useConfirmToast();
@@ -135,6 +135,43 @@ function otherPerson(entry: { createdBy?: string | null } | null): string | null
   if (!who || who === data.deviceName.trim()) return null;
   return who;
 }
+
+/* ── Wann kommt das Nächste? ──────────────────────────────────────────────── */
+
+/**
+ * The estimate is the child's own rhythm, and the same one the bottle reminder uses —
+ * see `shared/rhythm`. Not a table, and not a target: what it answers is "roughly when",
+ * so that whoever takes the next shift can plan, and so nobody has to work it out from
+ * the timestamps at three in the morning.
+ */
+const nextFeed = computed(() =>
+  predictNext(data.entries.filter((e) => e.type === "feed")),
+);
+const nextDiaper = computed(() =>
+  predictNext(data.entries.filter((e) => e.type === "diaper")),
+);
+
+/**
+ * Once the expected moment has passed the line does NOT start counting how late it is.
+ *
+ * A child who sleeps through the usual gap has not missed anything, and a screen that
+ * says "40 minutes overdue" invents a duty out of an average. "Any time now" is both
+ * calmer and more accurate — that really is all the median knows by then.
+ */
+function nextText(rhythm: Rhythm | null): { text: string; typical: string } | null {
+  if (!rhythm) return null;
+  return {
+    text:
+      rhythm.dueAt > now.value.getTime()
+        ? t("today.nextAround", { time: localTimeLabel(new Date(rhythm.dueAt), data.timezone) })
+        : t("today.nextAnyTime"),
+    // The rhythm behind the estimate, for anyone who wants to know where it comes from.
+    typical: t("today.nextTypical", { duration: duration(rhythm.typicalGapMinutes) }),
+  };
+}
+
+const nextFeedText = computed(() => nextText(nextFeed.value));
+const nextDiaperText = computed(() => nextText(nextDiaper.value));
 
 const lastFeedText = computed(() => {
   const feed = data.lastFeed;
@@ -283,6 +320,10 @@ async function startSleep() {
           <p v-if="lastFeedText?.by" class="status__by">
             {{ $t("today.byOther", { name: lastFeedText.by }) }}
           </p>
+          <!-- Not a target, an estimate: see `nextText`. -->
+          <p v-if="nextFeedText" class="status__next bm-tabular" :title="nextFeedText.typical">
+            {{ nextFeedText.text }}
+          </p>
         </div>
 
         <div class="status__primary status__primary--diaper">
@@ -303,6 +344,9 @@ async function startSleep() {
                "hat das schon jemand eingetragen?", bevor man es ein zweites Mal tut. -->
           <p v-if="lastDiaperText?.by" class="status__by">
             {{ $t("today.byOther", { name: lastDiaperText.by }) }}
+          </p>
+          <p v-if="nextDiaperText" class="status__next bm-tabular" :title="nextDiaperText.typical">
+            {{ nextDiaperText.text }}
           </p>
         </div>
       </div>
@@ -603,6 +647,19 @@ async function startSleep() {
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* Everything above this line happened. This line has not.
+   The dashed rule is the same convention a chart uses for a projection, and it is what
+   keeps "nächste gegen 17:37" from being read as another recorded time — side by side
+   with "120 ml um 14:35" the wording alone was not enough. */
+.status__next {
+  margin: 0.45rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--bm-hairline);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--bm-ink-soft);
 }
 
 .status__row {
