@@ -108,7 +108,7 @@ async function run(childId: string): Promise<SyncOutcome> {
   };
 }
 
-/* ── Sitzung ────────────────────────────────────────────────────────────────── */
+/* ── Session ──────────────────────────────────────────────────────────────── */
 
 /**
  * The server's suggestion for the country. If the call fails it stays empty and the

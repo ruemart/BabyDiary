@@ -16,7 +16,7 @@ if (!INVITE) throw new Error("INVITE fehlt (HOUSEHOLD_SECRET aus .env)");
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push({ name, ok, detail });
-  console.log(`${ok ? "  OK  " : "  FEHLER "} ${name}${detail ? ` — ${detail}` : ""}`);
+  console.log(`${ok ? "  OK  " : "  FAIL  "} ${name}${detail ? ` — ${detail}` : ""}`);
 };
 
 const browser = await chromium.launch();
@@ -75,7 +75,7 @@ const offlineVisible = await m
   .first()
   .isVisible()
   .catch(() => false);
-check("Eintrag erscheint sofort, obwohl offline", offlineVisible);
+check("entry appears at once although offline", offlineVisible);
 
 await m.getByRole("button", { name: "Voll" }).first().click();
 await m.waitForTimeout(1500);

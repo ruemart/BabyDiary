@@ -319,7 +319,7 @@ defineExpose({ scrollToWeek });
   white-space: nowrap;
 }
 
-/* ── Wochenzellen ─────────────────────────────────────────────────────────── */
+/* ── Week cells ───────────────────────────────────────────────────────────── */
 
 .cells {
   display: flex;

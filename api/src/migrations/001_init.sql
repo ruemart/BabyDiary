@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS entries (
   child_id    TEXT NOT NULL,
   type        TEXT NOT NULL CHECK (type IN ('feed','diaper','sleep','growth','milestone','note','photo')),
 
-  started_at  TEXT NOT NULL,          -- ISO-8601 UTC, Zeitpunkt des Ereignisses
+  started_at  TEXT NOT NULL,          -- ISO-8601 UTC, when the event happened
   ended_at    TEXT,                   -- sleep only; NULL while the sleep is running
 
   amount_ml   INTEGER,                -- feed

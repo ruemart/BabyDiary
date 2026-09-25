@@ -36,7 +36,7 @@ const login = await fetch(`${BASE}/api/session`, {
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ token: INVITE, name: "Mama" }),
 });
-if (!login.ok) throw new Error(`Anmeldung fehlgeschlagen: ${login.status}`);
+if (!login.ok) throw new Error(`Sign-in failed: ${login.status}`);
 const cookie = login.headers.get("set-cookie").split(";")[0];
 
 const pull = await fetch(`${BASE}/api/sync`, {
@@ -146,7 +146,7 @@ for (let i = 0; i < changes.length; i += 400) {
     headers: { "content-type": "application/json", cookie },
     body: JSON.stringify({ childId: child.id, since: 0, changes: batch, child: null }),
   });
-  if (!res.ok) throw new Error(`Sync fehlgeschlagen: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Sync failed: ${res.status} ${await res.text()}`);
   sent += batch.length;
 }
 

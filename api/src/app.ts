@@ -42,7 +42,7 @@ declare module "fastify" {
 function describeIssues(issues: { path: (string | number)[]; message: string }[]): string {
   return issues
     .slice(0, 3)
-    .map((i) => `${i.path.join(".") || "Eintrag"}: ${i.message}`)
+    .map((i) => `${i.path.join(".") || "entry"}: ${i.message}`)
     .join("; ");
 }
 
@@ -135,7 +135,7 @@ export async function buildApp(
     };
   });
 
-  /* ── Sitzung ──────────────────────────────────────────────────────────────── */
+  /* ── Session ──────────────────────────────────────────────────────────────── */
 
   const sessionBody = z.object({
     token: z.string().min(1).max(200),
@@ -267,7 +267,7 @@ export async function buildApp(
     }
     await writeFile(path, buffer);
 
-    req.log.info({ id, bytes: buffer.length, mime: file.mimetype }, "Bild gespeichert");
+    req.log.info({ id, bytes: buffer.length, mime: file.mimetype }, "image stored");
     return { mediaId: `${id}${ext}`, bytes: buffer.length };
   });
 
@@ -341,7 +341,7 @@ export async function buildApp(
 
         app.log.info({ days: days.length, ort: child.placeName }, "Wetter aktualisiert");
       } catch (err) {
-        app.log.warn({ err }, "Wetterabruf fehlgeschlagen");
+        app.log.warn({ err }, "weather fetch failed");
       } finally {
         refreshing = null;
       }
@@ -371,7 +371,7 @@ export async function buildApp(
     try {
       return await searchPlaces(query);
     } catch (err) {
-      req.log.warn({ err }, "Ortssuche fehlgeschlagen");
+      req.log.warn({ err }, "place search failed");
       return reply.code(503).send({ error: "geocoding_unavailable" });
     }
   });
@@ -411,7 +411,7 @@ export async function buildApp(
       quiet_from_hour: d.quietFromHour,
       quiet_to_hour: d.quietToHour,
     });
-    req.log.info({ device: req.session!.name }, "Push-Anmeldung gespeichert");
+    req.log.info({ device: req.session!.name }, "push subscription stored");
     return { ok: true };
   });
 
@@ -470,7 +470,7 @@ export async function buildApp(
       );
       return reply.send(createReadStream(output));
     } catch (err) {
-      req.log.error({ err }, "Zeitraffer fehlgeschlagen");
+      req.log.error({ err }, "time-lapse render failed");
       return reply.code(503).send({
         error: "ffmpeg_unavailable",
         hint: "ffmpeg is not installed in the API container, or it crashed.",
