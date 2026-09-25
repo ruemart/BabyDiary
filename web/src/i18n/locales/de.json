@@ -435,8 +435,10 @@
   "photo": {
     "failed": {
       "offline": "Keine Verbindung zum Server. Bitte im WLAN noch einmal versuchen.",
+      "rejected": "Der Server hat dieses Foto nicht angenommen ({status}).",
       "retry": "Bitte noch einmal versuchen.",
-      "title": "Foto konnte nicht gespeichert werden"
+      "title": "Foto konnte nicht gespeichert werden",
+      "unreadable": "Die Galerie konnte dieses Foto nicht herausgeben. Ein gerade bearbeitetes Bild synchronisiert oft noch — kurz warten und erneut auswählen, oder es in der Galerie zuerst als Kopie speichern."
     },
     "loading": "Lädt …",
     "nudge": {

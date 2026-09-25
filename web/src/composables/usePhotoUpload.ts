@@ -4,6 +4,7 @@ import { useConfirmToast } from "./useConfirmations.ts";
 import { useData } from "../stores/data.ts";
 import { uploadImage } from "../sync.ts";
 import { shrinkImage } from "../utils/image.ts";
+import { classifyPhotoFailure } from "../utils/photoFailure.ts";
 import { useI18n } from "vue-i18n";
 
 
@@ -42,15 +43,31 @@ export function usePhotoUpload() {
     }
   }
 
+  /**
+   * Name the cause, because the three causes need three different things done.
+   *
+   * The unreadable case is the one worth spelling out: the gallery listed a photo it
+   * could not hand over — typically one still syncing after an edit, or one that only
+   * exists in the cloud. "Please try again" is actively wrong advice there, because the
+   * same pick will fail the same way until the picture is on the device.
+   */
   function reportFailure(error: unknown) {
+    const failure = classifyPhotoFailure(error);
+    const description =
+      failure.kind === "unreadable"
+        ? t("photo.failed.unreadable")
+        : failure.kind === "offline"
+          ? t("photo.failed.offline")
+          : failure.kind === "rejected"
+            ? t("photo.failed.rejected", { status: failure.status })
+            : t("photo.failed.retry");
+
     toast.show({
       headline: t("photo.failed.title"),
-      description:
-        error instanceof Error && error.message.includes("fehlgeschlagen")
-          ? t("photo.failed.offline")
-          : t("photo.failed.retry"),
+      description,
       color: "danger",
-      duration: 8000,
+      // The unreadable case carries an instruction, so it gets time to be read.
+      duration: failure.kind === "unreadable" ? 12000 : 8000,
     });
   }
 

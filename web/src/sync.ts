@@ -1,4 +1,5 @@
 import type { Child, InvalidEntry, SyncResponse } from "@babydiary/shared";
+import { UploadRejectedError } from "./utils/photoFailure.ts";
 import {
   META_CURSOR,
   applyServerEntries,
@@ -157,7 +158,9 @@ export async function uploadImage(file: Blob): Promise<string> {
     credentials: "same-origin",
     body: form,
   });
-  if (!res.ok) throw new Error(`Upload fehlgeschlagen (${res.status})`);
+  // A typed error, not a phrase: what the caller has to tell the person in front of it
+  // depends on WHICH failure this was, and a message is the wrong thing to ask.
+  if (!res.ok) throw new UploadRejectedError(res.status);
   return (await res.json()).mediaId as string;
 }
 

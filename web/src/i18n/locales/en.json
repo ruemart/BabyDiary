@@ -435,8 +435,10 @@
   "photo": {
     "failed": {
       "offline": "No connection to the server. Please try again on Wi-Fi.",
+      "rejected": "The server did not accept this photo ({status}).",
       "retry": "Please try again.",
-      "title": "Photo could not be saved"
+      "title": "Photo could not be saved",
+      "unreadable": "The gallery could not hand this photo over. A picture edited just now is often still syncing — wait a moment and pick it again, or save it as a copy in the gallery first."
     },
     "loading": "Uploading …",
     "nudge": {
