@@ -574,6 +574,12 @@ async function save() {
                 {{ placeSearching ? "…" : "Suchen" }}
               </button>
             </div>
+            <!-- Typing is not choosing. The place only exists once a result is tapped,
+                 and before this hint the text was simply dropped on save — which is how
+                 a holiday ends up in the ribbon as a bare "Away" and off the map. -->
+            <p v-if="placeQuery.trim() && !placeResults.length && !placeSearching" class="place__hint">
+              {{ $t("add.placeUnconfirmed") }}
+            </p>
             <ul v-if="placeResults.length" class="place__results">
               <li v-for="result in placeResults" :key="`${result.latitude},${result.longitude}`">
                 <button type="button" @click="choosePlace(result)">
@@ -844,6 +850,13 @@ async function save() {
   font-size: 0.8125rem;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.place__hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--bm-photo);
 }
 
 .place__results {

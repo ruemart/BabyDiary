@@ -63,13 +63,29 @@ export type PeriodBand = {
   toWeek: number;
   label: string;
   kind: "illness" | "absence";
+  /**
+   * Where it was. Two holidays in a row otherwise read as the same entry twice — the
+   * kind alone ("holiday") is the one thing they have in common, and it was all the
+   * ribbon showed.
+   */
+  placeName: string | null;
+  /** The actual days, for the detail card: a week number is not a date. */
+  startedAt: string;
+  endedAt: string | null;
   /** Still running — no end recorded. */
   ongoing: boolean;
 };
 
 /** Maps illnesses and away periods onto the week axis. */
 export function periodBands(
-  entries: { id: string; type: string; startedAt: string; endedAt: string | null; label: string | null }[],
+  entries: {
+    id: string;
+    type: string;
+    startedAt: string;
+    endedAt: string | null;
+    label: string | null;
+    placeName?: string | null;
+  }[],
   birthDate: string,
   timezone: string,
   currentWeek: number,
@@ -89,6 +105,9 @@ export function periodBands(
         toWeek: ongoing ? Math.max(fromWeek, currentWeek) : lifeWeek(birthDate, e.endedAt!, timezone),
         label: e.label ?? (e.type === "illness" ? labels.ill : labels.away),
         kind: e.type as "illness" | "absence",
+        placeName: e.placeName ?? null,
+        startedAt: e.startedAt,
+        endedAt: e.endedAt,
         ongoing,
       };
     })

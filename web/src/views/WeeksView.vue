@@ -5,6 +5,7 @@ import { calendarDateLabel, lifeWeekStart } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
 import { periodBands, useTimeline, type TimelinePin } from "../composables/useTimeline.ts";
 import { usePhotoUpload } from "../composables/usePhotoUpload.ts";
+import { usePeriodRange } from "../i18n/format.ts";
 
 import { regionByCode, regionNote } from "../data/regions/index.ts";
 import WeekRibbon from "../components/WeekRibbon.vue";
@@ -13,6 +14,7 @@ import { useI18n } from "vue-i18n";
 const { t, locale } = useI18n();
 
 const data = useData();
+const periodRange = usePeriodRange();
 const region = computed(() => regionByCode(data.child?.region));
 const route = useRoute();
 const ribbon = useTemplateRef<{ scrollToWeek: (w: number) => void }>("ribbon");
@@ -140,6 +142,7 @@ function daysAwayLabel(days: number): string {
       :periods="periods"
       :pins="pins"
       :photos="data.photosByWeek"
+      :timezone="data.timezone"
       @select-week="selectedWeek = $event"
       @add-photo="requestPhoto"
     />
@@ -190,7 +193,13 @@ function daysAwayLabel(days: number): string {
           </span>
           <span>
             {{ period.label }}
+            <!-- Where it was, when there is a where. Without it two holidays in the same
+                 week are the same line twice. -->
+            <template v-if="period.placeName"> · {{ period.placeName }}</template>
             <span class="periods-list__weeks">
+              <!-- Real dates first: a week number says which week, not which days. -->
+              {{ periodRange(period.startedAt, period.endedAt, data.timezone) }}
+              ·
               {{ period.toWeek !== period.fromWeek
                 ? $t("weeks.periodWeeksRange", { from: period.fromWeek, to: period.toWeek })
                 : $t("weeks.periodWeeks", { from: period.fromWeek }) }}

@@ -1,7 +1,10 @@
 import { useI18n } from "vue-i18n";
 import {
+  calendarDateLabel,
   elapsedSince,
   getDisplayLocale,
+  localDayKey,
+  shortDateLabel,
   type Elapsed,
   type MedicineUnit,
 } from "@babydiary/shared";
@@ -60,6 +63,27 @@ export function useDose() {
     // Only exactly one is singular. Handing 0.5 to the plural rules would be asking a
     // question they were never written to answer — half a pill is "0,5 pills".
     return t(`medicine.unit.${unit}`, { n }, amount === 1 ? 1 : 2);
+  };
+}
+
+/**
+ * The days a period covers: "27 Sept – 30 Sept 2026", or "since 27 Sept" while it runs.
+ *
+ * Through the local day, not the raw timestamp: a holiday that starts at half past eleven
+ * at night starts that evening, not the next morning. The year appears once, on the end —
+ * the same shape the history's week picker uses.
+ */
+export function usePeriodRange() {
+  const { t } = useI18n();
+
+  return (startedAt: string, endedAt: string | null, timezone: string): string => {
+    const from = localDayKey(startedAt, timezone);
+    if (!endedAt) return t("period.since", { date: calendarDateLabel(from) });
+
+    const to = localDayKey(endedAt, timezone);
+    // A holiday that begins and ends on one day is a day, not a span.
+    if (from === to) return calendarDateLabel(from);
+    return t("period.range", { from: shortDateLabel(from), to: calendarDateLabel(to) });
   };
 }
 

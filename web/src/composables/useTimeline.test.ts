@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "vue";
 import type { Child } from "@babydiary/shared";
 import { i18n } from "../i18n/index.ts";
-import { useTimeline, type TimelinePin } from "./useTimeline.ts";
+import { periodBands, useTimeline, type TimelinePin } from "./useTimeline.ts";
 import { MILESTONES } from "../data/milestones.ts";
 
 /**
@@ -103,5 +103,55 @@ describe("Timeline — milestones that have been ticked off", () => {
     const others = pins.value.filter((p) => p.kind !== "milestone");
     expect(others.length).toBeGreaterThan(0);
     expect(others.every((p) => p.doneOn === undefined)).toBe(true);
+  });
+});
+
+describe("Two holidays in a row", () => {
+  /**
+   * The report from the phone: the ribbon showed "Away" twice and nothing else, so the
+   * two trips read as one entry recorded by mistake. The place is what tells them apart.
+   */
+  it("carries the place and the real dates onto the band", () => {
+    const bands = periodBands(
+      [
+        {
+          id: "a",
+          type: "absence",
+          startedAt: "2026-09-26T15:00:00.000Z",
+          endedAt: "2026-09-27T13:00:00.000Z",
+          label: "Urlaub",
+          placeName: "Baden-Baden",
+        },
+        {
+          id: "b",
+          type: "absence",
+          startedAt: "2026-09-27T13:00:00.000Z",
+          endedAt: "2026-09-30T13:00:00.000Z",
+          label: "Urlaub",
+          placeName: "Lembach (Grand Est)",
+        },
+      ],
+      "2026-07-18",
+      "Europe/Berlin",
+      12,
+      { ill: "Ill", away: "Away" },
+    );
+
+    expect(bands.map((b) => b.placeName)).toEqual(["Baden-Baden", "Lembach (Grand Est)"]);
+    expect(bands[0]!.startedAt).toBe("2026-09-26T15:00:00.000Z");
+    expect(bands[0]!.endedAt).toBe("2026-09-27T13:00:00.000Z");
+  });
+
+  /** A trip recorded without a place stays usable — it just has nothing to add. */
+  it("copes without a place", () => {
+    const [band] = periodBands(
+      [{ id: "a", type: "absence", startedAt: "2026-09-26T15:00:00.000Z", endedAt: null, label: "Urlaub" }],
+      "2026-07-18",
+      "Europe/Berlin",
+      12,
+      { ill: "Ill", away: "Away" },
+    );
+    expect(band!.placeName).toBeNull();
+    expect(band!.ongoing).toBe(true);
   });
 });

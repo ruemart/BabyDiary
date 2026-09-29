@@ -23,6 +23,7 @@
     "length": "Länge",
     "ownEntry": "oder eigene Angabe",
     "placePlaceholder": "Ort, PLZ oder Land",
+    "placeUnconfirmed": "Suchen und ein Ergebnis antippen — sonst wird der Ort nicht gespeichert und die Reise fehlt auf der Karte.",
     "saveEdit": "Änderung speichern",
     "saved": "Eintrag nachgetragen",
     "stillRunning": "Läuft noch — später mit einem Tap beenden",
@@ -430,6 +431,8 @@
     "away": "Unterwegs",
     "generic": "Zeitraum",
     "ill": "Krank",
+    "range": "{from} – {to}",
+    "since": "seit {date}",
     "sleep": "Schlaf"
   },
   "photo": {

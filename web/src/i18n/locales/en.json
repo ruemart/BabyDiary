@@ -23,6 +23,7 @@
     "length": "Length",
     "ownEntry": "or your own wording",
     "placePlaceholder": "Town, postcode or country",
+    "placeUnconfirmed": "Search and tap a result — otherwise the place is not saved and the trip stays off the map.",
     "saveEdit": "Save change",
     "saved": "Entry added",
     "stillRunning": "Still running — end it later with one tap",
@@ -430,6 +431,8 @@
     "away": "Away",
     "generic": "Period",
     "ill": "Ill",
+    "range": "{from} – {to}",
+    "since": "since {date}",
     "sleep": "Sleep"
   },
   "photo": {

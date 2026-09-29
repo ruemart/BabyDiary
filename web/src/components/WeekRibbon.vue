@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import { calendarDateLabel, lifeWeekStart } from "@babydiary/shared";
 import type { PeriodBand, TimelineBand, TimelinePin } from "../composables/useTimeline.ts";
 import type { LocalEntry } from "../db/local.ts";
+import { usePeriodRange } from "../i18n/format.ts";
 
 /**
  * The week ribbon — this app's signature.
@@ -23,7 +24,11 @@ const props = defineProps<{
   periods: PeriodBand[];
   pins: TimelinePin[];
   photos: Map<number, LocalEntry>;
+  /** For the local day of a period — the tooltip names real dates. */
+  timezone: string;
 }>();
+
+const periodRange = usePeriodRange();
 
 const emit = defineEmits<{ selectWeek: [number]; addPhoto: [number] }>();
 
@@ -54,6 +59,21 @@ function vaccinationCount(week: number): number {
 
 function milestoneCount(week: number): number {
   return (pinsByWeek.value.get(week) ?? []).filter((pin) => pin.kind === "milestone").length;
+}
+
+/**
+ * What the bar says, and what its tooltip adds.
+ *
+ * A one-week period is 68 px of bar — room for a word, not for a date. So the bar takes
+ * the one thing that tells two entries of the same kind apart, the place, and the dates
+ * go to the detail card below, where there is room to read them.
+ */
+function periodLabel(period: PeriodBand): string {
+  return period.placeName ? `${period.label} · ${period.placeName}` : period.label;
+}
+
+function periodTitle(period: PeriodBand): string {
+  return `${periodLabel(period)} · ${periodRange(period.startedAt, period.endedAt, props.timezone)}`;
 }
 
 function bandStyle(band: { fromWeek: number; toWeek: number }) {
@@ -152,9 +172,11 @@ defineExpose({ scrollToWeek });
               class="period"
               :class="`period--${period.kind}`"
               :style="bandStyle(period)"
-              :title="period.label"
+              :title="periodTitle(period)"
             >
-              <span class="period__label">{{ period.label }}{{ period.ongoing ? " …" : "" }}</span>
+              <!-- The place, where there is one: two holidays in a row are otherwise the
+                   same word twice, and the band is the only thing telling them apart. -->
+              <span class="period__label">{{ periodLabel(period) }}{{ period.ongoing ? " …" : "" }}</span>
             </div>
           </div>
         </div>
