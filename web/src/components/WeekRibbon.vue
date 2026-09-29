@@ -64,16 +64,25 @@ function milestoneCount(week: number): number {
 /**
  * What the bar says, and what its tooltip adds.
  *
- * A one-week period is 68 px of bar — room for a word, not for a date. So the bar takes
- * the one thing that tells two entries of the same kind apart, the place, and the dates
- * go to the detail card below, where there is room to read them.
+ * A one-week period leaves about nine characters of bar. "Urlaub · Baden-Baden" was cut
+ * to "Urlaub · Bader" — a sliced word reads as a broken screen, and the half it kept was
+ * the half both entries share.
+ *
+ * So where there is a place, the place IS the label: the kind is already carried by the
+ * colour of the bar and spelled out in full in the detail card, while the place is the
+ * only thing telling two holidays apart. The region in brackets goes too — it
+ * disambiguates while searching, and on a bar it is the first thing to be cut off
+ * anyway. Everything in full stays one tap away, in the card and in the tooltip.
  */
 function periodLabel(period: PeriodBand): string {
-  return period.placeName ? `${period.label} · ${period.placeName}` : period.label;
+  if (!period.placeName) return period.label;
+  return period.placeName.replace(/\s*\(.*\)\s*$/, "");
 }
 
+/** The tooltip has room, so it says everything the bar had to leave out. */
 function periodTitle(period: PeriodBand): string {
-  return `${periodLabel(period)} · ${periodRange(period.startedAt, period.endedAt, props.timezone)}`;
+  const what = period.placeName ? `${period.label} · ${period.placeName}` : period.label;
+  return `${what} · ${periodRange(period.startedAt, period.endedAt, props.timezone)}`;
 }
 
 function bandStyle(band: { fromWeek: number; toWeek: number }) {
@@ -297,7 +306,8 @@ defineExpose({ scrollToWeek });
   border-radius: 62.5rem;
   display: flex;
   align-items: center;
-  padding-inline: 0.45rem;
+  /* A little less side padding than the leap bands: every pixel here is a character. */
+  padding-inline: 0.35rem;
   overflow: hidden;
 }
 
@@ -309,11 +319,16 @@ defineExpose({ scrollToWeek });
   background: color-mix(in srgb, var(--bm-sleep) 32%, transparent);
 }
 
+/* Cut with an ellipsis, never mid-letter: "Baden-Bad…" is a label that did not fit,
+   "Baden-Bad" is a label that looks wrong. */
 .period__label {
   font-size: 0.625rem;
   font-weight: 600;
   color: var(--bm-ink);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .bands {
