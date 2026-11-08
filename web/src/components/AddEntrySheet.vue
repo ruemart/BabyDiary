@@ -12,6 +12,8 @@ import FlagToggle from "./FlagToggle.vue";
 import MedicineToggles from "./MedicineToggles.vue";
 import CmField from "./CmField.vue";
 import { useDose } from "../i18n/format.ts";
+import { useLastEntry } from "../composables/useLastEntry.ts";
+import { useTickingNow } from "../composables/useTickingNow.ts";
 import { useI18n } from "vue-i18n";
 
 
@@ -46,6 +48,19 @@ const confirmWithUndo = useUndo();
 const dose = useDose();
 
 const isEditing = computed(() => !!props.entry);
+
+/**
+ * "Last one 2 h ago" for whichever type is selected.
+ *
+ * Only while CREATING. When editing, the newest entry of that type may well be one
+ * recorded after the one being corrected, and "last one" would then point forwards.
+ */
+const now = useTickingNow(open);
+const lastEntry = useLastEntry(
+  () => type.value,
+  () => now.value,
+  () => medicineId.value,
+);
 
 /**
  * The last backdated moment, remembered across closing the sheet.
@@ -421,6 +436,13 @@ async function save() {
         </div>
       </div>
 
+      <!-- The question you have on opening the sheet: has somebody already done this?
+           Answered here so nobody has to close it again to go and look. -->
+      <p v-if="!isEditing && lastEntry" class="last">
+        <span class="last__since">{{ $t("add.lastOne", { since: lastEntry.since }) }}</span>
+        <span class="last__detail">{{ lastEntry.detail }}</span>
+      </p>
+
       <div v-if="type === 'feed'" class="field">
         <span class="field__label">{{ $t("add.amount") }}</span>
         <AmountStepper v-model="amountMl" />
@@ -681,6 +703,27 @@ async function save() {
   background: var(--bm-feed);
   border-color: transparent;
   color: #2a2028;
+}
+
+/* A fact about the past, in the middle of a form about to create one: quieter than the
+   fields, and set apart from them by the rule rather than by a heading. */
+.last {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 0.45rem;
+  margin: 0;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--bm-hairline);
+  font-size: 0.875rem;
+}
+
+.last__since {
+  font-weight: 600;
+}
+
+.last__detail {
+  color: var(--bm-ink-soft);
 }
 
 .field {

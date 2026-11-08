@@ -20,6 +20,8 @@
     },
     "head": "Head circumference",
     "kind": "Kind",
+    "lastAt": "at {time}",
+    "lastOne": "Last one {since}",
     "length": "Length",
     "ownEntry": "or your own wording",
     "placePlaceholder": "Town, postcode or country",

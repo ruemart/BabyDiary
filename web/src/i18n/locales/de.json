@@ -20,6 +20,8 @@
     },
     "head": "Kopfumfang",
     "kind": "Art",
+    "lastAt": "um {time}",
+    "lastOne": "Zuletzt {since}",
     "length": "Länge",
     "ownEntry": "oder eigene Angabe",
     "placePlaceholder": "Ort, PLZ oder Land",

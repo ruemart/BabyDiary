@@ -10,6 +10,7 @@ import {
   weekdayIndex,
 } from "@babydiary/shared";
 import { useData } from "../stores/data.ts";
+import { diaperKey } from "../utils/diaperLabel.ts";
 import type { LocalEntry } from "../db/local.ts";
 import AddEntrySheet from "../components/AddEntrySheet.vue";
 import BackdateFab from "../components/BackdateFab.vue";
@@ -125,13 +126,6 @@ function edit(entry: LocalEntry) {
 
 const typeLabel = (type: string) => t(`entry.${type}`);
 
-const DIAPER_KEY: Record<string, string> = {
-  empty: "diaper.empty",
-  wet: "diaper.wet",
-  soiled: "diaper.soiled",
-  both: "diaper.soiled",
-};
-
 function describe(entry: LocalEntry): string {
   switch (entry.type) {
     case "feed":
@@ -146,7 +140,7 @@ function describe(entry: LocalEntry): string {
         .filter(Boolean)
         .join(" · ");
     case "diaper":
-      return t(DIAPER_KEY[entry.diaper ?? "empty"] ?? "diaper.empty");
+      return t(diaperKey(entry.diaper));
     case "sleep":
       return entry.endedAt
         ? t("describe.until", { time: localTimeLabel(entry.endedAt, data.timezone) })

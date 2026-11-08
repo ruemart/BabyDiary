@@ -4,6 +4,7 @@ import { localTimeLabel, predictNext, type Rhythm } from "@babydiary/shared";
 import { useDose, useDuration, useElapsed } from "../i18n/format.ts";
 import { useConfirmToast } from "../composables/useConfirmations.ts";
 import { useData } from "../stores/data.ts";
+import { diaperKey } from "../utils/diaperLabel.ts";
 import { useUndo } from "../composables/useUndo.ts";
 import FeedSheet from "../components/FeedSheet.vue";
 import PhotoNudge from "../components/PhotoNudge.vue";
@@ -194,7 +195,7 @@ const lastDiaperText = computed(() => {
   return {
     since: elapsedSinceLabel(diaper.startedAt, now.value),
     detail: t("today.diaperDetail", {
-      kind: t(DIAPER_KEY[diaper.diaper ?? "empty"]!),
+      kind: t(diaperKey(diaper.diaper)),
       time: localTimeLabel(diaper.startedAt, data.timezone),
     }),
     by: otherPerson(diaper),
@@ -204,14 +205,6 @@ const lastDiaperText = computed(() => {
 const sleepSince = computed(() =>
   data.activeSleep ? elapsedSinceLabel(data.activeSleep.startedAt, now.value) : null,
 );
-
-/** "both" still exists in older entries — it counts as "soiled". */
-const DIAPER_KEY: Record<string, string> = {
-  empty: "diaper.empty",
-  wet: "diaper.wet",
-  soiled: "diaper.soiled",
-  both: "diaper.soiled",
-};
 
 /**
  * So lange gilt eine Windel des anderen Geräts als "gerade eben".
@@ -237,7 +230,7 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   // second one landing nowhere is exactly what it looks like.
   if (result.action === "duplicate") {
     confirm({
-      headline: t("today.diaperAlready", { kind: t(DIAPER_KEY[kind]!) }),
+      headline: t("today.diaperAlready", { kind: t(diaperKey(kind)) }),
       description: t("today.duplicateDetail"),
       color: "neutral",
       duration: 4000,
@@ -247,7 +240,7 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
 
   if (result.action === "corrected") {
     confirm({
-      headline: t("today.diaperChangedTo", { kind: t(DIAPER_KEY[kind]!) }),
+      headline: t("today.diaperChangedTo", { kind: t(diaperKey(kind)) }),
       description: t("today.changedDetail"),
       color: "success",
       duration: 4000,
@@ -271,7 +264,7 @@ async function logDiaper(kind: "empty" | "wet" | "soiled") {
   );
 
   confirmWithUndo(
-    t("today.diaperLogged", { kind: t(DIAPER_KEY[kind]!) }),
+    t("today.diaperLogged", { kind: t(diaperKey(kind)) }),
     result.id,
     recentByOther
       ? t("today.diaperAlsoRecent", {
