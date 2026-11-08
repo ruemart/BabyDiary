@@ -35,8 +35,10 @@ const hasFeeds = computed(() => rhythm.value.length > 0);
  * chart that stays hidden because nobody recorded a bottle would be a puzzle.
  */
 const hasBaths = computed(() => bathDays.value.total > 0);
-/** Below a week there is no development to show, only two dots. */
-const hasGapTrend = computed(() => feedGaps.value.days.length >= 7);
+/** With a single bar there is no development to show. */
+const hasGapTrend = computed(
+  () => feedGaps.value.weeks.filter((w) => w.typicalMinutes !== null).length >= 2,
+);
 
 /**
  * The sentence under the chart: where the rhythm started and where it stands.
@@ -173,7 +175,6 @@ const trendText = computed(() => {
       <!-- The only chart here that is not windowed: a rhythm stretches over months. -->
       <section v-if="hasGapTrend" class="card">
         <h2 class="card__title">{{ $t("charts.gapTitle") }}</h2>
-        <p class="card__lead">{{ $t("charts.gapLead") }}</p>
         <FeedGapChart :gaps="feedGaps" />
         <p class="card__note">{{ gapSummary }}</p>
       </section>

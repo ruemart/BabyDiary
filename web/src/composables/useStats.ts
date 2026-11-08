@@ -54,23 +54,19 @@ export type MedicineRow = {
   active: boolean;
 };
 
-/** One day of the whole history: how far apart the bottles stood. */
-export type GapDay = {
-  day: string;
+/** One week of the whole history: how far apart the bottles stood. */
+export type GapWeek = {
+  /** Seven-day buckets counted from the first bottle ever, not calendar weeks. */
+  start: string;
   label: string;
-  /** The median gap of that day. Null on days without a usable gap. */
+  /** The median gap in that week. Null in a week without a single usable gap. */
   typicalMinutes: number | null;
-  /** The longest gap that STARTED that day — in practice the night stretch. */
-  longestMinutes: number | null;
-  /** Seven-day medians, so the lines describe a development and not one bad night. */
-  trendTypical: number | null;
-  trendLongest: number | null;
   gaps: number;
 };
 
 export type FeedGaps = {
-  days: GapDay[];
-  /** Where the trend stands now and where it started — the sentence above the chart. */
+  weeks: GapWeek[];
+  /** Where the rhythm stands now and where it started — the sentence under the chart. */
   firstDay: string | null;
   typicalNow: number | null;
   typicalStart: number | null;
@@ -373,14 +369,18 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
    * rhythm stretch as she grows? That is invisible in a month and obvious across a
    * year, so this series starts at the first bottle ever recorded and never scrolls off.
    *
+   * One bar per week, and nothing else. The first version drew two smoothed lines with a
+   * dot for every single day: more honest about the spread, and unreadable — nobody sees
+   * a development in three hundred dots. A week of bottles is the smallest unit in which
+   * "the rhythm" means anything anyway.
+   *
    * A gap belongs to the day it STARTS. The long one runs from the late evening into
    * the small hours; counted on the day it ends, the night stretch would be filed under
    * the next morning and the whole picture would sit a day to the right.
    *
-   * Both lines are seven-day MEDIANS, not means. One evening when somebody forgot to
-   * record a bottle turns two three-hour gaps into one of six, and a mean carries that
-   * for a week. The median shrugs it off — which matters more here than anywhere else,
-   * because this chart is read for its slope.
+   * Each bar is the MEDIAN of that week's gaps, not the mean. One evening when somebody
+   * forgot to record a bottle turns two three-hour gaps into one of six, and a mean
+   * carries that for the whole week. The median shrugs it off.
    */
   const feedGaps = computed<FeedGaps>(() => {
     const tz = timezone();
@@ -391,22 +391,20 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       .map((e) => e.startedAt)
       .sort((a, b) => a.localeCompare(b));
 
-    const perDay = new Map<string, number[]>();
+    /** Every single gap, filed under the day it starts. */
+    const gaps: { day: string; minutes: number }[] = [];
     for (let i = 1; i < ordered.length; i++) {
       const minutes = (Date.parse(ordered[i]!) - Date.parse(ordered[i - 1]!)) / 60_000;
       // Two entries within a quarter of an hour are a correction, or both parents
       // recording the same bottle — the same rule the reminder uses.
       if (minutes <= MIN_GAP_MINUTES) continue;
-      const day = localDayKey(ordered[i - 1]!, tz);
-      const list = perDay.get(day);
-      if (list) list.push(minutes);
-      else perDay.set(day, [minutes]);
+      gaps.push({ day: localDayKey(ordered[i - 1]!, tz), minutes });
     }
 
     const first = ordered.length ? localDayKey(ordered[0]!, tz) : null;
     if (!first) {
       return {
-        days: [],
+        weeks: [],
         firstDay: null,
         typicalNow: null,
         typicalStart: null,
@@ -415,59 +413,50 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
       };
     }
 
-    // Gapless from the first bottle to today: a day nobody recorded is a hole in the
-    // line, not a day that silently closes up.
-    const days: GapDay[] = [];
-    for (let day = first; day <= today; day = addDays(day, 1)) {
-      const list = perDay.get(day);
-      days.push({
-        day,
-        label: day.slice(8) + "." + day.slice(5, 7) + ".",
-        typicalMinutes: list ? median(list) : null,
-        longestMinutes: list ? Math.max(...list) : null,
-        trendTypical: null,
-        trendLongest: null,
-        gaps: list?.length ?? 0,
+    /**
+     * Seven-day buckets from the first bottle, not calendar weeks.
+     *
+     * Calendar weeks would leave a stub of a day or two at the very start — and that
+     * stub is the bar the whole chart gets read against.
+     *
+     * Gapless to today: a week nobody recorded stays an empty slot rather than quietly
+     * closing up and pulling the following weeks leftwards.
+     */
+    const weeks: GapWeek[] = [];
+    const perWeek = new Map<string, number[]>();
+    for (let start = first; start <= today; start = addDays(start, 7)) {
+      weeks.push({
+        start,
+        label: start.slice(8) + "." + start.slice(5, 7) + ".",
+        typicalMinutes: null,
+        gaps: 0,
       });
+      perWeek.set(start, []);
     }
 
-    for (let i = 0; i < days.length; i++) {
-      const window = days.slice(Math.max(0, i - 6), i + 1);
-      days[i]!.trendTypical = median(
-        window.map((d) => d.typicalMinutes).filter((v): v is number => v !== null),
-      );
-      days[i]!.trendLongest = median(
-        window.map((d) => d.longestMinutes).filter((v): v is number => v !== null),
-      );
+    for (const gap of gaps) {
+      const week = weeks[Math.floor(daysBetween(first, gap.day) / 7)];
+      if (week) perWeek.get(week.start)!.push(gap.minutes);
+    }
+    for (const week of weeks) {
+      const list = perWeek.get(week.start)!;
+      week.gaps = list.length;
+      week.typicalMinutes = median(list);
     }
 
-    const longest = days.reduce<GapDay | null>(
-      (best, d) =>
-        d.longestMinutes !== null && (best === null || d.longestMinutes > best.longestMinutes!)
-          ? d
-          : best,
+    const longest = gaps.reduce<{ day: string; minutes: number } | null>(
+      (best, gap) => (best === null || gap.minutes > best.minutes ? gap : best),
       null,
     );
-    const withValue = days.filter((d) => d.typicalMinutes !== null);
-    const withTrend = days.filter((d) => d.trendTypical !== null);
-
-    /**
-     * "Where it started" is the first WEEK, not the first day.
-     *
-     * The trend at day one is a median of a single day, and the sentence under the chart
-     * would swing by half an hour depending on how that one day happened to go. Seven
-     * days of data is the smallest thing worth calling a starting rhythm.
-     */
-    const start = median(
-      withValue.slice(0, 7).map((d) => d.typicalMinutes!),
-    );
+    const withValue = weeks.filter((w) => w.typicalMinutes !== null);
 
     return {
-      days,
+      weeks,
       firstDay: first,
-      typicalNow: withTrend[withTrend.length - 1]?.trendTypical ?? null,
-      typicalStart: start,
-      longestEver: longest?.longestMinutes ?? null,
+      // The last bar and the first one, so the sentence says what the chart shows.
+      typicalNow: withValue[withValue.length - 1]?.typicalMinutes ?? null,
+      typicalStart: withValue[0]?.typicalMinutes ?? null,
+      longestEver: longest?.minutes ?? null,
       longestEverDay: longest?.day ?? null,
     };
   });
