@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { Scatter } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Feeding rhythm: x = day, y = time of day, dot size = amount.
@@ -19,12 +20,13 @@ const props = defineProps<{
   days: number;
 }>();
 
+const { t } = useI18n();
 const colors = useChartColors();
 
 const chartData = computed<ChartData<"scatter">>(() => ({
   datasets: [
     {
-      label: "Mahlzeiten",
+      label: t("charts.feeds"),
       data: props.points.map((p) => ({ x: p.x, y: p.y, ml: p.ml, spatUp: p.spatUp, day: p.day })),
       // Feeds brought back up are hollow: the moment belongs in the rhythm, but the
       // amount did not arrive — a filled area would claim the opposite.
@@ -112,7 +114,7 @@ const options = computed<ChartOptions<"scatter">>(() => ({
           const minute = Math.round(raw.y % 60);
           const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
           return raw.spatUp
-            ? `${time} · ${raw.ml} ml, ausgespuckt`
+            ? `${time} · ${raw.ml} ml, ${t("describe.spatUp")}`
             : `${time} · ${raw.ml} ml`;
         },
       },

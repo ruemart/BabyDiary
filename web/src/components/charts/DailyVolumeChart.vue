@@ -4,6 +4,7 @@ import { Bar } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import type { DailyTotal } from "../../composables/useStats.ts";
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Daily intake — the chart that answers the actual question: is she drinking more or
@@ -15,6 +16,7 @@ import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
  */
 const props = defineProps<{ series: DailyTotal[] }>();
 
+const { t } = useI18n();
 const colors = useChartColors();
 
 // A mixed chart (bars + line). Chart.js can do that, but the vue-chartjs types expect
@@ -24,7 +26,7 @@ const chartData = computed(() => ({
   labels: props.series.map((d) => d.label),
   datasets: [
     {
-      label: "Tagesmenge",
+      label: t("charts.dailyAmount"),
       data: props.series.map((d) => d.totalMl),
       backgroundColor: colors.value.feed,
       // Only the data end is rounded; the foot stays anchored on the zero line. With
@@ -38,7 +40,7 @@ const chartData = computed(() => ({
       order: 2,
     },
     {
-      label: "7-Tage-Mittel",
+      label: t("charts.rollingAverage"),
       data: props.series.map((d) => d.rollingMl),
       type: "line" as const,
       borderColor: colors.value.reference,
@@ -100,7 +102,7 @@ const options = computed<ChartOptions<"bar">>(() => ({
             ? ""
             : `${item.dataset.label}: ${item.formattedValue} ml` +
               (item.datasetIndex === 0
-                ? ` · ${props.series[item.dataIndex]?.feeds ?? 0} Mahlzeiten`
+                ? ` · ${t("charts.feedCount", { n: props.series[item.dataIndex]?.feeds ?? 0 }, props.series[item.dataIndex]?.feeds ?? 0)}`
                 : ""),
       },
     },

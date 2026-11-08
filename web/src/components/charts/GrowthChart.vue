@@ -11,6 +11,7 @@ import {
   type GrowthMeasure,
 } from "../../data/who/index.ts";
 import { baseScaleStyle, useChartColors } from "./chartSetup.ts";
+import { useI18n } from "vue-i18n";
 
 /**
  * Growth against the WHO percentile curves.
@@ -28,6 +29,7 @@ const props = defineProps<{
   maxAgeDays: number;
 }>();
 
+const { t } = useI18n();
 const colors = useChartColors();
 
 /** Anchor points every two weeks — no denser is needed for a smooth curve. */
@@ -57,7 +59,7 @@ const chartData = computed(() => ({
       order: 3,
     })),
     {
-      label: "Gemessen",
+      label: t("charts.measured"),
       data: props.points.map((p) => ({ x: p.ageDays, y: p.value })),
       borderColor: colors.value.feed,
       backgroundColor: colors.value.feed,
@@ -89,7 +91,8 @@ const options = computed<ChartOptions<"line">>(() => ({
         stepSize: 61,
         callback: (value) => {
           const months = Math.round(Number(value) / 30.44);
-          return months === 0 ? "Geburt" : `${months} Mon`;
+          // Short on purpose: this sits under a numeric axis, not in a sentence.
+          return months === 0 ? t("charts.axisBirth") : t("charts.axisMonths", { n: months });
         },
       },
     },
@@ -115,7 +118,9 @@ const options = computed<ChartOptions<"line">>(() => ({
         title: (items) => {
           const days = Number(items[0]?.parsed.x ?? 0);
           const weeks = Math.floor(days / 7);
-          return weeks < 14 ? `Woche ${weeks}` : `${Math.round(days / 30.44)} Monate`;
+          return weeks < 14
+            ? t("common.weekN", { n: weeks })
+            : t("charts.monthsN", { n: Math.round(days / 30.44) });
         },
         label: (item) => {
           const value = Number(item.parsed.y);

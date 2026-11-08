@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 /**
  * Nappy grid: 14 days × 24 hours.
  *
@@ -14,18 +15,26 @@ defineProps<{
   rows: { day: string; label: string; hours: ({ kind: string; count: number } | null)[] }[];
 }>();
 
-const KIND_LABEL: Record<string, string> = {
-  empty: "leer",
-  wet: "feucht",
-  soiled: "voll",
-  both: "voll",
+const { t } = useI18n();
+
+/**
+ * The same three words the history and the home screen use — taken from the same keys,
+ * not spelled out again here. They sat in this file as German literals, which is how the
+ * English app ended up with a legend reading "leer · feucht · voll".
+ *
+ * "both" is the legacy fourth kind: nothing writes it any more, and it reads as soiled
+ * wherever it still turns up.
+ */
+const KIND_KEY: Record<string, string> = {
+  empty: "diaper.empty",
+  wet: "diaper.wet",
+  soiled: "diaper.soiled",
+  both: "diaper.soiled",
 };
 
-const LEGEND = [
-  { kind: "empty", label: "leer" },
-  { kind: "wet", label: "feucht" },
-  { kind: "soiled", label: "voll" },
-];
+const kindLabel = (kind: string) => t(KIND_KEY[kind] ?? "diaper.empty");
+
+const LEGEND = ["empty", "wet", "soiled"] as const;
 </script>
 
 <template>
@@ -37,7 +46,7 @@ const LEGEND = [
         </caption>
         <thead>
           <tr>
-            <th scope="col" class="corner"><span class="visually-hidden">Tag</span></th>
+            <th scope="col" class="corner"><span class="visually-hidden">{{ $t("charts.day") }}</span></th>
             <th v-for="hour in 24" :key="hour" scope="col" class="hour">
               {{ (hour - 1) % 6 === 0 ? hour - 1 : "" }}
             </th>
@@ -53,12 +62,12 @@ const LEGEND = [
               :class="cell ? `cell--${cell.kind}` : ''"
               :title="
                 cell
-                  ? `${row.label} ${hour}:00 — ${KIND_LABEL[cell.kind]}${cell.count > 1 ? ` (${cell.count}×)` : ''}`
+                  ? `${row.label} ${hour}:00 — ${kindLabel(cell.kind)}${cell.count > 1 ? ` (${cell.count}×)` : ''}`
                   : undefined
               "
             >
               <span v-if="cell" class="visually-hidden">
-                {{ KIND_LABEL[cell.kind] }}
+                {{ kindLabel(cell.kind) }}
               </span>
             </td>
           </tr>
@@ -67,9 +76,9 @@ const LEGEND = [
     </div>
 
     <ul class="legend">
-      <li v-for="item in LEGEND" :key="item.kind">
-        <span class="legend__swatch" :class="`cell--${item.kind}`" />
-        {{ item.label }}
+      <li v-for="kind in LEGEND" :key="kind">
+        <span class="legend__swatch" :class="`cell--${kind}`" />
+        {{ kindLabel(kind) }}
       </li>
     </ul>
   </div>
