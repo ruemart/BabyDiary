@@ -54,6 +54,30 @@ export type MedicineRow = {
   active: boolean;
 };
 
+/** One day of the whole history: how far apart the bottles stood. */
+export type GapDay = {
+  day: string;
+  label: string;
+  /** The median gap of that day. Null on days without a usable gap. */
+  typicalMinutes: number | null;
+  /** The longest gap that STARTED that day — in practice the night stretch. */
+  longestMinutes: number | null;
+  /** Seven-day medians, so the lines describe a development and not one bad night. */
+  trendTypical: number | null;
+  trendLongest: number | null;
+  gaps: number;
+};
+
+export type FeedGaps = {
+  days: GapDay[];
+  /** Where the trend stands now and where it started — the sentence above the chart. */
+  firstDay: string | null;
+  typicalNow: number | null;
+  typicalStart: number | null;
+  longestEver: number | null;
+  longestEverDay: string | null;
+};
+
 export type BathCell = { day: string; count: number; isFuture: boolean };
 
 export type BathCalendar = {
@@ -341,6 +365,113 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     };
   });
 
+  /**
+   * How far apart the bottles stand — over the WHOLE history, not the chart window.
+   *
+   * Every other chart here looks at the last 30 days, because that is the horizon for
+   * "is she drinking enough this week". This one answers a slower question: does the
+   * rhythm stretch as she grows? That is invisible in a month and obvious across a
+   * year, so this series starts at the first bottle ever recorded and never scrolls off.
+   *
+   * A gap belongs to the day it STARTS. The long one runs from the late evening into
+   * the small hours; counted on the day it ends, the night stretch would be filed under
+   * the next morning and the whole picture would sit a day to the right.
+   *
+   * Both lines are seven-day MEDIANS, not means. One evening when somebody forgot to
+   * record a bottle turns two three-hour gaps into one of six, and a mean carries that
+   * for a week. The median shrugs it off — which matters more here than anywhere else,
+   * because this chart is read for its slope.
+   */
+  const feedGaps = computed<FeedGaps>(() => {
+    const tz = timezone();
+    const today = localDayKey(new Date(), tz);
+
+    const ordered = entries()
+      .filter((e) => e.type === "feed")
+      .map((e) => e.startedAt)
+      .sort((a, b) => a.localeCompare(b));
+
+    const perDay = new Map<string, number[]>();
+    for (let i = 1; i < ordered.length; i++) {
+      const minutes = (Date.parse(ordered[i]!) - Date.parse(ordered[i - 1]!)) / 60_000;
+      // Two entries within a quarter of an hour are a correction, or both parents
+      // recording the same bottle — the same rule the reminder uses.
+      if (minutes <= MIN_GAP_MINUTES) continue;
+      const day = localDayKey(ordered[i - 1]!, tz);
+      const list = perDay.get(day);
+      if (list) list.push(minutes);
+      else perDay.set(day, [minutes]);
+    }
+
+    const first = ordered.length ? localDayKey(ordered[0]!, tz) : null;
+    if (!first) {
+      return {
+        days: [],
+        firstDay: null,
+        typicalNow: null,
+        typicalStart: null,
+        longestEver: null,
+        longestEverDay: null,
+      };
+    }
+
+    // Gapless from the first bottle to today: a day nobody recorded is a hole in the
+    // line, not a day that silently closes up.
+    const days: GapDay[] = [];
+    for (let day = first; day <= today; day = addDays(day, 1)) {
+      const list = perDay.get(day);
+      days.push({
+        day,
+        label: day.slice(8) + "." + day.slice(5, 7) + ".",
+        typicalMinutes: list ? median(list) : null,
+        longestMinutes: list ? Math.max(...list) : null,
+        trendTypical: null,
+        trendLongest: null,
+        gaps: list?.length ?? 0,
+      });
+    }
+
+    for (let i = 0; i < days.length; i++) {
+      const window = days.slice(Math.max(0, i - 6), i + 1);
+      days[i]!.trendTypical = median(
+        window.map((d) => d.typicalMinutes).filter((v): v is number => v !== null),
+      );
+      days[i]!.trendLongest = median(
+        window.map((d) => d.longestMinutes).filter((v): v is number => v !== null),
+      );
+    }
+
+    const longest = days.reduce<GapDay | null>(
+      (best, d) =>
+        d.longestMinutes !== null && (best === null || d.longestMinutes > best.longestMinutes!)
+          ? d
+          : best,
+      null,
+    );
+    const withValue = days.filter((d) => d.typicalMinutes !== null);
+    const withTrend = days.filter((d) => d.trendTypical !== null);
+
+    /**
+     * "Where it started" is the first WEEK, not the first day.
+     *
+     * The trend at day one is a median of a single day, and the sentence under the chart
+     * would swing by half an hour depending on how that one day happened to go. Seven
+     * days of data is the smallest thing worth calling a starting rhythm.
+     */
+    const start = median(
+      withValue.slice(0, 7).map((d) => d.typicalMinutes!),
+    );
+
+    return {
+      days,
+      firstDay: first,
+      typicalNow: withTrend[withTrend.length - 1]?.trendTypical ?? null,
+      typicalStart: start,
+      longestEver: longest?.longestMinutes ?? null,
+      longestEverDay: longest?.day ?? null,
+    };
+  });
+
   /** Key figures for the tiles above the charts. */
   const summary = computed(() => {
     /**
@@ -387,7 +518,20 @@ export function useStats(entries: () => LocalEntry[], timezone: () => string, da
     };
   });
 
-  return { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, summary };
+  return { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, feedGaps, summary };
+}
+
+/** Below this, two entries are a correction rather than a rhythm. */
+const MIN_GAP_MINUTES = 15;
+
+/** The middle value, rounded — or null when there is nothing to take a middle of. */
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? Math.round((sorted[middle - 1]! + sorted[middle]!) / 2)
+    : Math.round(sorted[middle]!);
 }
 
 /**

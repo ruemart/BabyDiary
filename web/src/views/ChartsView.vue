@@ -5,19 +5,22 @@ import { useStats } from "../composables/useStats.ts";
 import DailyVolumeChart from "../components/charts/DailyVolumeChart.vue";
 import RhythmChart from "../components/charts/RhythmChart.vue";
 import DiaperHeatmap from "../components/charts/DiaperHeatmap.vue";
+import FeedGapChart from "../components/charts/FeedGapChart.vue";
 import MedicineGrid from "../components/charts/MedicineGrid.vue";
 import BathCalendar from "../components/charts/BathCalendar.vue";
 import GrowthChart from "../components/charts/GrowthChart.vue";
-import { ageInDays } from "@babydiary/shared";
+import { ageInDays, calendarDateLabel } from "@babydiary/shared";
 import { zScore, zToPercentile, type GrowthMeasure } from "../data/who/index.ts";
 import { useI18n } from "vue-i18n";
+import { useDuration } from "../i18n/format.ts";
 
 const { t } = useI18n();
+const duration = useDuration();
 
 const DAYS = 30;
 
 const data = useData();
-const { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, summary } = useStats(
+const { dailyTotals, rhythm, diaperGrid, medicineDays, bathDays, feedGaps, summary } = useStats(
   () => data.entries,
   () => data.timezone,
   DAYS,
@@ -32,6 +35,32 @@ const hasFeeds = computed(() => rhythm.value.length > 0);
  * chart that stays hidden because nobody recorded a bottle would be a puzzle.
  */
 const hasBaths = computed(() => bathDays.value.total > 0);
+/** Below a week there is no development to show, only two dots. */
+const hasGapTrend = computed(() => feedGaps.value.days.length >= 7);
+
+/**
+ * The sentence under the chart: where the rhythm started and where it stands.
+ *
+ * Said in plain words rather than left to be read off the axis — and honestly: if the
+ * two numbers are the same, it says the rhythm has held rather than inventing a trend.
+ */
+const gapSummary = computed(() => {
+  const { typicalStart, typicalNow, longestEver, longestEverDay } = feedGaps.value;
+  if (typicalStart === null || typicalNow === null) return "";
+
+  const change = Math.abs(typicalNow - typicalStart) < 20
+    ? t("charts.gapSteady", { now: duration(typicalNow) })
+    : t(typicalNow > typicalStart ? "charts.gapLonger" : "charts.gapShorter", {
+        from: duration(typicalStart),
+        now: duration(typicalNow),
+      });
+
+  if (longestEver === null || longestEverDay === null) return change;
+  return `${change} ${t("charts.gapRecord", {
+    duration: duration(longestEver),
+    date: calendarDateLabel(longestEverDay),
+  })}`;
+});
 const hasMedicine = computed(() => medicineDays.value.length > 0);
 
 /* ── Wachstum ─────────────────────────────────────────────────────────────── */
@@ -139,6 +168,14 @@ const trendText = computed(() => {
           {{ $t("charts.rhythmLead") }}
         </p>
         <RhythmChart :points="rhythm" :days="DAYS" />
+      </section>
+
+      <!-- The only chart here that is not windowed: a rhythm stretches over months. -->
+      <section v-if="hasGapTrend" class="card">
+        <h2 class="card__title">{{ $t("charts.gapTitle") }}</h2>
+        <p class="card__lead">{{ $t("charts.gapLead") }}</p>
+        <FeedGapChart :gaps="feedGaps" />
+        <p class="card__note">{{ gapSummary }}</p>
       </section>
 
       <section class="card">
