@@ -28,8 +28,8 @@ services:
     environment:
       DATA_DIR: /data
       PORT: "3010"
-      HOUSEHOLD_SECRET: ${HOUSEHOLD_SECRET:?HOUSEHOLD_SECRET fehlt - siehe .env.example}
-      COOKIE_SECRET: ${COOKIE_SECRET:?COOKIE_SECRET fehlt - siehe .env.example}
+      HOUSEHOLD_SECRET: ${HOUSEHOLD_SECRET:?HOUSEHOLD_SECRET is missing - see .env.example}
+      COOKIE_SECRET: ${COOKIE_SECRET:?COOKIE_SECRET is missing - see .env.example}
       # Behind the tunnel the browser sees HTTPS -> the cookie has to be `secure`.
       COOKIE_SECURE: "true"
       LOG_LEVEL: ${LOG_LEVEL:-info}

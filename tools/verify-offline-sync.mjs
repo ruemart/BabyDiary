@@ -11,7 +11,7 @@ import { chromium } from "@playwright/test";
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:8090";
 const INVITE = process.env.INVITE;
-if (!INVITE) throw new Error("INVITE fehlt (HOUSEHOLD_SECRET aus .env)");
+if (!INVITE) throw new Error("INVITE is missing (HOUSEHOLD_SECRET from .env)");
 
 const results = [];
 const check = (name, ok, detail = "") => {

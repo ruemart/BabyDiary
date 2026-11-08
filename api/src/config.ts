@@ -5,7 +5,7 @@ function required(name: string): string {
   if (!value || value.length < 16) {
     throw new Error(
       `${name} is missing or too short (at least 16 characters). ` +
-        `Erzeugen mit: openssl rand -hex 32`,
+        `Generate one with: openssl rand -hex 32`,
     );
   }
   return value;
